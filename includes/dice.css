@@ -1,0 +1,87 @@
+body {
+    background-color: rgba(232, 242, 247, 0.6);
+}
+
+.center_field {
+    position: absolute;
+    text-align: center;
+    height: 100%;
+    width: 100%;
+}
+
+.center_field * {
+    position: relative;
+    font-family: Trebuchet MS;
+    padding: 5px 15px;
+}
+
+.center_field br {
+    background-color: rgba(0, 0, 0, 0);
+}
+
+.bottom_field {
+    position: absolute;
+    text-align: center;
+    bottom: 5px;
+    width: inherit;
+    padding: 0px;
+}
+
+#label {
+    font-size: 32pt;
+    word-spacing: 0.5em;
+    padding: 5px 15px;
+    color: rgba(21, 26, 26, 0.6);
+}
+
+#labelhelp {
+    font-size: 12pt;
+    padding: 5px 15px;
+    color: rgba(21, 26, 26, 0.5);
+    bottom: 50px;
+}
+
+#set {
+    text-align: center;
+    font-size: 26pt;
+    border: none;
+    color: rgb(255, 255, 255);
+    background-color: rgba(0, 0, 0, 0.6);
+    margin-bottom: 5px;
+}
+
+#sethelp, #colorname {
+    font-size: 12pt;
+    color: rgba(21, 26, 26, 0.5);
+    background: none;
+}
+
+#selector_div button {
+    width: 5em;
+}
+
+#selector_div select {
+    width: 9em;
+}
+
+optgroup {
+    background-color: rgba(0, 0, 0, 0.6);
+}
+
+#selector_div button, #selector_div select {
+    font-size: 12pt;
+    color: rgb(255, 255, 255);
+    background-color: rgba(0, 0, 0, 0.6);
+    cursor: pointer;
+    border: none;
+    line-height: 1.3;
+}
+
+#colorname {
+    top: 13%;
+}
+
+.dice_place {
+    position: absolute;
+    border: solid black 1px;
+}
