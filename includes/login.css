@@ -1,0 +1,142 @@
+.loginform {
+    text-align: center;
+}
+
+.loginform * {
+    font-size: 12pt;
+    position: relative;
+    font-family: Trebuchet MS;
+}
+
+.loginform p {
+    margin-top: 0.7em;
+}
+
+.loginform .lform * {
+    font-size: 16pt;
+    margin-top: 0.3em;
+    color: rgba(21, 26, 26, 0.7);
+}
+
+.loginform .biglabel {
+    font-size: 32pt;
+    margin-bottom: 50px;
+    color: rgba(21, 26, 26, 0.6);
+}
+
+.smalllabel {
+    text-align: center;
+    color: rgba(21, 26, 26, 0.6);
+    position: absolute;
+    width: 100%;
+    bottom: 1.2em;
+}
+
+.info-field {
+    font-family: Trebuchet MS;
+    text-align: center;
+    font-size: 12pt;
+    color: rgba(21, 26, 26, 0.6);
+    position: absolute;
+    width: 100%;
+    bottom: 1em;
+}
+
+.error-text {
+    font-family: Trebuchet MS;
+    text-align: center;
+    font-size: 12pt;
+    color: red;
+    position: absolute;
+    width: 100%;
+    top: 3.5em;
+}
+
+.loginform input {
+    padding: 3px 15px;
+    width: 10em;
+    text-align: center;
+    border: solid 2px rgba(0, 0, 0, 0.3);
+    color: rgba(0, 0, 0, 0.8);
+}
+
+.loginform button {
+    font-size: 20pt;
+    color: rgb(255, 255, 255);
+    background-color: rgba(0, 0, 0, 0.6);
+    cursor: pointer;
+    border: none;
+    width: 5em;
+    padding: 5px 15px;
+    border: none;
+}
+
+.chat-notation {
+    border: 1px rgba(0, 0, 0, 0.2) solid;
+    font-style: normal;
+    padding: 0px 3px;
+    background-color: rgba(0, 0, 0, 0.08);
+    border-radius: 3px;
+}
+
+
+.teal-chat:before {
+    content: '';
+    display: inline-block;
+    height: 100%;
+    vertical-align: bottom;
+}
+.teal-chat {
+    font-family: Trebuchet MS;
+    color: rgba(21, 26, 26, 0.8);
+    padding: 5px 15px;
+    overflow-y: scroll;
+}
+
+.teal-chat-input {
+    font-size: 80%;
+    font-family: Trebuchet MS;
+    height: 2em;
+    resize: none;
+    margin-top: 10px;
+    width: 100%;
+    vertical-align: bottom;
+}
+
+.teal-chat-time {
+    color: grey;
+    font-size: 70%;
+}
+ 
+.teal-chat-text {
+    white-space: pre;
+}
+
+.teal-chat-info {
+    color: grey;
+    font-style: italic;
+}
+
+.teal-chat-user {
+    font-weight: bold;
+}
+
+.teal-chat-row-own .teal-chat-user {
+    color: grey;
+}
+
+.teal-chat-unconfirmed * {
+    color: lightgrey;
+}
+
+#logout {
+    position: absolute;
+    bottom: 40px;
+    right: 26px;
+    top: auto;
+    font-size: 100%;
+    background-color: rgba(0, 0, 0, 0.6);
+    font-family: Trebuchet MS;
+    border: none;
+    color: white;
+}

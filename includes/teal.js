@@ -151,7 +151,7 @@ else {
 
 teal.rpc = function(params, callback, noparse) {
     var ajax = new XMLHttpRequest();
-    ajax.open("post", 'f', true);
+    ajax.open("post", './tealrpc.php', true);
     ajax.onreadystatechange = function() {
         if (ajax.readyState == 4)
             callback.call(ajax, noparse ? ajax.responseText : JSON.parse(ajax.responseText));

@@ -785,6 +785,8 @@
     function shift_dice_faces(dice, value, res) {
         var r = that.dice_face_range[dice.dice_type];
         if (dice.dice_type == 'd10' && value == 10) value = 0;
+        if (dice.dice_type == 'd10' && res == 10) res = 0;
+        if (dice.dice_type == 'd100') res /= 10;
         if (!(value >= r[0] && value <= r[1])) return;
         var num = value - res;
         var geom = dice.geometry.clone();
