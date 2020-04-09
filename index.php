@@ -53,6 +53,8 @@
             'Custom Sets' => array(
                 'Pastel Sunset' => 'breebaby',
                 'Pink Dreams' => 'pinkdreams',
+                'Inspired' => 'inspired',
+                'Blood Moon' => 'bloodmoon',
             ),
             'Memes' => array(
                 'COVID-19' => 'covid',

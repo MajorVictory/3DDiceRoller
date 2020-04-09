@@ -124,11 +124,17 @@ function dice_initialize(container) {
 
         switch (colorsetname.toLowerCase()) {
 
-            case 'white': case 'radiant':
+            case 'white':
                 fgcolor = '#000000'; 
                 bgcolor = '#FFFFFF'; 
                 texture = {name:'',texture:''};
                 desc = 'White';
+                break;
+            case 'radiant': 
+                fgcolor = '#7E5400'; 
+                bgcolor = '#C4C4B6'; 
+                texture = getTexture('ice');
+                desc = 'Fire';
                 break;
             case 'fire': 
                 fgcolor = ['#000000','#000000','#000000','#ffffff','#ffffff']; 
@@ -234,6 +240,18 @@ function dice_initialize(container) {
                 bgcolor = ['#ff007c', '#df73ff','#f400a1','#df00ff','#ff33cc'];  
                 texture = getTexture('marble');
                 desc = 'Pink Dreams, for Ethan';
+                break;
+            case 'inspired': 
+                fgcolor = '#936910';
+                bgcolor = '#C4C4B6';  
+                texture = {name:'',texture:''};
+                desc = 'Inspired, for Austin';
+                break;
+            case 'bloodmoon': 
+                fgcolor = '#936910';
+                bgcolor = '#400000';  
+                texture = getTexture('marble');
+                desc = 'Blood Moon, for Jared';
                 break;
             case 'covid': 
                 var colors = getColorSet('acid');
