@@ -164,7 +164,7 @@ teal.rpc = function(params, callback, noparse) {
 }*/
 
 teal.openSocket = function() {
-    this.socket = (this.socket == null || this.socket.readyState > WebSocket.OPEN) ? new WebSocket('ws://localhost:8080') : this.socket;
+    this.socket = (this.socket == null || this.socket.readyState > WebSocket.OPEN) ? new WebSocket('ws://192.168.1.100:25565') : this.socket;
 
     console.log(this.socket);
     return this.socket;

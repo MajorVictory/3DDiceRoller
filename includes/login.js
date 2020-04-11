@@ -32,6 +32,13 @@ function unpack_vectors(vectors) {
     }
 }
 
+function preload_and_init() {
+    var isReady = ImageLoader(sources, function(images) {
+        diceTextures = images;
+        login_initialize($t.id('desk'));
+    });
+}
+
 function login_initialize(container) {
     var cid, user, room;
     var connection_error_text = "connection error, please reload the page";
@@ -40,6 +47,8 @@ function login_initialize(container) {
     var label = $t.id('label');
     var set = $t.id('set');
     var selector_div = $t.id('selector_div');
+    var color_select = $t.id('color');
+    var texture_select = $t.id('texture');
     var info_div = $t.id('info_div');
     var desk = $t.id('desk');
     var log = new $t.chat.chat_box($t.id('log'));
@@ -77,6 +86,16 @@ function login_initialize(container) {
         }
     }
 
+    var parent_notation = $t.id('parent_notation');
+    var parent_roll = $t.id('parent_roll');
+    $t.bind(parent_roll, 'change', function() { 
+        //alert("Rolling: "+parent_notation.value);
+        if (parent_roll.value == "1") {
+            set.value = parent_notation.value;
+            $t.raise_event($t.id('throw'), 'mouseup');
+        }
+    });
+
     function resize() {
         /*var w = window.innerWidth - 300 + 'px';
         var h = window.innerHeight + 'px';
@@ -113,15 +132,57 @@ function login_initialize(container) {
         $t.bind(set, 'focus', function(ev) { $t.set(container, { class: '' }); });
         $t.bind(set, 'blur', function(ev) { $t.set(container, { class: 'noselect' }); });
 
+        function on_color_select_change(ev) { 
+
+            $t.selectByValue($t.id('texture'), '');
+            applyColorSet($t.id('color').value, '');
+            $t.rpc( { method: 'colorset', colorset: $t.id('color').value });
+        }
+        $t.bind(color_select, 'keyup', on_color_select_change);
+        $t.bind(color_select, 'change', on_color_select_change);
+        $t.bind(color_select, 'mousedown', function(ev) { ev.stopPropagation(); });
+        $t.bind(color_select, 'mouseup', function(ev) { ev.stopPropagation(); });
+        $t.bind(color_select, 'focus', function(ev) { $t.set(container, { class: '' }); });
+        $t.bind(color_select, 'blur', function(ev) { $t.set(container, { class: 'noselect' }); });
+
+        function on_texture_select_change(ev) {  
+            applyColorSet('', $t.id('texture').value);
+            $t.rpc( { method: 'texture', texture: $t.id('texture').value });
+        }
+        $t.bind(texture_select, 'keyup', on_texture_select_change);
+        $t.bind(texture_select, 'change', on_texture_select_change);
+        $t.bind(texture_select, 'mousedown', function(ev) { ev.stopPropagation(); });
+        $t.bind(texture_select, 'mouseup', function(ev) { ev.stopPropagation(); });
+        $t.bind(texture_select, 'focus', function(ev) { $t.set(container, { class: '' }); });
+        $t.bind(texture_select, 'blur', function(ev) { $t.set(container, { class: 'noselect' }); });
+
         $t.bind($t.id('clear'), ['mouseup', 'touchend'], function(ev) {
             ev.stopPropagation();
             set.value = '0';
             on_set_change();
         });
 
+        var params = $t.get_url_params();
+
+        var colors = getColorSet('');
+        $t.dice.label_color = colors.foreground;
+        $t.dice.dice_color = colors.background;
+        $t.dice.dice_texture = colors.texture;
+
+        applyColorSet(params.color, params.texture);
+        $t.dice.setRandomMaterialInfo();
+
         box = new $t.dice.dice_box(canvas, { w: 500, h: 300 });
         box.use_adapvite_timestep = false;
         box.animate_selector = false;
+
+
+        if (params.notation) {
+            set.value = params.notation;
+        }
+        if (params.roll) {
+            $t.raise_event($t.id('throw'), 'mouseup');
+        }
 
         $t.bind(window, 'resize', function() {
             resize();
@@ -273,14 +334,17 @@ function login_initialize(container) {
                     res.time, log.roll_uuid = $t.uuid(), true);
             info_div.style.display = 'none';
             selector_div.style.display = 'none';
+            if (res.colorset.length > 0 || res.texture.length > 0) applyColorSet(res.colorset, res.texture, false);
             box.clear();
             box.rolling = true;
             unpack_vectors(res.vectors);
             box.roll(res.vectors, res.notation.result, function(result) {
                 var r = result.join(' ');
-                if (res.notation.constant) r += ' +' + res.notation.constant;
-                if (result.length > 1) r += ' = ' + 
-                        (result.reduce(function(s, a) { return s + a; }) + res.notation.constant);
+                if (res.notation.constant) {
+                    if (res.notation.constant > 0) r += ' +' + res.notation.constant;
+                    else r += ' -' + Math.abs(res.notation.constant);
+                }
+                r += ' = ' + (result.reduce(function(s, a) { return s + a; }) + res.notation.constant);
                 label.innerHTML = r;
                 info_div.style.display = 'inline-block';
                 box.rolling = false;
@@ -293,6 +357,12 @@ function login_initialize(container) {
         chat: function(res) {
             if (res.uuid) log.confirm_message(res.uuid);
             else log.add_message(res.user, res.text, res.time);
+        },
+        colorset: function(res) {
+            alert("colorset: "+res.colorset);
+        },
+        texture: function(res) {
+            alert("texture: "+res.texture);
         }
     };
 
@@ -300,6 +370,7 @@ function login_initialize(container) {
         $t.rpc(
             { method: 'info', cid: cid },
             function(response) {
+                if(response.method != 'info') return;
                 console.log("process_channel: ");
                 console.log(response);
 
