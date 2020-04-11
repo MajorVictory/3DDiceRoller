@@ -59,14 +59,14 @@ function getColorSet(colorsetname) {
         case 'white':
             fgcolor = '#000000'; 
             bgcolor = '#FFFFFF'; 
-            texture = {name:'',texture:''};
+            texture = getTexture('none');
             desc = 'White';
             break;
         case 'radiant': 
             fgcolor = '#7E5400'; 
             bgcolor = '#C4C4B6'; 
             texture = getTexture('ice');
-            desc = 'Fire';
+            desc = 'Radiant';
             break;
         case 'fire': 
             fgcolor = ['#000000','#000000','#000000','#ffffff','#ffffff']; 
@@ -81,7 +81,7 @@ function getColorSet(colorsetname) {
             desc = 'Ice';
             break; 
         case 'poison': 
-            fgcolor = ['#000000','#000000','#ffffff','#ffffff','#ffffff']; 
+            fgcolor = ['#ffffff','#ffffff','#ffffff','#ffffff','#ffffff']; 
             bgcolor = ['#313866','#504099','#66409e','#934fc3','#c949fc']; 
             texture = getTexture('marble');
             desc = 'Poison';
@@ -139,7 +139,7 @@ function getColorSet(colorsetname) {
         case 'test': 
             fgcolor = ['#00FF00','#0000FF','#FF0000']; 
             bgcolor = ['#FF0000','#00FF00','#0000FF']; 
-            texture = {name:'',texture:''};
+            texture = getTexture('none');
             desc = 'Test';
             break; 
         case 'random': 
@@ -176,7 +176,7 @@ function getColorSet(colorsetname) {
         case 'inspired': 
             fgcolor = '#936910';
             bgcolor = '#C4C4B6';  
-            texture = {name:'',texture:''};
+            texture = getTexture('none');
             desc = 'Inspired, for Austin';
             break;
         case 'bloodmoon': 
@@ -207,12 +207,12 @@ function getColorSet(colorsetname) {
         case 'necrotic': case 'black': default: 
             fgcolor = '#ffffff'; 
             bgcolor = '#000000'; 
-            texture = {name:'',texture:''};
+            texture = getTexture('none');
             desc = 'Default Black';
             break;
     }
 
-    var colors = {foreground: fgcolor, background: bgcolor, texture: texture.texture, description: desc};
+    var colors = {foreground: fgcolor, background: bgcolor, texture: texture, description: desc};
     return colors;
 }
 
@@ -236,27 +236,33 @@ function getTexture(texturename) {
     return {name:'',texture:''};
 }
 
-function applyColorSet(colorset, texture, update = true) {
+function applyColorSet(colorset, texture = null, update = true) {
 
 
     if (colorset && colorset.length > 0) {
 		var colordata = getColorSet(colorset);
         $t.dice.label_color = colordata.foreground;
         $t.dice.dice_color = colordata.background;
-        $t.dice.dice_texture = colordata.texture;
+        $t.dice.dice_texture = colordata.texture.texture;
+
+        if (texture == null) texture = colordata.texture.name;
 
 	    if (update) {
+	    	$t.empty($t.id('login_colorname'));
 	    	$t.empty($t.id('colorname'));
+		    $t.inner("Dice Theme: "+colordata.description, $t.id('login_colorname'));
 		    $t.inner("Dice Theme: "+colordata.description, $t.id('colorname'));
+		    $t.selectByValue($t.id('login_color'), colorset);
 		    $t.selectByValue($t.id('color'), colorset);
 	    }
     }
 
-    if (texture && texture.length > 0) {
+    if (texture || texture == '') {
 		var texturedata = getTexture(texture);
         $t.dice.dice_texture = texturedata.texture;
 
         if (update) {
+		    $t.selectByValue($t.id('login_texture'), texturedata.name);
 		    $t.selectByValue($t.id('texture'), texturedata.name);
 	    }
     }

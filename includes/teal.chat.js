@@ -67,8 +67,7 @@
         var t = new Date(); if (time) t.setTime(time);
         t = t.toTimeString().substring(0, 5);
         m.innerHTML = '<span class="teal-chat-time">' + t + '</span> <span class="teal-chat-user">' 
-            + (user == this.last_user ? '...' : user) + '</span><span>'
-            + (user == this.last_user ? '' : ':') + ' </span>';
+            + user + '</span><span>: </span>';
         $t.inner(text, $t.element('span', { 'class': 'teal-chat-text' }, m));
         return m;
     }

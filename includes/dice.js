@@ -331,9 +331,11 @@
     }
 
     this.material_options = {
-        specular: 0x172022,
-        color: 0xf0f0f0,
-        shininess: 10,
+        //specular: 0x172022,
+        //color: 0xf0f0f0,
+        specular: 0x0,
+        color: 0xb5b5b5,
+        shininess: 0,
         shading: THREE.FlatShading,
     };
     //this.label_color = '';

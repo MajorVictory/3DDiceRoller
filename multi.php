@@ -5,13 +5,61 @@
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
 <meta name="keywords" content="DnD, dangeon and dragons, roleplay, dice, roller, 3D, RPG, wargame"/>
 <meta name="description" content="Online 3D dice roller"/>
-<title>teal multiplayer 3d dice roller</title>
+<title>Major's 3D Dice</title>
 
 <style type="text/css">@import "./includes/main.css";</style>
 <style type="text/css">@import "./includes/dice.css";</style>
 <style type="text/css">@import "./includes/login.css";</style>
 <!-- Original Source: http://www.teall.info/2014/01/online-3d-dice-roller.html -->
 
+<?php
+$ColorSets = array(
+    'Damage Types' => array(
+        'Acid' => 'acid',
+        'Air' => 'air',
+        'Earth' => 'earth',
+        'Fire' => 'fire',
+        'Force' => 'force',
+        'Lightning' => 'lightning',
+        'Necrotic' => 'necrotic',
+        'Poison' => 'poison',
+        'Psychic' => 'psychic',
+        'Radiant' => 'radiant',
+        'Thunder' => 'thunder',
+        'Water' => 'water'
+    ),
+    'Colors' => array(
+        'Black' => 'black',
+        'White' => 'white',
+        'Random' => 'random',
+    ),
+    'Custom Sets' => array(
+        'Pastel Sunset' => 'breebaby',
+        'Pink Dreams' => 'pinkdreams',
+        'Inspired' => 'inspired',
+        'Blood Moon' => 'bloodmoon',
+    ),
+    'Memes' => array(
+        'COVID-19' => 'covid',
+        'Isabelle' => 'isabelle',
+        'Nicholas Cage' => 'thecage',
+    )
+);
+
+$Textures = array(
+    'None' => '',
+    'Random' => 'random',
+    'Cloudy' => 'cloudy',
+    'Fire' => 'fire',
+    'Ice' => 'ice',
+    'Water' => 'water',
+    'Marble' => 'marble',
+    'Speckles' => 'noise',
+    'Isabelle' => 'isabelle',
+    'Nicholas Cage' => 'thecage'
+);
+
+?>
 </head>
 <body style="margin: 0; overflow: hidden">
     <input type="hidden" id="parent_notation" value="">
@@ -29,10 +77,27 @@
     <div style="margin-left: auto; margin-right: auto; width: 100%">
         <div class="loginform">
             <div class="lform">
-                <div>player</div>
+                <div>Player Name</div>
                 <input id="input_user" type="text" value=""></input>
-                <div>room</div>
+                <div>Room Name</div>
                 <input id="input_room" type="text" value=""></input>
+                <div>Dice</div>
+                <select id="login_color" name="login_color">
+                    <?php foreach ($ColorSets as $group => $values) {
+                        ?><optgroup label="<?= $group ?>"><?
+                        foreach ($values as $name => $value) {
+                            ?> <option value="<?= $value ?>"<?= ($_GET['color'] == $value) ? 'selected="selected"' : '' ?>><?= $name ?></option> <?
+                        }
+                        ?></optgroup><?
+                    } ?>
+                </select>
+                <select id="login_texture" name="login_texture">
+                    <?php foreach ($Textures as $name => $value) {
+                        ?> <option value="<?= $value ?>"<?= ($_GET['texture'] == $value) ? 'selected="selected"' : '' ?>><?= $name ?></option> <?
+                    } ?>
+                </select>
+                <br/>
+                <span id="login_colorname"></span>
             </div>
             <br/>
             <button id="button_join">enter</button>
@@ -56,7 +121,7 @@
         </div>
         <div class="center_field">
             <div class="bottom_field">
-                <span id="labelhelp">click to continue or tap and drag again</span>
+                <span id="labelhelp"><!--click to continue or tap and drag again--></span>
             </div>
         </div>
     </div>
@@ -67,53 +132,6 @@
                 tap and drag on free space of screen or hit throw button to roll-->
             </div>
         </div>
-        <?php
-        $ColorSets = array(
-            'Damage Types' => array(
-                'Acid' => 'acid',
-                'Air' => 'air',
-                'Earth' => 'earth',
-                'Fire' => 'fire',
-                'Force' => 'force',
-                'Lightning' => 'lightning',
-                'Necrotic' => 'necrotic',
-                'Poison' => 'Poison',
-                'Psychic' => 'psychic',
-                'Radiant' => 'radiant',
-                'Thunder' => 'thunder',
-                'Water' => 'water'
-            ),
-            'Colors' => array(
-                'Black' => 'black',
-                'White' => 'white',
-                'Random' => 'random',
-            ),
-            'Custom Sets' => array(
-                'Pastel Sunset' => 'breebaby',
-                'Pink Dreams' => 'pinkdreams',
-                'Inspired' => 'inspired',
-                'Blood Moon' => 'bloodmoon',
-            ),
-            'Memes' => array(
-                'COVID-19' => 'covid',
-                'Isabelle' => 'isabelle',
-                'Nicholas Cage' => 'thecage',
-            )
-        );
-
-        $Textures = array(
-            'Random' => 'random',
-            'Cloudy' => 'cloudy',
-            'Fire' => 'fire',
-            'Ice' => 'ice',
-            'Water' => 'water',
-            'Marble' => 'marble',
-            'Speckles' => 'noise',
-            'Isabelle' => 'isabelle',
-            'Nicholas Cage' => 'thecage'
-        );
-
-        ?>
         <div class="center_field">
             <div>
                 <input type="text" id="set" name="set" value="4d6"></input><br/>

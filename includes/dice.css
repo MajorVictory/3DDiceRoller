@@ -65,7 +65,7 @@ body {
 }
 
 optgroup {
-    background-color: rgba(0, 0, 0, 0.6);
+    background-color: rgb(128,128,128);
 }
 
 #selector_div button, #selector_div select {

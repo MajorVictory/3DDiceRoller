@@ -47,12 +47,30 @@ function login_initialize(container) {
     var label = $t.id('label');
     var set = $t.id('set');
     var selector_div = $t.id('selector_div');
-    var color_select = $t.id('color');
-    var texture_select = $t.id('texture');
+    var login_color_select = $t.id('login_color');
+    var login_texture_select = $t.id('login_texture');
     var info_div = $t.id('info_div');
     var desk = $t.id('desk');
     var log = new $t.chat.chat_box($t.id('log'));
     var updatetimer = null;
+
+    var params = $t.get_url_params();
+
+    var colors = getColorSet('random');
+    $t.dice.label_color = colors.foreground;
+    $t.dice.dice_color = colors.background;
+    $t.dice.dice_texture = colors.texture.texture;
+
+    applyColorSet(params.color, params.texture);
+
+    if (params.name) {
+        $t.id('input_user').value = params.name;
+    }
+    if (params.room) {
+        $t.id('input_room').value = params.room;
+    }
+
+    //applyColorSet(login_color_select.value, login_texture_select.value);
 
     //$t.openSocket(); //production
     $t.openSocket('ws://localhost:8080'); //testing
@@ -86,6 +104,28 @@ function login_initialize(container) {
             }
         }
     }
+
+
+    function on_login_color_select_change(ev) {
+        $t.selectByValue($t.id('login_texture'), '');
+        applyColorSet(this.value, null);
+        $t.rpc( { method: 'colorset', colorset: this.value });
+        $t.rpc( { method: 'texture', texture: $t.id('login_texture').value });
+    }
+    $t.bind(login_color_select, ['keyup','change'], on_login_color_select_change);
+    $t.bind(login_color_select, ['mousedown', 'mouseup'], function(ev) { ev.stopPropagation(); });
+    $t.bind(login_color_select, 'focus', function(ev) { $t.set(container, { class: '' }); });
+    $t.bind(login_color_select, 'blur', function(ev) { $t.set(container, { class: 'noselect' }); });
+
+    
+    function on_login_texture_select_change(ev) {
+        applyColorSet('', this.value);
+        $t.rpc( { method: 'texture', texture: this.value });
+    }
+    $t.bind(login_texture_select, ['keyup','change'], on_login_texture_select_change);
+    $t.bind(login_texture_select, ['mousedown', 'mouseup'], function(ev) { ev.stopPropagation(); });
+    $t.bind(login_texture_select, 'focus', function(ev) { $t.set(container, { class: '' }); });
+    $t.bind(login_texture_select, 'blur', function(ev) { $t.set(container, { class: 'noselect' }); });
 
     var parent_notation = $t.id('parent_notation');
     var parent_roll = $t.id('parent_roll');
@@ -126,6 +166,10 @@ function login_initialize(container) {
         resize();
         on_set_change();
 
+
+        var color_select = $t.id('color');
+        var texture_select = $t.id('texture');
+
         function on_set_change(ev) { set.style.width = set.value.length + 3 + 'ex'; }
         $t.bind(set, 'keyup', on_set_change);
         $t.bind(set, 'mousedown', function(ev) { ev.stopPropagation(); });
@@ -133,29 +177,33 @@ function login_initialize(container) {
         $t.bind(set, 'focus', function(ev) { $t.set(container, { class: '' }); });
         $t.bind(set, 'blur', function(ev) { $t.set(container, { class: 'noselect' }); });
 
-        function on_color_select_change(ev) { 
 
+        function on_color_select_change(ev) { 
             $t.selectByValue($t.id('texture'), '');
-            applyColorSet($t.id('color').value, '');
-            $t.rpc( { method: 'colorset', colorset: $t.id('color').value });
+            applyColorSet(this.value, null);
+            $t.rpc( { method: 'colorset', colorset: this.value });
+            $t.rpc( { method: 'texture', texture: $t.id('texture').value });
+            box.draw_selector();
         }
-        $t.bind(color_select, 'keyup', on_color_select_change);
-        $t.bind(color_select, 'change', on_color_select_change);
-        $t.bind(color_select, 'mousedown', function(ev) { ev.stopPropagation(); });
-        $t.bind(color_select, 'mouseup', function(ev) { ev.stopPropagation(); });
+        $t.bind(color_select, ['keyup','change'], on_color_select_change);
+        $t.bind(color_select, ['mousedown', 'mouseup'], function(ev) { ev.stopPropagation(); });
         $t.bind(color_select, 'focus', function(ev) { $t.set(container, { class: '' }); });
         $t.bind(color_select, 'blur', function(ev) { $t.set(container, { class: 'noselect' }); });
 
-        function on_texture_select_change(ev) {  
-            applyColorSet('', $t.id('texture').value);
-            $t.rpc( { method: 'texture', texture: $t.id('texture').value });
+        function on_texture_select_change(ev) { 
+            applyColorSet('', this.value);
+            $t.rpc( { method: 'texture', texture: this.value });
+            box.draw_selector();
         }
-        $t.bind(texture_select, 'keyup', on_texture_select_change);
-        $t.bind(texture_select, 'change', on_texture_select_change);
-        $t.bind(texture_select, 'mousedown', function(ev) { ev.stopPropagation(); });
-        $t.bind(texture_select, 'mouseup', function(ev) { ev.stopPropagation(); });
+        $t.bind(texture_select, ['keyup','change'], on_texture_select_change);
+        $t.bind(texture_select, ['mousedown', 'mouseup'], function(ev) { ev.stopPropagation(); });
         $t.bind(texture_select, 'focus', function(ev) { $t.set(container, { class: '' }); });
         $t.bind(texture_select, 'blur', function(ev) { $t.set(container, { class: 'noselect' }); });
+
+        console.log();
+
+        $t.selectByValue($t.id('color'), $t.id('login_color').value);
+        $t.selectByValue($t.id('texture'), $t.id('login_texture').value);
 
         $t.bind($t.id('clear'), ['mouseup', 'touchend'], function(ev) {
             ev.stopPropagation();
@@ -163,19 +211,9 @@ function login_initialize(container) {
             on_set_change();
         });
 
-        var params = $t.get_url_params();
-
-        var colors = getColorSet('');
-        $t.dice.label_color = colors.foreground;
-        $t.dice.dice_color = colors.background;
-        $t.dice.dice_texture = colors.texture;
-
-        applyColorSet(params.color, params.texture);
-        $t.dice.setRandomMaterialInfo();
-
         box = new $t.dice.dice_box(canvas, { w: 500, h: 300 });
         box.use_adapvite_timestep = false;
-        box.animate_selector = false;
+        box.animate_selector = true;
 
 
         if (params.notation) {
@@ -209,6 +247,8 @@ function login_initialize(container) {
         function show_selector() {
             info_div.style.display = 'none';
             selector_div.style.display = 'inline-block';
+            applyColorSet(color_select.value, texture_select.value);
+            $t.dice.setRandomMaterialInfo();
             box.draw_selector();
         }
 
@@ -315,7 +355,8 @@ function login_initialize(container) {
         login: function(res) {
             var loginform = $t.id('loginform');
             if (loginform) {
-                $t.remove(loginform);
+                //$t.remove(loginform);
+                loginform.style.display = 'none';
                 $t.element('div', { id: 'error_text', class: 'error-text noselect' }, desk);
                 mdice_initialize(container);
                 $t.id('info_field').style.display = "inline-block";
@@ -325,7 +366,7 @@ function login_initialize(container) {
         },
         userlist: function(res) {
             var f = $t.id('info_field');
-            f.innerHTML = 'players of room ' + res.room + ': ' + res.list.join(', ');
+            f.innerHTML = res.room + ': ' + res.list.join(', ');
             log.add_info('user ' + res.user + ' has ' + { 'add': 'joined', 'del': 'left' }[res.act] + ' the room');
         },
         roll: function(res) {
@@ -368,6 +409,7 @@ function login_initialize(container) {
     };
 
     function process_channel() {
+        /*
         $t.rpc(
             { method: 'info', cid: cid },
             function(response) {
@@ -392,6 +434,7 @@ function login_initialize(container) {
             console.log("WebSocket not ready, ending process_channel loop");
             clearTimeout($t.updatetimer);
         }
+        */
     }
 
     function login() {
