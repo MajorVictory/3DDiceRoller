@@ -3,6 +3,9 @@
 window.teal = {};
 window.$t = window.teal;
 
+teal.socket = null;
+teal.updatetimer = null;
+
 teal.copyto = function(obj, res) {
     if (obj == null || typeof obj !== 'object') return obj;
     if (obj instanceof Array) {
@@ -149,14 +152,44 @@ else {
     }
 }
 
+/*
 teal.rpc = function(params, callback, noparse) {
     var ajax = new XMLHttpRequest();
-    ajax.open("post", './tealrpc.php', true);
+    ajax.open("post", 'ws://localhost:8080', true);
     ajax.onreadystatechange = function() {
         if (ajax.readyState == 4)
             callback.call(ajax, noparse ? ajax.responseText : JSON.parse(ajax.responseText));
     };
     ajax.send(JSON.stringify(params));
+}*/
+
+teal.openSocket = function() {
+    this.socket = (this.socket == null || this.socket.readyState > WebSocket.OPEN) ? new WebSocket('ws://localhost:8080') : this.socket;
+
+    console.log(this.socket);
+    return this.socket;
+}
+
+
+// should emulate an ajax send-receive loop
+// send a message, wait for one-time response
+teal.rpc = function(params, callback, noparse) {
+
+    // check if socket already open, 
+    if (this.socket.readyState == WebSocket.OPEN) {
+
+        this.socket.send(JSON.stringify(params));
+
+        if (callback != null) {
+            this.socket.addEventListener('message', function(message) {
+                callback.call(this.socket, noparse ? message.data : JSON.parse(message.data));
+            });
+        }
+
+    } else {
+        console.log("WebSocket Error: Socket not ready");
+        console.log("Socket Ready State: "+this.socket.readyState);
+    }
 }
 
 teal.uuid = function() {

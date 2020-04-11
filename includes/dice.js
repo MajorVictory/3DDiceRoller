@@ -3,16 +3,17 @@
 (function(dice) {
 
     var random_storage = [];
-    this.use_true_random = true;
+    this.use_true_random = false;
     this.frame_rate = 1 / 60;
 
     function prepare_rnd(callback) {
         if (!random_storage.length && $t.dice.use_true_random) {
             try {
                 $t.rpc({ method: "random", n: 512 }, 
-                function(random_responce) {
-                    if (!random_responce.error)
-                        random_storage = random_responce.result.random.data;
+                function(response) {
+                    if (response.method != 'random') return;
+                    if (!response.error)
+                        random_storage = response.result.random.data;
                     else $t.dice.use_true_random = false;
                     callback();
                 });

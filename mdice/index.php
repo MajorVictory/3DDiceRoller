@@ -17,6 +17,8 @@
     <div id="waitform"></div>
     <div class="control_panel noselect">
         <p id="loading_text">Loading libraries, please wait a bit...</p>
+        <div id="success_text" style="color: green">&nbsp;</div>
+        <div id="error_text" style="color: red">&nbsp;</div>
     </div>
 
     <div id="loginform" style="display: table; background-color: #f4f4f4; position: absolute; height: 100%; width: 100%;">
@@ -32,7 +34,6 @@
             <br/>
             <button id="button_join">enter</button>
             <p/>
-            <div id="error_text" style="color: red">&nbsp;</div>
             <!-- <div class="smalllabel">
                 created using <a href="http://threejs.org">three.js</a> and
                 <a href="http://cannonjs.org">cannon.js</a>,

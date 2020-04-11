@@ -34,7 +34,7 @@ function unpack_vectors(vectors) {
 
 function login_initialize(container) {
     var cid, user, room;
-    var connection_error_text = "connection error, please reaload the page";
+    var connection_error_text = "connection error, please reload the page";
     var box;
     var canvas = $t.id('canvas');
     var label = $t.id('label');
@@ -43,6 +43,39 @@ function login_initialize(container) {
     var info_div = $t.id('info_div');
     var desk = $t.id('desk');
     var log = new $t.chat.chat_box($t.id('log'));
+    var updatetimer = null;
+
+    $t.openSocket();
+
+    $t.socket.onerror = function(event) {
+        show_error("Connection error");
+        console.log(event);
+        teal.id('waitform').style.display = "none";
+        clearTimeout($t.updatetimer);
+    }
+
+    $t.socket.onopen = function(event) {
+        show_success("Connected");
+        console.log(event);
+        teal.id('waitform').style.display = "none";
+    }
+
+    $t.socket.onclose = function(event) {
+        show_error("Connection Ended");
+        console.log(event);
+        teal.id('waitform').style.display = "none";
+        clearTimeout($t.updatetimer);
+    }
+
+    $t.socket.onmessage = function(message) {
+        if (message && message.data) {
+            var data = JSON.parse(message.data);
+            if(data && data.cid) {
+                cid = data.cid;
+                console.log("Client id: "+cid);
+            }
+        }
+    }
 
     function resize() {
         /*var w = window.innerWidth - 300 + 'px';
@@ -98,6 +131,8 @@ function login_initialize(container) {
         function close() {
             if (cid) {
                 $t.rpc({ method: 'logout', cid: cid });
+                $t.socket.close();
+                clearTimeout($t.updatetimer);
             }
         }
         $t.bind(window, 'beforeunload', close);
@@ -126,8 +161,10 @@ function login_initialize(container) {
                     time, log.roll_uuid = $t.uuid());
             try {
                 pack_vectors(vectors);
+
                 $t.rpc({ method: 'roll', cid: cid, vectors: vectors, notation: notation, time: time },
                 function(response) {
+                    if (response.method != 'roll') return;
                     if (response && response.error) show_error(response.error);
                     callback();
                 });
@@ -177,6 +214,7 @@ function login_initialize(container) {
                 log.add_unconfirmed_message(user, text, time, uuid);
                 $t.rpc({ method: 'chat', cid: cid, text: text, time: time, uuid: uuid },
                 function(response) {
+                    if (response.method != 'chat') return;
                     if (response && response.error) show_error(response.error);
                 });
             }
@@ -186,7 +224,17 @@ function login_initialize(container) {
     }
 
     function show_error(text, terminal) {
+        hide_success();
         $t.id('error_text').innerHTML = text;
+        if (terminal) {
+            teal.id('waitform').style.display = "block";
+            teal.id('waitform').style.cursor = "default";
+        }
+    }
+
+    function show_success(text, terminal) {
+        hide_error();
+        $t.id('success_text').innerHTML = text;
         if (terminal) {
             teal.id('waitform').style.display = "block";
             teal.id('waitform').style.cursor = "default";
@@ -195,6 +243,10 @@ function login_initialize(container) {
 
     function hide_error() {
         $t.id('error_text').innerHTML = '&nbsp;';
+    }
+
+    function hide_success() {
+        $t.id('success_text').innerHTML = '&nbsp;';
     }
 
     var action_pool = {
@@ -245,42 +297,70 @@ function login_initialize(container) {
     };
 
     function process_channel() {
-        $t.rpc({ method: 'info', cid: cid },
-        function(m) {
-            for (var i in m) {
-                var res = m[i];
-                if (res.error) {
-                    show_error(res.error);
+        $t.rpc(
+            { method: 'info', cid: cid },
+            function(response) {
+                console.log("process_channel: ");
+                console.log(response);
+
+                if (response.error) {
+                    show_error(response.error);
                 }
-                else if (action_pool.hasOwnProperty(res.action)) {
-                    action_pool[res.action](res);
+                if(!response.action || response.action.length < 1) return;
+
+                if (action_pool.hasOwnProperty(response.action)) {
+                    action_pool[response.action](response);
                 }
             }
-            teal.id('waitform').style.display = "none";
-            setTimeout(process_channel, 1500);
-        });
+        );
+        if($t.socket.readyState == WebSocket.OPEN) {
+            clearTimeout($t.updatetimer);
+            $t.updatetimer = setTimeout(process_channel, 1500);
+        } else {
+            console.log("WebSocket not ready, ending process_channel loop");
+            clearTimeout($t.updatetimer);
+        }
     }
 
     function login() {
         hide_error();
         teal.id('waitform').style.display = "block";
+        clearTimeout($t.updatetimer);
         try {
+
             user = $t.id('input_user').value;
             room = $t.id('input_room').value;
-            $t.rpc({ method: 'join', user: user, room: room }, 
-            function(response) {
-                if (response.error) {
-                    show_error(response.error);
-                    teal.id('waitform').style.display = "none";
+            $t.rpc( { method: 'join', user: user, room: room } );
+
+            $t.socket.addEventListener('message', function(response) {
+
+                console.log("process_channel - onmessage: ");
+                console.log(response);
+
+                var data = JSON.parse(response.data);
+
+                //if (!data.method || (data.method == 'info' || data.method == 'join')) return;
+
+                console.log(data);
+
+                if (data.error) {
+                    show_error(data.error);
                 }
-                else {
-                    cid = response.cid;
+
+                if (data.method == 'join' && data.action == 'login') {
                     requestAnimationFrame(process_channel);
                 }
+
+                if(!data.action || data.action.length < 1) return;
+
+                if (action_pool.hasOwnProperty(data.action)) {
+                    action_pool[data.action](data);
+                }
+                teal.id('waitform').style.display = "none";
             });
         }
         catch (e) {
-            show_error(connection_error_text, true);
+            show_error(e, true);
         }
     }
 
