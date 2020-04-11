@@ -54,7 +54,8 @@ function login_initialize(container) {
     var log = new $t.chat.chat_box($t.id('log'));
     var updatetimer = null;
 
-    $t.openSocket();
+    //$t.openSocket(); //production
+    $t.openSocket('ws://localhost:8080'); //testing
 
     $t.socket.onerror = function(event) {
         show_error("Connection error");

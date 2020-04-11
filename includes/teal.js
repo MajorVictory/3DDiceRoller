@@ -163,8 +163,8 @@ teal.rpc = function(params, callback, noparse) {
     ajax.send(JSON.stringify(params));
 }*/
 
-teal.openSocket = function() {
-    this.socket = (this.socket == null || this.socket.readyState > WebSocket.OPEN) ? new WebSocket('ws://192.168.1.100:25565') : this.socket;
+teal.openSocket = function(address = 'ws://rand.majorsplace.com:8080') {
+    this.socket = (this.socket == null || this.socket.readyState > WebSocket.OPEN) ? new WebSocket(address) : this.socket;
 
     console.log(this.socket);
     return this.socket;
