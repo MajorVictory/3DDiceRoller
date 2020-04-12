@@ -4,7 +4,7 @@
 
     this.chat_box = function(place) {
         this.place = place;
-        this.text = $t.element('div', { style: 'display: inline-block; vertical-align: bottom; width: 100%' }, place);
+        this.text = $t.element('div', { style: 'display: inline-block; vertical-align: bottom; width: 100%', 'class': 'teal-chat-log' }, place);
         this.area = $t.element('textarea', { 'class': 'teal-chat-input' }, this.text);
         this.last_user = undefined;
         this.own_user = undefined;

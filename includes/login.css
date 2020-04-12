@@ -140,3 +140,11 @@
     border: none;
     color: white;
 }
+
+#reconnect {
+    font-size: 100%;
+    background-color: rgba(0, 0, 0, 0.6);
+    font-family: Trebuchet MS;
+    border: none;
+    color: white;
+}

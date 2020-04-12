@@ -49,6 +49,7 @@ function login_initialize(container) {
     var selector_div = $t.id('selector_div');
     var login_color_select = $t.id('login_color');
     var login_texture_select = $t.id('login_texture');
+    var socket_button = $t.id('reconnect');
     var info_div = $t.id('info_div');
     var desk = $t.id('desk');
     var log = new $t.chat.chat_box($t.id('log'));
@@ -56,12 +57,11 @@ function login_initialize(container) {
 
     var params = $t.get_url_params();
 
-    var colors = getColorSet('random');
-    $t.dice.label_color = colors.foreground;
-    $t.dice.dice_color = colors.background;
-    $t.dice.dice_texture = colors.texture.texture;
-
-    applyColorSet(params.color, params.texture);
+    if (params.color || params.texture) {
+        applyColorSet(params.color, params.texture);
+    } else {
+        applyColorSet('random', null);
+    }
 
     if (params.name) {
         $t.id('input_user').value = params.name;
@@ -72,11 +72,12 @@ function login_initialize(container) {
 
     //applyColorSet(login_color_select.value, login_texture_select.value);
 
-    //$t.openSocket(); //production
-    $t.openSocket('ws://localhost:8080'); //testing
+    if (params.server) {
+        reconnect_socket(params.server)
+    };
 
     $t.socket.onerror = function(event) {
-        show_error("Connection error");
+        show_error("Connection Error");
         console.log(event);
         teal.id('waitform').style.display = "none";
         clearTimeout($t.updatetimer);
@@ -89,7 +90,11 @@ function login_initialize(container) {
     }
 
     $t.socket.onclose = function(event) {
-        show_error("Connection Ended");
+        if (event.wasClean) {
+            show_error("Connection Ended");
+        } else {
+            show_error("Connection Failed");
+        }
         console.log(event);
         teal.id('waitform').style.display = "none";
         clearTimeout($t.updatetimer);
@@ -105,6 +110,13 @@ function login_initialize(container) {
         }
     }
 
+    function socket_button_press(ev) {
+        reconnect_socket();
+    }
+    $t.bind(socket_button, ['keyup','click'], socket_button_press);
+    $t.bind(socket_button, ['mousedown', 'mouseup'], function(ev) { ev.stopPropagation(); });
+    $t.bind(socket_button, 'focus', function(ev) { $t.set(container, { class: '' }); });
+    $t.bind(socket_button, 'blur', function(ev) { $t.set(container, { class: 'noselect' }); });
 
     function on_login_color_select_change(ev) {
         $t.selectByValue($t.id('login_texture'), '');
@@ -112,8 +124,8 @@ function login_initialize(container) {
         $t.rpc( { method: 'colorset', colorset: this.value });
         $t.rpc( { method: 'texture', texture: $t.id('login_texture').value });
     }
-    $t.bind(login_color_select, ['keyup','change'], on_login_color_select_change);
-    $t.bind(login_color_select, ['mousedown', 'mouseup'], function(ev) { ev.stopPropagation(); });
+    $t.bind(login_color_select, ['keyup','change','touchend'], on_login_color_select_change);
+    $t.bind(login_color_select, ['mousedown', 'mouseup', 'touchstart'], function(ev) { ev.stopPropagation(); });
     $t.bind(login_color_select, 'focus', function(ev) { $t.set(container, { class: '' }); });
     $t.bind(login_color_select, 'blur', function(ev) { $t.set(container, { class: 'noselect' }); });
 
@@ -122,8 +134,8 @@ function login_initialize(container) {
         applyColorSet('', this.value);
         $t.rpc( { method: 'texture', texture: this.value });
     }
-    $t.bind(login_texture_select, ['keyup','change'], on_login_texture_select_change);
-    $t.bind(login_texture_select, ['mousedown', 'mouseup'], function(ev) { ev.stopPropagation(); });
+    $t.bind(login_texture_select, ['keyup','change','touchend'], on_login_texture_select_change);
+    $t.bind(login_texture_select, ['mousedown', 'mouseup', 'touchstart'], function(ev) { ev.stopPropagation(); });
     $t.bind(login_texture_select, 'focus', function(ev) { $t.set(container, { class: '' }); });
     $t.bind(login_texture_select, 'blur', function(ev) { $t.set(container, { class: 'noselect' }); });
 
@@ -136,6 +148,50 @@ function login_initialize(container) {
             $t.raise_event($t.id('throw'), 'mouseup');
         }
     });
+
+    function reconnect_socket(address) {
+        if ($t.socket && $t.socket.readyState <= WebSocket.OPEN) {
+            $t.socket.close();
+            location.reload();
+        } else {
+            show_error("Connecting...");
+        }
+        $t.openSocket(address);
+
+        $t.socket.onerror = function(event) {
+            show_error("Connection Error");
+            console.log(event);
+            teal.id('waitform').style.display = "none";
+            clearTimeout($t.updatetimer);
+        }
+
+        $t.socket.onopen = function(event) {
+            show_success("Connected");
+            console.log(event);
+            teal.id('waitform').style.display = "none";
+        }
+
+        $t.socket.onclose = function(event) {
+            if (event.wasClean) {
+                show_error("Connection Ended");
+            } else {
+                show_error("Connection Failed");
+            }
+            console.log(event);
+            teal.id('waitform').style.display = "none";
+            clearTimeout($t.updatetimer);
+        }
+
+        $t.socket.onmessage = function(message) {
+            if (message && message.data) {
+                var data = JSON.parse(message.data);
+                if(data && data.cid) {
+                    cid = data.cid;
+                    console.log("Client id: "+cid);
+                }
+            }
+        }
+    }
 
     function resize() {
         /*var w = window.innerWidth - 300 + 'px';
@@ -185,8 +241,8 @@ function login_initialize(container) {
             $t.rpc( { method: 'texture', texture: $t.id('texture').value });
             box.draw_selector();
         }
-        $t.bind(color_select, ['keyup','change'], on_color_select_change);
-        $t.bind(color_select, ['mousedown', 'mouseup'], function(ev) { ev.stopPropagation(); });
+        $t.bind(color_select, ['keyup','change','touchend'], on_color_select_change);
+        $t.bind(color_select, ['mousedown', 'mouseup', 'touchstart'], function(ev) { ev.stopPropagation(); });
         $t.bind(color_select, 'focus', function(ev) { $t.set(container, { class: '' }); });
         $t.bind(color_select, 'blur', function(ev) { $t.set(container, { class: 'noselect' }); });
 
@@ -195,8 +251,8 @@ function login_initialize(container) {
             $t.rpc( { method: 'texture', texture: this.value });
             box.draw_selector();
         }
-        $t.bind(texture_select, ['keyup','change'], on_texture_select_change);
-        $t.bind(texture_select, ['mousedown', 'mouseup'], function(ev) { ev.stopPropagation(); });
+        $t.bind(texture_select, ['keyup','change','touchend'], on_texture_select_change);
+        $t.bind(texture_select, ['mousedown', 'mouseup', 'touchstart'], function(ev) { ev.stopPropagation(); });
         $t.bind(texture_select, 'focus', function(ev) { $t.set(container, { class: '' }); });
         $t.bind(texture_select, 'blur', function(ev) { $t.set(container, { class: 'noselect' }); });
 
@@ -328,6 +384,7 @@ function login_initialize(container) {
     function show_error(text, terminal) {
         hide_success();
         $t.id('error_text').innerHTML = text;
+        $t.hidden($t.id('error_text'), false);
         if (terminal) {
             teal.id('waitform').style.display = "block";
             teal.id('waitform').style.cursor = "default";
@@ -337,6 +394,7 @@ function login_initialize(container) {
     function show_success(text, terminal) {
         hide_error();
         $t.id('success_text').innerHTML = text;
+        $t.hidden($t.id('success_text'), false);
         if (terminal) {
             teal.id('waitform').style.display = "block";
             teal.id('waitform').style.cursor = "default";
@@ -345,10 +403,12 @@ function login_initialize(container) {
 
     function hide_error() {
         $t.id('error_text').innerHTML = '&nbsp;';
+        $t.hidden($t.id('error_text'), true);
     }
 
     function hide_success() {
         $t.id('success_text').innerHTML = '&nbsp;';
+        $t.hidden($t.id('success_text'), true);
     }
 
     var action_pool = {

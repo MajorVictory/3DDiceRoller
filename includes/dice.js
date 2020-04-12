@@ -152,7 +152,7 @@
     this.cache_misses = 0;
 
     this.create_dice_materials = function(face_labels, size, margin) {
-        function create_text_texture(diceobj, text, texture, forecolor, backcolor) {
+        function create_text_texture(diceobj, text, texture, forecolor, outlinecolor, backcolor) {
             if (text == undefined) return null;
 
             // an attempt at materials caching
@@ -185,6 +185,18 @@
             context.font = ts / (1 + 2 * margin) + "pt Arial";
             context.textAlign = "center";
             context.textBaseline = "middle";
+
+            // attempt to outline the text with a meaningful color
+            if (outlinecolor != 'none') {
+                context.strokeStyle = outlinecolor;
+                context.lineWidth = 5;
+                context.strokeText(text, canvas.width / 2, canvas.height / 2);
+                if (text == '6' || text == '9') {
+                    context.strokeText('  .', canvas.width / 2, canvas.height / 2);
+                }
+            }
+
+
             context.fillStyle = forecolor;
             context.fillText(text, canvas.width / 2, canvas.height / 2);
             if (text == '6' || text == '9') {
@@ -208,7 +220,7 @@
                 new THREE.MeshPhongMaterial(
                     $t.copyto(
                         this.material_options,
-                        { map: create_text_texture(this, face_labels[i], this.dice_texture_rand, this.label_color_rand, this.dice_color_rand) })
+                        { map: create_text_texture(this, face_labels[i], this.dice_texture_rand, this.label_color_rand, this.label_outline_rand, this.dice_color_rand) })
                 )
             );
         }
@@ -229,7 +241,7 @@
     ];
 
     this.create_d4_materials = function(size, margin, labels) {
-        function create_d4_text(text, texture, color, back_color) {
+        function create_d4_text(text, texture, forecolor, outlinecolor, backcolor) {
 
             var canvas = document.createElement("canvas");
             var context = canvas.getContext("2d");
@@ -243,7 +255,7 @@
             }
 
             // create color
-            context.fillStyle = back_color;
+            context.fillStyle = backcolor;
             context.fillRect(0, 0, canvas.width, canvas.height);
 
             // create text
@@ -251,13 +263,26 @@
             context.font = (ts - margin) / 1.5 + "pt Arial";
             context.textAlign = "center";
             context.textBaseline = "middle";
-            context.fillStyle = color;
+            context.fillStyle = forecolor;
+
+            var hw = (canvas.width / 2);
+            var hh = (canvas.height / 2);
+
+            //draw the numbers
             for (var i in text) {
-                context.fillText(text[i], canvas.width / 2,
-                        canvas.height / 2 - ts * 0.3);
-                context.translate(canvas.width / 2, canvas.height / 2);
+
+                // attempt to outline the text with a meaningful color
+                if (outlinecolor != 'none') {
+                    context.strokeStyle = outlinecolor;
+                    context.lineWidth = 5;
+                    context.strokeText(text[i], hw, hh - ts * 0.3);
+                }
+
+                context.fillStyle = forecolor;
+                context.fillText(text[i], hw, hh - ts * 0.3);
+                context.translate(hw, hh);
                 context.rotate(Math.PI * 2 / 3);
-                context.translate(-canvas.width / 2, -canvas.height / 2);
+                context.translate(-hw, -hh);
             }
             var texture = new THREE.Texture(canvas);
             texture.needsUpdate = true;
@@ -267,7 +292,7 @@
         var materials = [];
         for (var i = 0; i < labels.length; ++i) {
             materials.push(new THREE.MeshPhongMaterial($t.copyto(this.material_options,
-                        { map: create_d4_text(labels[i], this.dice_texture_rand, this.label_color_rand, this.dice_color_rand) })));
+                        { map: create_d4_text(labels[i], this.dice_texture_rand, this.label_color_rand, this.label_outline_rand, this.dice_color_rand) })));
         }
         return materials;
     }
@@ -413,6 +438,7 @@
         //reset random choices
         this.dice_color_rand = '';
         this.label_color_rand = '';
+        this.label_outline_rand = '';
         this.dice_texture_rand = '';
 
         // set base color first
@@ -423,6 +449,11 @@
             // if color list and label list are same length, treat them as a parallel list
             if (Array.isArray(this.label_color) && this.label_color.length == this.dice_color.length) {
                 this.label_color_rand = this.label_color[colorindex];
+
+                // if label list and outline list are same length, treat them as a parallel list
+                if (Array.isArray(this.label_outline) && this.label_outline.length == this.label_color.length) {
+                    this.label_outline_rand = this.label_outline[colorindex];
+                }
             }
             // if texture list is same length do the same
             if (Array.isArray(this.dice_texture) && this.dice_texture.length == this.dice_color.length) {
@@ -434,11 +465,29 @@
             this.dice_color_rand = this.dice_color;
         }
 
-        // if selected label color is still an array, pick one
+        // if selected label color is still not set, pick one
         if (this.label_color_rand == '' && Array.isArray(this.label_color)) {
-            this.label_color_rand = this.label_color[Math.floor(Math.random() * this.label_color.length)];
+            var colorindex = this.label_color[Math.floor(Math.random() * this.label_color.length)];
+
+            // if label list and outline list are same length, treat them as a parallel list
+            if (Array.isArray(this.label_outline) && this.label_outline.length == this.label_color.length) {
+                this.label_outline_rand = this.label_outline[colorindex];
+            }
+
+            this.label_color_rand = this.label_color[colorindex];
+
         } else if (this.label_color_rand == '') {
             this.label_color_rand = this.label_color;
+        }
+
+        // if selected label outline is still not set, pick one
+        if (this.label_outline_rand == '' && Array.isArray(this.label_outline)) {
+            var colorindex = this.label_outline[Math.floor(Math.random() * this.label_outline.length)];
+
+            this.label_outline_rand = this.label_outline[colorindex];
+            
+        } else if (this.label_outline_rand == '') {
+            this.label_outline_rand = this.label_outline;
         }
 
         // same for textures list

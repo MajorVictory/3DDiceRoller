@@ -27,7 +27,14 @@ var sources = {
     'marble': './textures/marble.png',
     'water': './textures/water.png',
     'ice': './textures/ice.png',
-    'noise': './textures/noise.png',
+    'paper': './textures/paper.png',
+    'speckles': './textures/speckles.png',
+    'glitter': './textures/glitter.png',
+    'stars': './textures/stars.png',
+    'stainedglass': './textures/stainedglass.png',
+    'skulls': './textures/skulls.png',
+    'leopard': './textures/leopard.jpg',
+    'acleaf': './textures/acleaf.png',
     'thecage': './textures/thecage.png',
     'isabelle': './textures/isabelle.png'
 };
@@ -45,61 +52,65 @@ function randomColor() {
     var foreground = (brightness > 126) ? 'rgb(30,30,30)' : 'rgb(230,230,230)'; // high brightness = dark text, else bright text
     var background = 'rgb(' + rgb[0] + ',' + rgb[1] + ',' + rgb[2] + ')';
 
-    return [background, foreground];
+    return {background: background, foreground: foreground };
 }
 
 function getColorSet(colorsetname) {
     var desc = '';
     var fgcolor = '#aaaaaa';
     var bgcolor = '#202020';
+    var outline = 'black';
     var texture = '';
 
     switch (colorsetname.toLowerCase()) {
 
         case 'white':
             fgcolor = '#000000'; 
+			outline = '#FFFFFF';
             bgcolor = '#FFFFFF'; 
             texture = getTexture('none');
             desc = 'White';
             break;
         case 'radiant': 
-            fgcolor = '#7E5400'; 
-            bgcolor = '#C4C4B6'; 
-            texture = getTexture('ice');
+            fgcolor = '#F9B333';
+            bgcolor = '#FFFFFF';  
+            texture = getTexture('paper');
             desc = 'Radiant';
             break;
         case 'fire': 
-            fgcolor = ['#000000','#000000','#000000','#ffffff','#ffffff']; 
+            //fgcolor = ['#000000','#000000','#000000','#ffffff','#ffffff'];
+            fgcolor = '#f8d84f';  
             bgcolor = ['#f8d84f','#f9b02d','#f43c04','#910200','#4c1009']; 
             texture = getTexture('fire');
             desc = 'Fire';
             break; 
         case 'ice': 
-            fgcolor = ['#ffffff','#ffffff','#ffffff','#ffffff','#ffffff']; 
+            fgcolor = '#60E9FF'; 
             bgcolor = ['#214fa3','#3c6ac1','#253f70','#0b56e2','#09317a']; 
             texture = getTexture('ice');
             desc = 'Ice';
             break; 
         case 'poison': 
-            fgcolor = ['#ffffff','#ffffff','#ffffff','#ffffff','#ffffff']; 
+            fgcolor = '#D6A8FF'; 
             bgcolor = ['#313866','#504099','#66409e','#934fc3','#c949fc']; 
-            texture = getTexture('marble');
+            texture = getTexture('cloudy');
             desc = 'Poison';
             break; 
         case 'acid': 
-            fgcolor = '#303030'; 
+            fgcolor = '#A9FF70';
             bgcolor = ['#a6ff00', '#83b625','#5ace04','#69f006','#b0f006','#93bc25']; 
             texture = getTexture('marble');
             desc = 'Acid';
             break; 
         case 'thunder': 
-            fgcolor = ['#000000', '#000000','#000000','#000000','#ffffff','#ffffff'] 
-            bgcolor = ['#feffef', '#cff3e1','#9fb1bc','#7c90a0','#596869','#384142']; 
+            fgcolor = '#FFC500'; 
+            bgcolor = '#7D7D7D'; 
             texture = getTexture('cloudy');
             desc = 'Thunder';
             break; 
         case 'lightning': 
-            fgcolor = ['#000000', '#000000','#000000','#000000','#000000'] 
+            fgcolor = '#FFC500';
+            outline = '#7D7D7D';
             bgcolor = ['#f17105', '#f3ca40','#eddea4','#df9a57','#dea54b']; 
             texture = getTexture('ice');
             desc = 'Lightning';
@@ -111,30 +122,35 @@ function getColorSet(colorsetname) {
             desc = 'Air';
             break; 
         case 'water': 
-            fgcolor = '#ffffff';
+            fgcolor = '#60E9FF';
             bgcolor = ['#87b8c4', '#77a6b2','#6b98a3','#5b8691','#4b757f']; 
             texture = getTexture('water');
             desc = 'Water';
             break; 
         case 'earth': 
-            fgcolor = ['#ffffff', '#ffffff','#ffffff','#000000','#000000', '#ffffff', '#ffffff','#ffffff','#ffffff','#ffffff']
-            bgcolor = ['#346804', '#184200','#527f22','#96c65b','#77a53b', '#3a1d04', '#56341a','#331c17','#5a352a','#302210']; 
-            texture = getTexture('noise');
+            fgcolor = '#6C9943';
+            bgcolor = ['#346804', '#184200','#527f22', '#3a1d04', '#56341a','#331c17','#5a352a','#302210']; 
+            texture = getTexture('speckles');
             desc = 'Earth';
             break; 
         case 'force': 
-            var colors = getColorSet('pinkdreams');
-            fgcolor = colors.foreground;
-            bgcolor = colors.background; 
+            fgcolor = 'white';
+            outline = '#570000';
+            bgcolor = ['#FF24A0', '#FF97FF','#FF24C5','#FF24FF','#FF57F0']; 
             texture = getTexture('ice');
             desc = 'Force';
             break;
         case 'psychic': 
-            var colors = getColorSet('poison');
-            fgcolor = colors.foreground;
-            bgcolor = colors.background;  
-            texture = getTexture('ice');
+            fgcolor = '#D6A8FF';
+            bgcolor = ['#313866','#504099','#66409E','#934FC3','#C949FC','#313866'];  
+            texture = getTexture('speckles');
             desc = 'Psychic';
+            break;
+        case 'necrotic': 
+            fgcolor = '#ffffff'; 
+            bgcolor = '#6F0000'; 
+            texture = getTexture('skulls');
+            desc = 'Necrotic';
             break;
         case 'test': 
             fgcolor = ['#00FF00','#0000FF','#FF0000']; 
@@ -145,45 +161,78 @@ function getColorSet(colorsetname) {
         case 'random': 
             fgcolor = [];
             bgcolor = [];
+            outline = [];
+            texture = getTexture('random');
 
-            for (var i = 0; i < 11; i++) {
+            for (var i = 0; i < 6; i++) {
                 var randcolor = randomColor();
-                fgcolor.push(randcolor[1]);
-                bgcolor.push(randcolor[0]);
-            } 
 
-            var names = Object.getOwnPropertyNames(diceTextures);
-            var texturelist = [];
-            for (var i = names.length - 1; i >= 0; i--) {
-                texturelist.push(diceTextures[names[i]]);
-            }
-            texture = {name:'random',texture:texturelist};
+                if (texture.name != '') {
+                	fgcolor.push(randcolor.foreground); 
+                	outline.push(randcolor.background);
+                	bgcolor.push(randcolor.background);
+                } else {
+                	fgcolor.push(randcolor.foreground); 
+                	outline.push('black');
+                	bgcolor.push(randcolor.background);
+                }
+            } 
 
             desc = 'RaNdOm';
             break;
         case 'breebaby': 
             fgcolor = ['#5E175E', '#564A5E','#45455E','#3D5A5E','#1E595E','#5E3F3D','#5E1E29','#283C5E','#25295E'];
+            outline = 'white';
             bgcolor = ['#FE89CF', '#DFD4F2','#C2C2E8','#CCE7FA','#A1D9FC','#F3C3C2','#EB8993','#8EA1D2','#7477AD'];  
             texture = getTexture('marble');
             desc = 'Pastel Sunset, for Breyanna';
             break;
         case 'pinkdreams': 
-            fgcolor = '#000000';
+            fgcolor = 'white';
+            outline = '#570000';
             bgcolor = ['#ff007c', '#df73ff','#f400a1','#df00ff','#ff33cc'];  
             texture = getTexture('marble');
             desc = 'Pink Dreams, for Ethan';
             break;
         case 'inspired': 
-            fgcolor = '#936910';
+            fgcolor = '#FFD800';
+            outline = '#8E8E86';
             bgcolor = '#C4C4B6';  
             texture = getTexture('none');
             desc = 'Inspired, for Austin';
             break;
         case 'bloodmoon': 
-            fgcolor = '#936910';
-            bgcolor = '#400000';  
+            fgcolor = '#CDB800';
+            bgcolor = '#6F0000';  
             texture = getTexture('marble');
             desc = 'Blood Moon, for Jared';
+            break;
+        case 'starynight': 
+            fgcolor = '#4F708F';
+            outline = 'white';
+            bgcolor = ['#091636','#233660','#4F708F','#8597AD','#E2E2E2'];
+            texture = getTexture('speckles');
+            desc = 'Stary Night, for Mai';
+            break;
+        case 'glitterparty': 
+            fgcolor = 'white';
+            outline = 'none';
+            bgcolor = ['#FFB5F5','#7FC9FF','#A17FFF'];
+            texture = getTexture('glitter');
+            desc = 'Glitter Party, for Austin';
+            break;
+        case 'astralsea': 
+            fgcolor = '#565656';
+            outline = 'none';
+            bgcolor = 'white';
+            texture = getTexture('stars');
+            desc = 'The Astral Sea, for Austin';
+            break;
+        case 'leopard': 
+            fgcolor = '#ffffff';
+            bgcolor = '#FFCC40';  
+            texture = getTexture('leopard');
+            desc = 'Leopard Print';
             break;
         case 'covid': 
             var colors = getColorSet('acid');
@@ -192,8 +241,15 @@ function getColorSet(colorsetname) {
             texture = getTexture('fire');
             desc = 'Covid-19';
             break;
+        case 'acleaf': 
+            fgcolor = '#00FF00'; 
+            bgcolor = '#07540A'; 
+            texture = getTexture('acleaf');
+            desc = 'Animal Crossing Leaf';
+            break;
         case 'isabelle': 
-            fgcolor = '#000000';
+            fgcolor = 'black';
+            fgcolor = 'white';
             bgcolor = '#FEE5CC';  
             texture = getTexture('isabelle');
             desc = 'Isabelle';
@@ -204,7 +260,7 @@ function getColorSet(colorsetname) {
             texture = getTexture('thecage');
             desc = 'Nicholas Cage';
             break;
-        case 'necrotic': case 'black': default: 
+        case 'black': default: 
             fgcolor = '#ffffff'; 
             bgcolor = '#000000'; 
             texture = getTexture('none');
@@ -212,7 +268,7 @@ function getColorSet(colorsetname) {
             break;
     }
 
-    var colors = {foreground: fgcolor, background: bgcolor, texture: texture, description: desc};
+    var colors = {foreground: fgcolor, background: bgcolor, outline: outline, texture: texture, description: desc};
     return colors;
 }
 
@@ -242,6 +298,7 @@ function applyColorSet(colorset, texture = null, update = true) {
     if (colorset && colorset.length > 0) {
 		var colordata = getColorSet(colorset);
         $t.dice.label_color = colordata.foreground;
+        $t.dice.label_outline = colordata.outline;
         $t.dice.dice_color = colordata.background;
         $t.dice.dice_texture = colordata.texture.texture;
 

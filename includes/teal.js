@@ -26,6 +26,12 @@ teal.copy = function(obj) {
     return teal.copyto(obj, new obj.constructor());
 }
 
+teal.hidden = function(obj, hidden, display = 'block') {
+    if(!obj) return;
+    obj.display = (hidden) ? 'none' : display;
+    obj.visibility = (hidden) ? 'hidden' : 'visible';
+}
+
 teal.element = function(name, props, place, content) {
     var dom = document.createElement(name);
     if (props) for (var i in props) dom.setAttribute(i, props[i]);
@@ -163,7 +169,7 @@ teal.rpc = function(params, callback, noparse) {
     ajax.send(JSON.stringify(params));
 }*/
 
-teal.openSocket = function(address = 'ws://rand.majorsplace.com:8080') {
+teal.openSocket = function(address = 'ws://rand.majorsplace.com:32400') {
     this.socket = (this.socket == null || this.socket.readyState > WebSocket.OPEN) ? new WebSocket(address) : this.socket;
 
     console.log(this.socket);

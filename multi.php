@@ -20,6 +20,7 @@ $ColorSets = array(
         'Earth' => 'earth',
         'Fire' => 'fire',
         'Force' => 'force',
+        'Ice' => 'ice',
         'Lightning' => 'lightning',
         'Necrotic' => 'necrotic',
         'Poison' => 'poison',
@@ -31,18 +32,23 @@ $ColorSets = array(
     'Colors' => array(
         'Black' => 'black',
         'White' => 'white',
-        'Random' => 'random',
+        'Random' => 'random'
     ),
     'Custom Sets' => array(
         'Pastel Sunset' => 'breebaby',
         'Pink Dreams' => 'pinkdreams',
         'Inspired' => 'inspired',
+        'Glitter Party' => 'glitterparty',
+        'The Astral Sea' => 'astralsea',
         'Blood Moon' => 'bloodmoon',
+        'Stary Night' => 'starynight'
     ),
-    'Memes' => array(
+    'Other' => array(
         'COVID-19' => 'covid',
+        'AC Leaf' => 'acleaf',
+        'Leopard' => 'leopard',
         'Isabelle' => 'isabelle',
-        'Nicholas Cage' => 'thecage',
+        'Nicholas Cage' => 'thecage'
     )
 );
 
@@ -54,7 +60,14 @@ $Textures = array(
     'Ice' => 'ice',
     'Water' => 'water',
     'Marble' => 'marble',
-    'Speckles' => 'noise',
+    'Paper' => 'paper',
+    'Speckles' => 'speckles',
+    'Glitter' => 'glitter',
+    'Stars' => 'stars',
+    'Stained Glass' => 'stainedglass',
+    'Skulls' => 'skulls',
+    'Leopard' => 'leopard',
+    'AC Leaf' => 'acleaf',
     'Isabelle' => 'isabelle',
     'Nicholas Cage' => 'thecage'
 );
@@ -70,6 +83,7 @@ $Textures = array(
         <p id="loading_text">Loading libraries, please wait a bit...</p>
         <div id="success_text" style="color: green">&nbsp;</div>
         <div id="error_text" style="color: red">&nbsp;</div>
+        <button id="reconnect">Reconnect</button>
     </div>
 
     <div id="loginform" style="display: table; background-color: #f4f4f4; position: absolute; height: 100%; width: 100%;">
