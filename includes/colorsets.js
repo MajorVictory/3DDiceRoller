@@ -296,6 +296,10 @@ function applyColorSet(colorset, texture = null, update = true) {
 
 
     if (colorset && colorset.length > 0) {
+    	$t.dice.materials_cache = {};
+    	$t.dice.cache_hits = 0;
+    	$t.dice.cache_misses = 0;
+
 		var colordata = getColorSet(colorset);
         $t.dice.label_color = colordata.foreground;
         $t.dice.label_outline = colordata.outline;
@@ -305,11 +309,11 @@ function applyColorSet(colorset, texture = null, update = true) {
         if (texture == null) texture = colordata.texture.name;
 
 	    if (update) {
-	    	$t.empty($t.id('login_colorname'));
+	    	if ($t.id('login_colorname')) $t.empty($t.id('login_colorname'));
 	    	$t.empty($t.id('colorname'));
-		    $t.inner("Dice Theme: "+colordata.description, $t.id('login_colorname'));
+		    if ($t.id('login_colorname')) $t.inner("Dice Theme: "+colordata.description, $t.id('login_colorname'));
 		    $t.inner("Dice Theme: "+colordata.description, $t.id('colorname'));
-		    $t.selectByValue($t.id('login_color'), colorset);
+		    if ($t.id('login_color')) $t.selectByValue($t.id('login_color'), colorset);
 		    $t.selectByValue($t.id('color'), colorset);
 	    }
     }
@@ -319,7 +323,7 @@ function applyColorSet(colorset, texture = null, update = true) {
         $t.dice.dice_texture = texturedata.texture;
 
         if (update) {
-		    $t.selectByValue($t.id('login_texture'), texturedata.name);
+		    if ($t.id('login_texture')) $t.selectByValue($t.id('login_texture'), texturedata.name);
 		    $t.selectByValue($t.id('texture'), texturedata.name);
 	    }
     }

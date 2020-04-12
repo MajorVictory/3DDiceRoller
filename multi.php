@@ -12,67 +12,7 @@
 <style type="text/css">@import "./includes/login.css";</style>
 <!-- Original Source: http://www.teall.info/2014/01/online-3d-dice-roller.html -->
 
-<?php
-$ColorSets = array(
-    'Damage Types' => array(
-        'Acid' => 'acid',
-        'Air' => 'air',
-        'Earth' => 'earth',
-        'Fire' => 'fire',
-        'Force' => 'force',
-        'Ice' => 'ice',
-        'Lightning' => 'lightning',
-        'Necrotic' => 'necrotic',
-        'Poison' => 'poison',
-        'Psychic' => 'psychic',
-        'Radiant' => 'radiant',
-        'Thunder' => 'thunder',
-        'Water' => 'water'
-    ),
-    'Colors' => array(
-        'Black' => 'black',
-        'White' => 'white',
-        'Random' => 'random'
-    ),
-    'Custom Sets' => array(
-        'Pastel Sunset' => 'breebaby',
-        'Pink Dreams' => 'pinkdreams',
-        'Inspired' => 'inspired',
-        'Glitter Party' => 'glitterparty',
-        'The Astral Sea' => 'astralsea',
-        'Blood Moon' => 'bloodmoon',
-        'Stary Night' => 'starynight'
-    ),
-    'Other' => array(
-        'COVID-19' => 'covid',
-        'AC Leaf' => 'acleaf',
-        'Leopard' => 'leopard',
-        'Isabelle' => 'isabelle',
-        'Nicholas Cage' => 'thecage'
-    )
-);
-
-$Textures = array(
-    'None' => '',
-    'Random' => 'random',
-    'Cloudy' => 'cloudy',
-    'Fire' => 'fire',
-    'Ice' => 'ice',
-    'Water' => 'water',
-    'Marble' => 'marble',
-    'Paper' => 'paper',
-    'Speckles' => 'speckles',
-    'Glitter' => 'glitter',
-    'Stars' => 'stars',
-    'Stained Glass' => 'stainedglass',
-    'Skulls' => 'skulls',
-    'Leopard' => 'leopard',
-    'AC Leaf' => 'acleaf',
-    'Isabelle' => 'isabelle',
-    'Nicholas Cage' => 'thecage'
-);
-
-?>
+<?php include_once('./colorsets.php'); ?>
 </head>
 <body style="margin: 0; overflow: hidden">
     <input type="hidden" id="parent_notation" value="">
@@ -196,8 +136,6 @@ $Textures = array(
 		window.addEventListener("message", receiveMessage, false);
 
         function receiveMessage(event) {
-            console.log(event);
-
             if (event.origin !== "https://www.improved-initiative.com") return;
 
             parent_notation = $t.id('parent_notation');

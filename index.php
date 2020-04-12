@@ -9,6 +9,7 @@
 <style type="text/css">@import "./includes/dice.css";</style>
 <!-- Original Source: http://www.teall.info/2014/01/online-3d-dice-roller.html -->
 </head>
+<?php include_once('./colorsets.php'); ?>
 <body style="margin: 0">
     <input type="hidden" id="parent_notation" value="">
     <input type="hidden" id="parent_roll" value="0">
@@ -18,7 +19,7 @@
         </div>
         <div class="center_field">
             <div class="bottom_field">
-                <span id="labelhelp">click to continue or tap and drag again</span>
+                <span id="labelhelp"><!--click to continue or tap and drag again--></span>
             </div>
         </div>
     </div>
@@ -29,53 +30,6 @@
                 tap and drag on free space of screen or hit throw button to roll-->
             </div>
         </div>
-        <?php
-        $ColorSets = array(
-            'Damage Types' => array(
-                'Acid' => 'acid',
-                'Air' => 'air',
-                'Earth' => 'earth',
-                'Fire' => 'fire',
-                'Force' => 'force',
-                'Lightning' => 'lightning',
-                'Necrotic' => 'necrotic',
-                'Poison' => 'Poison',
-                'Psychic' => 'psychic',
-                'Radiant' => 'radiant',
-                'Thunder' => 'thunder',
-                'Water' => 'water'
-            ),
-            'Colors' => array(
-                'Black' => 'black',
-                'White' => 'white',
-                'Random' => 'random',
-            ),
-            'Custom Sets' => array(
-                'Pastel Sunset' => 'breebaby',
-                'Pink Dreams' => 'pinkdreams',
-                'Inspired' => 'inspired',
-                'Blood Moon' => 'bloodmoon',
-            ),
-            'Memes' => array(
-                'COVID-19' => 'covid',
-                'Isabelle' => 'isabelle',
-                'Nicholas Cage' => 'thecage',
-            )
-        );
-
-        $Textures = array(
-            'Random' => 'random',
-            'Cloudy' => 'cloudy',
-            'Fire' => 'fire',
-            'Ice' => 'ice',
-            'Water' => 'water',
-            'Marble' => 'marble',
-            'Speckles' => 'noise',
-            'Isabelle' => 'isabelle',
-            'Nicholas Cage' => 'thecage'
-        );
-
-        ?>
         <div class="center_field">
             <div>
                 <input type="text" id="set" name="set" value="4d6"></input><br/>
@@ -107,6 +61,7 @@
     <script src="./libs/three.min.js"></script>
     <script src="./libs/cannon.min.js"></script>
     <script type="text/javascript" src="./includes/teal.js"></script>
+    <script type="text/javascript" src="./includes/colorsets.js"></script>
     <script type="text/javascript" src="./includes/dice.js"></script>
     <script type="text/javascript" src="./includes/main.js"></script>
     <script type="text/javascript" defer="defer">
@@ -115,8 +70,6 @@
         window.addEventListener("message", receiveMessage, false);
 
         function receiveMessage(event) {
-            console.log(event);
-
             if (event.origin !== "https://www.improved-initiative.com") return;
 
             parent_notation = $t.id('parent_notation');

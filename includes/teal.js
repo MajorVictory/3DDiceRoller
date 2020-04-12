@@ -158,21 +158,10 @@ else {
     }
 }
 
-/*
-teal.rpc = function(params, callback, noparse) {
-    var ajax = new XMLHttpRequest();
-    ajax.open("post", 'ws://localhost:8080', true);
-    ajax.onreadystatechange = function() {
-        if (ajax.readyState == 4)
-            callback.call(ajax, noparse ? ajax.responseText : JSON.parse(ajax.responseText));
-    };
-    ajax.send(JSON.stringify(params));
-}*/
-
 teal.openSocket = function(address = 'ws://rand.majorsplace.com:32400') {
     this.socket = (this.socket == null || this.socket.readyState > WebSocket.OPEN) ? new WebSocket(address) : this.socket;
 
-    console.log(this.socket);
+    //console.log(this.socket);
     return this.socket;
 }
 
@@ -193,8 +182,8 @@ teal.rpc = function(params, callback, noparse) {
         }
 
     } else {
-        console.log("WebSocket Error: Socket not ready");
-        console.log("Socket Ready State: "+this.socket.readyState);
+        //console.log("WebSocket Error: Socket not ready");
+        //console.log("Socket Ready State: "+this.socket.readyState);
     }
 }
 

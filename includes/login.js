@@ -73,8 +73,10 @@ function login_initialize(container) {
     //applyColorSet(login_color_select.value, login_texture_select.value);
 
     if (params.server) {
-        reconnect_socket(params.server)
-    };
+        reconnect_socket(params.server);
+    } else {
+        reconnect_socket();
+    }
 
     $t.socket.onerror = function(event) {
         show_error("Connection Error");
@@ -256,8 +258,6 @@ function login_initialize(container) {
         $t.bind(texture_select, 'focus', function(ev) { $t.set(container, { class: '' }); });
         $t.bind(texture_select, 'blur', function(ev) { $t.set(container, { class: 'noselect' }); });
 
-        console.log();
-
         $t.selectByValue($t.id('color'), $t.id('login_color').value);
         $t.selectByValue($t.id('texture'), $t.id('login_texture').value);
 
@@ -269,7 +269,6 @@ function login_initialize(container) {
 
         box = new $t.dice.dice_box(canvas, { w: 500, h: 300 });
         box.use_adapvite_timestep = false;
-        box.animate_selector = true;
 
 
         if (params.notation) {
@@ -468,35 +467,6 @@ function login_initialize(container) {
         }
     };
 
-    function process_channel() {
-        /*
-        $t.rpc(
-            { method: 'info', cid: cid },
-            function(response) {
-                if(response.method != 'info') return;
-                console.log("process_channel: ");
-                console.log(response);
-
-                if (response.error) {
-                    show_error(response.error);
-                }
-                if(!response.action || response.action.length < 1) return;
-
-                if (action_pool.hasOwnProperty(response.action)) {
-                    action_pool[response.action](response);
-                }
-            }
-        );
-        if($t.socket.readyState == WebSocket.OPEN) {
-            clearTimeout($t.updatetimer);
-            $t.updatetimer = setTimeout(process_channel, 1500);
-        } else {
-            console.log("WebSocket not ready, ending process_channel loop");
-            clearTimeout($t.updatetimer);
-        }
-        */
-    }
-
     function login() {
         hide_error();
         teal.id('waitform').style.display = "block";
@@ -509,21 +479,14 @@ function login_initialize(container) {
 
             $t.socket.addEventListener('message', function(response) {
 
-                console.log("process_channel - onmessage: ");
-                console.log(response);
-
                 var data = JSON.parse(response.data);
-
-                //if (!data.method || (data.method == 'info' || data.method == 'join')) return;
-
-                console.log(data);
 
                 if (data.error) {
                     show_error(data.error);
                 }
 
                 if (data.method == 'join' && data.action == 'login') {
-                    requestAnimationFrame(process_channel);
+                    requestAnimationFrame(function() {});
                 }
 
                 if(!data.action || data.action.length < 1) return;
