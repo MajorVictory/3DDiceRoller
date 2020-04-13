@@ -56,13 +56,9 @@
             <br/>
             <button id="button_join">enter</button>
             <p/>
-            <!-- <div class="smalllabel">
-                created using <a href="http://threejs.org">three.js</a> and
-                <a href="http://cannonjs.org">cannon.js</a>,
-                powered by <a href="https://developers.google.com/appengine/">Google App Engine</a>,
-                <br/>
-                true random numbers generated with <a href="http://random.org">random.org</a>
-            </div> -->
+            <div class="smalllabel">
+                created using <a href="http://threejs.org">three.js</a> and <a href="http://cannonjs.org">cannon.js</a>
+            </div>
         </div>
     </div>
     </div>

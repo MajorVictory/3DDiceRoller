@@ -214,13 +214,11 @@
         var materials = [];
         for (var i = 0; i < face_labels.length; ++i) {
 
-            materials.push(
-                new THREE.MeshPhongMaterial(
-                    $t.copyto(
-                        this.material_options,
-                        { map: create_text_texture(this, face_labels[i], this.dice_texture_rand, this.label_color_rand, this.label_outline_rand, this.dice_color_rand, type) })
-                )
-            );
+            var mat = new THREE.MeshPhongMaterial(this.material_options);
+            //mat.emissiveMap.needsUpdate = true;
+            mat.map = create_text_texture(this, face_labels[i], this.dice_texture_rand, this.label_color_rand, this.label_outline_rand, this.dice_color_rand, type)
+            
+            materials.push(mat);
         }
         return materials;
     }
@@ -295,8 +293,22 @@
 
         var materials = [];
         for (var i = 0; i < labels.length; ++i) {
-            materials.push(new THREE.MeshPhongMaterial($t.copyto(this.material_options,
-                        { map: create_d4_text(this, labels[i], this.dice_texture_rand, this.label_color_rand, this.label_outline_rand, this.dice_color_rand) })));
+
+
+            /* this.material_options = {
+                specular: 0x0,
+                color: 0xb5b5b5,
+                shininess: 0,
+                flatShading: true
+            };*/
+
+            var mat = new THREE.MeshPhongMaterial(this.material_options);
+            //mat.emissiveMap.needsUpdate = true;
+            mat.map = create_d4_text(this, labels[i], this.dice_texture_rand, this.label_color_rand, this.label_outline_rand, this.dice_color_rand)
+            materials.push(mat);
+
+            //materials.push(new THREE.MeshPhongMaterial($t.copyto(this.material_options,
+            //            { map: create_d4_text(this, labels[i], this.dice_texture_rand, this.label_color_rand, this.label_outline_rand, this.dice_color_rand) })));
         }
         return materials;
     }
@@ -325,9 +337,12 @@
     this.create_d10_geometry = function(radius) {
         var a = Math.PI * 2 / 10, k = Math.cos(a), h = 0.105, v = -1;
         var vertices = [];
-        for (var i = 0, b = 0; i < 10; ++i, b += a)
+        for (var i = 0, b = 0; i < 10; ++i, b += a) {
             vertices.push([Math.cos(b), Math.sin(b), h * (i % 2 ? 1 : -1)]);
-        vertices.push([0, 0, -1]); vertices.push([0, 0, 1]);
+        }
+        vertices.push([0, 0, -1]);
+        vertices.push([0, 0, 1]);
+        
         var faces = [[5, 7, 11, 0], [4, 2, 10, 1], [1, 3, 11, 2], [0, 8, 10, 3], [7, 9, 11, 4],
                 [8, 6, 10, 5], [9, 1, 11, 6], [2, 0, 10, 7], [3, 5, 11, 8], [6, 4, 10, 9],
                 [1, 0, 2, v], [1, 2, 3, v], [3, 2, 4, v], [3, 4, 5, v], [5, 4, 6, v],
@@ -352,6 +367,7 @@
         var vertices = [[-1, t, 0], [1, t, 0 ], [-1, -t, 0], [1, -t, 0],
                 [0, -1, t], [0, 1, t], [0, -1, -t], [0, 1, -t],
                 [t, 0, -1], [t, 0, 1], [-t, 0, -1], [-t, 0, 1]];
+        console.log(vertices);
         var faces = [[0, 11, 5, 1], [0, 5, 1, 2], [0, 1, 7, 3], [0, 7, 10, 4], [0, 10, 11, 5],
                 [1, 5, 9, 6], [5, 11, 4, 7], [11, 10, 2, 8], [10, 7, 6, 9], [7, 1, 8, 10],
                 [3, 9, 4, 11], [3, 4, 2, 12], [3, 2, 6, 13], [3, 6, 8, 14], [3, 8, 9, 15],
@@ -363,7 +379,7 @@
         specular: 0x0,
         color: 0xb5b5b5,
         shininess: 0,
-        shading: THREE.FlatShading,
+        flatShading: true
     };
 
     this.ambient_light_color = 0xf0f5fb;
@@ -379,53 +395,46 @@
 
     this.scale = 50;
 
-    /*this.create_d4 = function() {
-        if (!this.d4_geometry) this.d4_geometry = this.create_d4_geometry(this.scale * 1.2);
-        if (!this.d4_material) this.d4_material = new THREE.MeshFaceMaterial(
-                this.create_d4_materials(this.scale / 2, this.scale * 2, d4_labels[0]));
-        return new THREE.Mesh(this.d4_geometry, this.d4_material);
-    }*/
-
     this.create_d4 = function() {
         if (!this.d4_geometry) this.d4_geometry = this.create_d4_geometry(this.scale * 1.2);
         this.setRandomMaterialInfo();
-        return new THREE.Mesh(this.d4_geometry, new THREE.MeshFaceMaterial(this.create_d4_materials(this.scale / 2, this.scale * 2, d4_labels[0])));
+        return new THREE.Mesh(this.d4_geometry, this.create_d4_materials(this.scale / 2, this.scale * 2, d4_labels[0]));
     }
 
     this.create_d6 = function() {
         if (!this.d6_geometry) this.d6_geometry = this.create_d6_geometry(this.scale * 0.9);
         this.setRandomMaterialInfo();
-        return new THREE.Mesh(this.d6_geometry, new THREE.MeshFaceMaterial(this.create_dice_materials(this.standart_d20_dice_face_labels, this.scale / 2, 1.0, 'd6')));
+        return new THREE.Mesh(this.d6_geometry, this.create_dice_materials(this.standart_d20_dice_face_labels, this.scale / 2, 1.0, 'd6'));
     }
 
     this.create_d8 = function() {
         if (!this.d8_geometry) this.d8_geometry = this.create_d8_geometry(this.scale);
         this.setRandomMaterialInfo();
-        return new THREE.Mesh(this.d8_geometry, new THREE.MeshFaceMaterial(this.create_dice_materials(this.standart_d20_dice_face_labels, this.scale / 2, 1.2, 'd8')));
+        return new THREE.Mesh(this.d8_geometry, this.create_dice_materials(this.standart_d20_dice_face_labels, this.scale / 2, 1.2, 'd8'));
     }
 
     this.create_d10 = function() {
         if (!this.d10_geometry) this.d10_geometry = this.create_d10_geometry(this.scale * 0.9);
         this.setRandomMaterialInfo();
-        return new THREE.Mesh(this.d10_geometry, new THREE.MeshFaceMaterial(this.create_dice_materials(this.standart_d20_dice_face_labels, this.scale / 2, 1.0, 'd10')));
+        return new THREE.Mesh(this.d10_geometry, this.create_dice_materials(this.standart_d20_dice_face_labels, this.scale / 2, 1.0, 'd10'));
     }
 
     this.create_d12 = function() {
         if (!this.d12_geometry) this.d12_geometry = this.create_d12_geometry(this.scale * 0.9);
         this.setRandomMaterialInfo();
-        return new THREE.Mesh(this.d12_geometry, new THREE.MeshFaceMaterial(this.create_dice_materials(this.standart_d20_dice_face_labels, this.scale / 2, 1.0, 'd12')));
+        return new THREE.Mesh(this.d12_geometry, this.create_dice_materials(this.standart_d20_dice_face_labels, this.scale / 2, 1.0, 'd12'));
     }
 
     this.create_d20 = function() {
         if (!this.d20_geometry) this.d20_geometry = this.create_d20_geometry(this.scale);
         this.setRandomMaterialInfo();
-        return new THREE.Mesh(this.d20_geometry, new THREE.MeshFaceMaterial(this.create_dice_materials(this.standart_d20_dice_face_labels, this.scale / 2, 1.0, 'd20')));
+        return new THREE.Mesh(this.d20_geometry, this.create_dice_materials(this.standart_d20_dice_face_labels, this.scale / 2, 1.0, 'd20'));
     }
 
     this.create_d100 = function() {
         if (!this.d10_geometry) this.d10_geometry = this.create_d10_geometry(this.scale * 0.9);
         this.setRandomMaterialInfo();
-        return new THREE.Mesh(this.d10_geometry, new THREE.MeshFaceMaterial(this.create_dice_materials(this.standart_d100_dice_face_labels, this.scale / 2, 1.5, 'd100')));
+        return new THREE.Mesh(this.d10_geometry, this.create_dice_materials(this.standart_d100_dice_face_labels, this.scale / 2, 1.5, 'd100'));
     }
 
     this.setRandomMaterialInfo = function() {
@@ -549,12 +558,19 @@
         this.scene = new THREE.Scene();
         this.world = new CANNON.World();
 
+        //that.material_options.emissive = 'red';
+        //that.material_options.emissiveMap = new THREE.Texture(diceTextures['glitter']);;
+        //that.material_options.emissiveIntensity = 1;
+        //console.log(that.material_options);
+
+
+
         this.renderer = window.WebGLRenderingContext
             ? new THREE.WebGLRenderer({ antialias: true })
             : new THREE.CanvasRenderer({ antialias: true });
         container.appendChild(this.renderer.domElement);
         this.renderer.shadowMap.enabled = true;
-        this.renderer.shadowMap.type = THREE.PCFShadowMap;
+        this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
         this.renderer.setClearColor(0xffffff, 1);
 
         this.reinit(container, dimentions);
@@ -632,13 +648,13 @@
         this.light.target.position.set(0, 0, 0);
         this.light.distance = mw * 5;
         this.light.castShadow = true;
-        this.light.shadowCameraNear = mw / 10;
-        this.light.shadowCameraFar = mw * 5;
-        this.light.shadowCameraFov = 50;
-        this.light.shadowBias = 0.001;
-        this.light.shadowDarkness = 1.1;
-        this.light.shadowMapWidth = 1024;
-        this.light.shadowMapHeight = 1024;
+        this.light.shadow.camera.near = mw / 10;
+        this.light.shadow.camera.far = mw * 5;
+        this.light.shadow.camera.fov = 50;
+        this.light.shadow.bias = 0.001;
+        //this.light.shadowDarkness = 1.1;
+        this.light.shadow.mapSize.width = 1024;
+        this.light.shadow.mapSize.height = 1024;
         this.scene.add(this.light);
 
         if (this.desk) this.scene.remove(this.desk);
@@ -852,8 +868,7 @@
         }
         if (dice.dice_type == 'd4' && num != 0) {
             if (num < 0) num += 4;
-            dice.material = new THREE.MeshFaceMaterial(
-                    that.create_d4_materials(that.scale / 2, that.scale * 2, d4_labels[num]));
+            dice.material = that.create_d4_materials(that.scale / 2, that.scale * 2, d4_labels[num]);
         }
         dice.geometry = geom;
     }

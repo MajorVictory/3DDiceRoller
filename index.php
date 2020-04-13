@@ -19,17 +19,11 @@
         </div>
         <div class="center_field">
             <div class="bottom_field">
-                <span id="labelhelp"><!--click to continue or tap and drag again--></span>
+                <span id="labelhelp">Click to continue or click and drag again to re-throw.</span>
             </div>
         </div>
     </div>
     <div id="selector_div" style="display: none">
-        <div class="center_field">
-            <div id="sethelp">
-                <!--choose your dice set by clicking each one,<br/>
-                tap and drag on free space of screen or hit throw button to roll-->
-            </div>
-        </div>
         <div class="center_field">
             <div>
                 <input type="text" id="set" name="set" value="4d6"></input><br/>
@@ -53,6 +47,9 @@
                 </select>
                 <br/>
                 <span id="colorname"></span>
+                <div id="sethelp">
+                    Click dice to add, Click and drag to Throw.
+                </div>
             </form>
         </div>
     </div>

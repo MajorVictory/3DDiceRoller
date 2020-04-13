@@ -18,6 +18,7 @@ $ColorSets = array(
     'Colors' => array(
         'Black' => 'black',
         'White' => 'white',
+        'Rainblow' => 'rainbow',
         'Random' => 'random'
     ),
     'Custom Sets' => array(

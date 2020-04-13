@@ -34,6 +34,7 @@ var sources = {
     'stainedglass': './textures/stainedglass.png',
     'skulls': './textures/skulls.png',
     'leopard': './textures/leopard.jpg',
+    'astral': './textures/astral.png',
     'acleaf': './textures/acleaf.png',
     'thecage': './textures/thecage.png',
     'isabelle': './textures/isabelle.png'
@@ -136,8 +137,8 @@ function getColorSet(colorsetname) {
         case 'force': 
             fgcolor = 'white';
             outline = '#570000';
-            bgcolor = ['#FF24A0', '#FF97FF','#FF24C5','#FF24FF','#FF57F0']; 
-            texture = getTexture('ice');
+            bgcolor = ['#FF97FF', '#FF68FF','#C651C6']; 
+            texture = getTexture('stars');
             desc = 'Force';
             break;
         case 'psychic': 
@@ -157,6 +158,12 @@ function getColorSet(colorsetname) {
             bgcolor = ['#FF0000','#00FF00','#0000FF']; 
             texture = getTexture('none');
             desc = 'Test';
+            break; 
+        case 'rainbow': 
+            fgcolor = ['#FF5959','#FFA74F','#FFFF56','#59FF59','#2374FF','#00FFFF','#FF59FF'];
+            bgcolor = ['#900000','#CE3900','#BCBC00','#00B500','#00008E','#008282','#A500A5']; 
+            texture = getTexture('none');
+            desc = 'Rainblow';
             break; 
         case 'random': 
             fgcolor = [];
@@ -225,7 +232,7 @@ function getColorSet(colorsetname) {
             fgcolor = '#565656';
             outline = 'none';
             bgcolor = 'white';
-            texture = getTexture('stars');
+            texture = getTexture('astral');
             desc = 'The Astral Sea, for Austin';
             break;
         case 'leopard': 
@@ -265,10 +272,11 @@ function getColorSet(colorsetname) {
             bgcolor = '#000000'; 
             texture = getTexture('none');
             desc = 'Default Black';
+            if (colorsetname.toLowerCase() != 'black') colorsetname = '';
             break;
     }
 
-    var colors = {foreground: fgcolor, background: bgcolor, outline: outline, texture: texture, description: desc};
+    var colors = {name: colorsetname.toLowerCase(), foreground: fgcolor, background: bgcolor, outline: outline, texture: texture, description: desc};
     return colors;
 }
 
@@ -294,37 +302,54 @@ function getTexture(texturename) {
 
 function applyColorSet(colorset, texture = null, update = true) {
 
+    var urlargs = [];
+    var colordata = getColorSet(colorset);
+    var texturedata = getTexture(texture);
 
     if (colorset && colorset.length > 0) {
     	$t.dice.materials_cache = {};
     	$t.dice.cache_hits = 0;
     	$t.dice.cache_misses = 0;
 
-		var colordata = getColorSet(colorset);
         $t.dice.label_color = colordata.foreground;
         $t.dice.label_outline = colordata.outline;
         $t.dice.dice_color = colordata.background;
         $t.dice.dice_texture = colordata.texture.texture;
 
-        if (texture == null) texture = colordata.texture.name;
+        if (texture == null) {
+            texture = colordata.texture.name;
+            texturedata = getTexture(texture);
+        }
+
+        urlargs.push('colorset='+colordata.name);
 
 	    if (update) {
-	    	if ($t.id('login_colorname')) $t.empty($t.id('login_colorname'));
-	    	$t.empty($t.id('colorname'));
-		    if ($t.id('login_colorname')) $t.inner("Dice Theme: "+colordata.description, $t.id('login_colorname'));
-		    $t.inner("Dice Theme: "+colordata.description, $t.id('colorname'));
 		    if ($t.id('login_color')) $t.selectByValue($t.id('login_color'), colorset);
 		    $t.selectByValue($t.id('color'), colorset);
 	    }
     }
 
     if (texture || texture == '') {
-		var texturedata = getTexture(texture);
         $t.dice.dice_texture = texturedata.texture;
+
+        urlargs.push('texture='+texturedata.name);
 
         if (update) {
 		    if ($t.id('login_texture')) $t.selectByValue($t.id('login_texture'), texturedata.name);
 		    $t.selectByValue($t.id('texture'), texturedata.name);
 	    }
+    }
+
+    if (update && urlargs.length > 0) {
+
+        var urltext = 'Dice Theme: <a href="?'+urlargs.join('&')+'">'+colordata.description+'</a>';
+
+        if ($t.id('login_colorname')) {
+            $t.empty($t.id('login_colorname'));
+            $t.id('login_colorname').innerHTML = urltext;
+        }
+
+        $t.empty($t.id('colorname'));
+        $t.id('colorname').innerHTML = urltext;
     }
 }

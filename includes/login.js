@@ -57,8 +57,8 @@ function login_initialize(container) {
 
     var params = $t.get_url_params();
 
-    if (params.color || params.texture) {
-        applyColorSet(params.color, params.texture);
+    if (params.colorset || params.texture) {
+        applyColorSet(params.colorset, params.texture);
     } else {
         applyColorSet('random', null);
     }
