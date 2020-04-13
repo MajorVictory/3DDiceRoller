@@ -77,10 +77,6 @@ optgroup {
     line-height: 1.3;
 }
 
-#colorname {
-    top: 13%;
-}
-
 .dice_place {
     position: absolute;
     border: solid black 1px;

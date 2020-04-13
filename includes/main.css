@@ -43,10 +43,44 @@ p {
 }
 
 .control_panel {
-    padding: 15px;
-    padding-bottom: 0px;
     position: absolute;
+    margin: 10px;
     z-index: 10;
+    outline: 2px solid rgba(21, 26, 26, 0.7);
+}
+
+#control_panel_hidden {
+    padding: 5px;
+}
+
+#control_panel_shown {
+    padding: 30px 15px 15px 15px;
+}
+
+#control_panel_shown div {
+    font-size: 12pt;
+    margin-top: 0.3em;
+    color: rgba(21, 26, 26, 0.7);
+    font-family: Trebuchet MS;
+}
+
+#control_panel_hide {
+    position: absolute;
+    top: 0px;
+    left: 5px;
+    cursor: pointer;
+}
+
+#control_panel_show {
+    cursor: pointer;
+}
+
+#control_panel_hide:hover {
+    outline: 1px solid grey;
+}
+
+#control_panel_show:hover {
+    outline: 1px solid grey;
 }
 
 .hidden {

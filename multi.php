@@ -19,52 +19,57 @@
     <input type="hidden" id="parent_roll" value="0">
 
     <div id="waitform"></div>
-    <div class="control_panel noselect">
-        <p id="loading_text">Loading libraries, please wait a bit...</p>
-        <div id="success_text" style="color: green">&nbsp;</div>
-        <div id="error_text" style="color: red">&nbsp;</div>
+
+    <div id="control_panel_hidden" class="control_panel noselect" style="display:none;visibility:hidden;">
+        <div id="control_panel_show" class="control_label">⚙️</div>
+    </div>
+    <div id="control_panel_shown" class="control_panel noselect">
+        <div id="control_panel_hide" class="control_label">⚙️</div>
+        <div id="connection_message" class="control_label" style="color:orange">Loading...</div>
+        <div id="colorname" class="control_label">Dice Theme: </div>
+        <select id="color" name="color">
+            <?php foreach ($ColorSets as $group => $values) {
+                ?><optgroup label="<?= $group ?>"><?
+                foreach ($values as $name => $value) {
+                    ?> <option value="<?= $value ?>"<?= ($_GET['color'] == $value) ? 'selected="selected"' : '' ?>><?= $name ?></option> <?
+                }
+                ?></optgroup><?
+            } ?>
+        </select>
+        <select id="texture" name="texture">
+            <?php foreach ($Textures as $name => $value) {
+                ?> <option value="<?= $value ?>"<?= ($_GET['texture'] == $value) ? 'selected="selected"' : '' ?>><?= $name ?></option> <?
+            } ?>
+        </select>
+        <br/>
+        <br/>
         <button id="reconnect">Reconnect</button>
+        <button id="logout">logout</button>
     </div>
 
     <div id="loginform" style="display: table; background-color: #f4f4f4; position: absolute; height: 100%; width: 100%;">
-    <div style="display: table-cell; vertical-align: middle">
-    <div style="margin-left: auto; margin-right: auto; width: 100%">
-        <div class="loginform">
-            <div class="lform">
-                <div>Player Name</div>
-                <input id="input_user" type="text" value=""></input>
-                <div>Room Name</div>
-                <input id="input_room" type="text" value=""></input>
-                <div>Dice</div>
-                <select id="login_color" name="login_color">
-                    <?php foreach ($ColorSets as $group => $values) {
-                        ?><optgroup label="<?= $group ?>"><?
-                        foreach ($values as $name => $value) {
-                            ?> <option value="<?= $value ?>"<?= ($_GET['color'] == $value) ? 'selected="selected"' : '' ?>><?= $name ?></option> <?
-                        }
-                        ?></optgroup><?
-                    } ?>
-                </select>
-                <select id="login_texture" name="login_texture">
-                    <?php foreach ($Textures as $name => $value) {
-                        ?> <option value="<?= $value ?>"<?= ($_GET['texture'] == $value) ? 'selected="selected"' : '' ?>><?= $name ?></option> <?
-                    } ?>
-                </select>
-                <br/>
-                <span id="login_colorname"></span>
-            </div>
-            <br/>
-            <button id="button_join">enter</button>
-            <p/>
-            <div class="smalllabel">
-                created using <a href="http://threejs.org">three.js</a> and <a href="http://cannonjs.org">cannon.js</a>
+        <div style="display: table-cell; vertical-align: middle">
+            <div style="margin-left: auto; margin-right: auto; width: 100%">
+                <div class="loginform">
+                    <div class="lform">
+                        <div>Player Name</div>
+                        <input id="input_user" type="text" value=""></input>
+                        <div>Room Name</div>
+                        <input id="input_room" type="text" value=""></input>
+                    </div>
+                    <br/>
+                    <button id="button_join">Join</button>
+                    <p/>
+                    <div class="smalllabel">
+                        created using <a href="http://threejs.org">three.js</a> and <a href="http://cannonjs.org">cannon.js</a>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
-    </div>
-    </div>
 
     <div id="desk" class="noselect" style="position: relative; float: left">
+
     <div id="info_div" style="display: none">
         <div class="center_field">
             <span id="label"></span>
@@ -88,24 +93,6 @@
                 <button id="throw">Throw</button>
                 <button id="clear">Reset</button>
             </div>
-            <form id="optionform" action="" method="get">
-                <select id="color" name="color">
-                    <?php foreach ($ColorSets as $group => $values) {
-                        ?><optgroup label="<?= $group ?>"><?
-                        foreach ($values as $name => $value) {
-                            ?> <option value="<?= $value ?>"<?= ($_GET['color'] == $value) ? 'selected="selected"' : '' ?>><?= $name ?></option> <?
-                        }
-                        ?></optgroup><?
-                    } ?>
-                </select>
-                <select id="texture" name="texture">
-                    <?php foreach ($Textures as $name => $value) {
-                        ?> <option value="<?= $value ?>"<?= ($_GET['texture'] == $value) ? 'selected="selected"' : '' ?>><?= $name ?></option> <?
-                    } ?>
-                </select>
-                <br/>
-                <span id="colorname"></span>
-            </form>
         </div>
     </div>
     <div id="canvas"></div>
@@ -115,7 +102,6 @@
     </div>
 
     <div id="log" class="teal-chat" style="display: none"></div>
-    <button id="logout">logout</button>
 
     <script src="./libs/three.min.js"></script>
     <script src="./libs/cannon.min.js"></script>

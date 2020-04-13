@@ -367,7 +367,6 @@
         var vertices = [[-1, t, 0], [1, t, 0 ], [-1, -t, 0], [1, -t, 0],
                 [0, -1, t], [0, 1, t], [0, -1, -t], [0, 1, -t],
                 [t, 0, -1], [t, 0, 1], [-t, 0, -1], [-t, 0, 1]];
-        console.log(vertices);
         var faces = [[0, 11, 5, 1], [0, 5, 1, 2], [0, 1, 7, 3], [0, 7, 10, 4], [0, 10, 11, 5],
                 [1, 5, 9, 6], [5, 11, 4, 7], [11, 10, 2, 8], [10, 7, 6, 9], [7, 1, 8, 10],
                 [3, 9, 4, 11], [3, 4, 2, 12], [3, 2, 6, 13], [3, 6, 8, 14], [3, 8, 9, 15],
@@ -562,8 +561,6 @@
         //that.material_options.emissiveMap = new THREE.Texture(diceTextures['glitter']);;
         //that.material_options.emissiveIntensity = 1;
         //console.log(that.material_options);
-
-
 
         this.renderer = window.WebGLRenderingContext
             ? new THREE.WebGLRenderer({ antialias: true })

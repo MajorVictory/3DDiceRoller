@@ -28,8 +28,8 @@ teal.copy = function(obj) {
 
 teal.hidden = function(obj, hidden, display = 'block') {
     if(!obj) return;
-    obj.display = (hidden) ? 'none' : display;
-    obj.visibility = (hidden) ? 'hidden' : 'visible';
+    obj.style.display = (hidden) ? 'none' : display;
+    obj.style.visibility = (hidden) ? 'hidden' : 'visible';
 }
 
 teal.element = function(name, props, place, content) {

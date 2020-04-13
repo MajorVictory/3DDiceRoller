@@ -324,7 +324,6 @@ function applyColorSet(colorset, texture = null, update = true) {
         urlargs.push('colorset='+colordata.name);
 
 	    if (update) {
-		    if ($t.id('login_color')) $t.selectByValue($t.id('login_color'), colorset);
 		    $t.selectByValue($t.id('color'), colorset);
 	    }
     }
@@ -335,7 +334,6 @@ function applyColorSet(colorset, texture = null, update = true) {
         urlargs.push('texture='+texturedata.name);
 
         if (update) {
-		    if ($t.id('login_texture')) $t.selectByValue($t.id('login_texture'), texturedata.name);
 		    $t.selectByValue($t.id('texture'), texturedata.name);
 	    }
     }
@@ -343,11 +341,6 @@ function applyColorSet(colorset, texture = null, update = true) {
     if (update && urlargs.length > 0) {
 
         var urltext = 'Dice Theme: <a href="?'+urlargs.join('&')+'">'+colordata.description+'</a>';
-
-        if ($t.id('login_colorname')) {
-            $t.empty($t.id('login_colorname'));
-            $t.id('login_colorname').innerHTML = urltext;
-        }
 
         $t.empty($t.id('colorname'));
         $t.id('colorname').innerHTML = urltext;

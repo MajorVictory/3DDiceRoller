@@ -52,7 +52,14 @@
     top: 3.5em;
 }
 
-.loginform input, .loginform select {
+#connection_message {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    text-align: right;
+}
+
+input, select {
     padding: 3px 15px;
     width: 10em;
     text-align: center;
@@ -60,7 +67,7 @@
     color: rgba(0, 0, 0, 0.8);
 }
 
-.loginform button {
+#button_join {
     font-size: 20pt;
     color: rgb(255, 255, 255);
     background-color: rgba(0, 0, 0, 0.6);
@@ -130,9 +137,6 @@
 }
 
 #logout {
-    position: absolute;
-    bottom: 40px;
-    right: 26px;
     top: auto;
     font-size: 100%;
     background-color: rgba(0, 0, 0, 0.6);
