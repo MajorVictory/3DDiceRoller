@@ -46,15 +46,20 @@ p {
     position: absolute;
     margin: 10px;
     z-index: 10;
-    outline: 2px solid rgba(21, 26, 26, 0.7);
 }
 
 #control_panel_hidden {
     padding: 5px;
 }
 
+#control_panel_hidden:hover {
+    padding: 5px;
+    outline: 2px solid rgba(21, 26, 26, 0.7);
+}
+
 #control_panel_shown {
     padding: 30px 15px 15px 15px;
+    outline: 2px solid rgba(21, 26, 26, 0.7);
 }
 
 #control_panel_shown div {
@@ -76,10 +81,6 @@ p {
 }
 
 #control_panel_hide:hover {
-    outline: 1px solid grey;
-}
-
-#control_panel_show:hover {
     outline: 1px solid grey;
 }
 

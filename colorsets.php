@@ -51,6 +51,7 @@ $Textures = array(
     'Speckles' => 'speckles',
     'Glitter' => 'glitter',
     'Stars' => 'stars',
+    'Astral' => 'astral',
     'Stained Glass' => 'stainedglass',
     'Skulls' => 'skulls',
     'Leopard' => 'leopard',

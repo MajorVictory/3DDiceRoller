@@ -319,6 +319,7 @@ function login_initialize(container) {
                 function(response) {
                     if (response.method != 'roll') return;
                     if (response && response.error) set_connection_message(response.error, 'red');
+                    show_waitform(false);
                     callback();
                 });
             }
@@ -377,9 +378,15 @@ function login_initialize(container) {
     }
 
     function set_connection_message(text, color = 'orange') {
-        $t.empty(connection_message)
-        $t.inner(text, connection_message);
-        connection_message.style.color = color;
+        $t.empty($t.id('connection_message'))
+        $t.inner(text, $t.id('connection_message'));
+        $t.id('connection_message').style.color = color;
+    }
+
+    function set_login_message(text, color = 'red') {
+        $t.empty($t.id('login_message'))
+        $t.inner(text, $t.id('login_message'));
+        $t.id('login_message').style.color = color;
     }
 
     function show_waitform(show) {
@@ -399,7 +406,7 @@ function login_initialize(container) {
                 $t.id('info_field').style.display = "inline-block";
                 log.place.style.display = "inline-block";
             }
-            set_connection_message('...');
+            set_connection_message(' ');
         },
         userlist: function(res) {
             var f = $t.id('info_field');
@@ -446,7 +453,7 @@ function login_initialize(container) {
     };
 
     function login() {
-        set_connection_message('...');
+        set_connection_message(' ');
         show_waitform(true);
         clearTimeout($t.updatetimer);
         try {
@@ -461,6 +468,8 @@ function login_initialize(container) {
 
                 if (data.error) {
                     set_connection_message(data.error, 'red');
+                    show_waitform(false);
+                    set_login_message(data.error, 'red');
                 }
 
                 if (data.method == 'join' && data.action == 'login') {
@@ -480,7 +489,7 @@ function login_initialize(container) {
         }
     }
 
-    set_connection_message('...');
+    set_connection_message(' ');
     show_waitform(false);
 
     $t.bind($t.id('button_join'), "click", function() {

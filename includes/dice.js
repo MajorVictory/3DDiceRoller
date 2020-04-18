@@ -574,7 +574,7 @@
 
         this.world.gravity.set(0, 0, -9.8 * 800);
         this.world.broadphase = new CANNON.NaiveBroadphase();
-        this.world.solver.iterations = 25;
+        this.world.solver.iterations = 14;
 
         var ambientLight = new THREE.AmbientLight(that.ambient_light_color);
         this.scene.add(ambientLight);

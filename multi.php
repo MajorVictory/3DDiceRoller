@@ -53,9 +53,10 @@
                 <div class="loginform">
                     <div class="lform">
                         <div>Player Name</div>
-                        <input id="input_user" type="text" value=""></input>
+                        <input id="input_user" type="text" maxlength="35" value=""></input>
                         <div>Room Name</div>
-                        <input id="input_room" type="text" value=""></input>
+                        <input id="input_room" type="text" maxlength="35" value=""></input>
+                        <div id="login_message"></div>
                     </div>
                     <br/>
                     <button id="button_join">Join</button>
