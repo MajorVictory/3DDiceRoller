@@ -383,8 +383,8 @@
 
     this.ambient_light_color = 0xf0f5fb;
     this.spot_light_color = 0xefdfd5;
-    this.selector_back_colors = { color: 0x404040, shininess: 0, emissive: 0x858787 };
-    this.desk_color = 0xdfdfdf;
+    this.selector_back_colors = { color: '#1e2c4d', shininess: 0 };
+    this.desk_color = '#1e2c4d';//0xdfdfdf;
     this.use_shadows = true;
 
     this.known_types = ['d4', 'd6', 'd8', 'd10', 'd12', 'd20', 'd100'];
@@ -548,6 +548,7 @@
     }
 
     var that = this;
+    var mouse = new THREE.Vector2();
 
     this.dice_box = function(container, dimentions) {
         this.use_adapvite_timestep = true;
@@ -556,6 +557,7 @@
         this.dices = [];
         this.scene = new THREE.Scene();
         this.world = new CANNON.World();
+        this.raycaster = new THREE.Raycaster();
 
         //that.material_options.emissive = 'red';
         //that.material_options.emissiveMap = new THREE.Texture(diceTextures['glitter']);;
@@ -576,7 +578,7 @@
         this.world.broadphase = new CANNON.NaiveBroadphase();
         this.world.solver.iterations = 14;
 
-        var ambientLight = new THREE.AmbientLight(that.ambient_light_color);
+        var ambientLight = new THREE.AmbientLight(that.ambient_light_color, 1);
         this.scene.add(ambientLight);
 
         this.dice_body_material = new CANNON.Material();
@@ -615,6 +617,16 @@
         this.running = false;
 
         this.renderer.render(this.scene, this.camera);
+
+        document.addEventListener('mousemove', this.onmousemove, false);
+    }
+
+    this.dice_box.prototype.onmousemove = function(event) {
+        event.preventDefault();
+        mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
+        mouse.y = - ( event.clientY / window.innerHeight ) * 2 + 1;
+
+        mouse.y = mouse.y - 0.25; // dumb fix for positioning of ray tracer
     }
 
     this.dice_box.prototype.reinit = function(container, dimentions) {
@@ -640,7 +652,7 @@
 
         var mw = Math.max(this.w, this.h);
         if (this.light) this.scene.remove(this.light);
-        this.light = new THREE.SpotLight(that.spot_light_color, 2.0);
+        this.light = new THREE.SpotLight(that.spot_light_color, 1.0);
         this.light.position.set(-mw / 2, mw / 2, mw * 2);
         this.light.target.position.set(0, 0, 0);
         this.light.distance = mw * 5;
@@ -649,13 +661,12 @@
         this.light.shadow.camera.far = mw * 5;
         this.light.shadow.camera.fov = 50;
         this.light.shadow.bias = 0.001;
-        //this.light.shadowDarkness = 1.1;
         this.light.shadow.mapSize.width = 1024;
         this.light.shadow.mapSize.height = 1024;
         this.scene.add(this.light);
 
         if (this.desk) this.scene.remove(this.desk);
-        this.desk = new THREE.Mesh(new THREE.PlaneGeometry(this.w * 2, this.h * 2, 1, 1), 
+        this.desk = new THREE.Mesh(new THREE.PlaneGeometry(this.w * 6, this.h * 6, 1, 1), 
                 new THREE.MeshPhongMaterial({ color: that.desk_color }));
         this.desk.receiveShadow = that.use_shadows;
         this.scene.add(this.desk);
@@ -886,6 +897,8 @@
         this.__animate(this.running);
     }
 
+    this.INTERSECTED;
+
     this.dice_box.prototype.__selector_animate = function(threadid) {
         var time = (new Date()).getTime();
         var time_diff = (time - this.last_time) / 1000;
@@ -898,6 +911,38 @@
             this.dices[i].rotation.x += angle_change / 4;
             this.dices[i].rotation.z += angle_change / 10;
         }
+
+        this.raycaster.setFromCamera( mouse, this.camera );
+        var intersects = this.raycaster.intersectObjects(this.dices);
+        if ( intersects.length > 0 ) {
+
+            if ( this.INTERSECTED != intersects[0].object ) {
+                
+                if ( this.INTERSECTED ) {
+                    for(let i = 0, length1 = this.INTERSECTED.material.length; i < length1; i++){
+                        this.INTERSECTED.material[i].emissive.setHex( this.INTERSECTED.currentHex );
+                        this.INTERSECTED.material[i].emissiveIntensity = this.INTERSECTED.currentintensity;
+                    }
+                }
+                this.INTERSECTED = intersects[0].object;
+                this.INTERSECTED.currentHex = this.INTERSECTED.material[0].emissive.getHex();
+                this.INTERSECTED.currentintensity = this.INTERSECTED.material[0].emissiveIntensity;
+
+                for(let i = 0, length1 = this.INTERSECTED.material.length; i < length1; i++){
+                    this.INTERSECTED.material[i].emissive.setHex( 0xffffff );
+                    this.INTERSECTED.material[i].emissiveIntensity = 0.5;
+                }
+            }
+        } else {
+                if ( this.INTERSECTED ) {
+                    for(let i = 0, length1 = this.INTERSECTED.material.length; i < length1; i++){
+                        this.INTERSECTED.material[i].emissive.setHex( this.INTERSECTED.currentHex );
+                        this.INTERSECTED.material[i].emissiveIntensity = this.INTERSECTED.currentintensity;
+                    }
+                }
+                this.INTERSECTED = null;
+        }
+
         this.last_time = time;
         this.renderer.render(this.scene, this.camera);
         if (this.running == threadid) {
@@ -908,11 +953,14 @@
     }
 
     this.dice_box.prototype.search_dice_by_mouse = function(ev) {
-        var m = $t.get_mouse_coords(ev);
-        var intersects = (new THREE.Raycaster(this.camera.position, 
-                    (new THREE.Vector3((m.x - this.cw) / this.aspect,
-                                       1 - (m.y - this.ch) / this.aspect, this.w / 9))
-                    .sub(this.camera.position).normalize())).intersectObjects(this.dices);
+
+        if (this.rolling) return;
+
+        this.raycaster.setFromCamera( mouse, this.camera );
+        var intersects = this.raycaster.intersectObjects(this.dices);
+
+        //this.scene.add(new THREE.ArrowHelper(this.raycaster.ray.direction, this.raycaster.ray.origin, 100, 0xff0000) );
+
         if (intersects.length) return intersects[0].object.userData;
     }
 

@@ -1,3 +1,141 @@
+body {
+    background-color: #0b1a3e;
+    color: #9794ff;
+    font-family: Georgia;
+    margin: 0px;
+    overflow: hidden
+}
+
+optgroup {
+    background-color: white;
+}
+
+input, select, button {
+    padding: 3px 15px;
+    width: 10em;
+    text-align: center;
+    border: solid 2px white;
+    background-color: #c0c0c0;
+    font-family: Trebuchet MS;
+}
+
+input:hover, select:hover, button:hover {
+    border-color: #9794ff;
+}
+
+a {
+    color: white;
+}
+
+em {
+    border: 1px rgba(0, 0, 0, 0.2) solid;
+    font-style: normal;
+    padding: 0px 3px;
+    background-color: rgba(0, 0, 0, 0.08);
+    border-radius: 3px;
+}
+
+h6 {
+    font-size: 100%;
+    font-weight: normal;
+    margin: 0px;
+}
+
+p {
+    font-size: 80%;
+    margin-top: 5px;
+    margin-bottom: 0px;
+}
+
+#svg *, .svg * {
+    -moz-user-select: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -o-user-select: none;
+    user-select: none;
+}
+
+#waitform {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    z-index: 10000;
+    cursor: wait;
+}
+
+.center_field {
+    text-align: center;
+    width: 100%;
+}
+
+.center_field * {
+    font-family: Trebuchet MS;
+    padding: 5px 15px;
+}
+
+.bottom_field {
+    position: absolute;
+    text-align: center;
+    bottom: 5px;
+    width: inherit;
+    padding: 0px;
+}
+
+#label {
+    font-size: 32pt;
+    word-spacing: 0.5em;
+    padding: 5px 15px;
+}
+
+#labelhelp {
+    font-size: 12pt;
+    padding: 5px 15px;
+    bottom: 50px;
+}
+
+#set {
+    text-align: center;
+    font-size: 26pt;
+    margin-bottom: 5px;
+}
+
+#sethelp, #colorname {
+    font-size: 12pt;
+    background: none;
+    margin-bottom: 5px;
+}
+
+#selector_div {
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    width: 100%;
+    background-color: rgba(0,0,0,0.25);
+    border-bottom: 2px dashed white;
+}
+
+#selector_div select {
+    width: 9em;
+}
+
+#selector_div button, #selector_div select {
+    font-size: 12pt;
+    cursor: pointer;
+    line-height: 1.3;
+}
+
+.dice_place {
+    position: absolute;
+    border: solid black 1px;
+}
+
+#loginform {
+    display: table;
+    position: absolute;
+    height: 100%;
+    width: 100%;
+}
+
 .loginform {
     text-align: center;
 }
@@ -15,18 +153,15 @@
 .loginform .lform * {
     font-size: 16pt;
     margin-top: 0.3em;
-    color: rgba(21, 26, 26, 0.7);
 }
 
 .loginform .biglabel {
     font-size: 32pt;
     margin-bottom: 50px;
-    color: rgba(21, 26, 26, 0.6);
 }
 
 .smalllabel {
     text-align: center;
-    color: rgba(21, 26, 26, 0.6);
     position: absolute;
     width: 100%;
     bottom: 1.2em;
@@ -36,7 +171,6 @@
     font-family: Trebuchet MS;
     text-align: center;
     font-size: 12pt;
-    color: rgba(21, 26, 26, 0.6);
     position: absolute;
     width: 100%;
     bottom: 1em;
@@ -59,33 +193,19 @@
     text-align: right;
 }
 
-input, select {
-    padding: 3px 15px;
-    width: 10em;
-    text-align: center;
-    border: solid 2px rgba(0, 0, 0, 0.3);
-    color: rgba(0, 0, 0, 0.8);
-}
-
 #button_join {
     font-size: 20pt;
-    color: rgb(255, 255, 255);
-    background-color: rgba(0, 0, 0, 0.6);
     cursor: pointer;
-    border: none;
     width: 5em;
     padding: 5px 15px;
-    border: none;
 }
 
 .chat-notation {
     border: 1px rgba(0, 0, 0, 0.2) solid;
     font-style: normal;
     padding: 0px 3px;
-    background-color: rgba(0, 0, 0, 0.08);
     border-radius: 3px;
 }
-
 
 .teal-chat:before {
     content: '';
@@ -95,7 +215,6 @@ input, select {
 }
 .teal-chat {
     font-family: Trebuchet MS;
-    color: rgba(21, 26, 26, 0.8);
     padding: 5px 15px;
     overflow-y: scroll;
 }
@@ -136,19 +255,64 @@ input, select {
     color: lightgrey;
 }
 
-#logout {
-    top: auto;
-    font-size: 100%;
-    background-color: rgba(0, 0, 0, 0.6);
-    font-family: Trebuchet MS;
-    border: none;
-    color: white;
+#desk {
+    position: relative;
 }
 
-#reconnect {
-    font-size: 100%;
-    background-color: rgba(0, 0, 0, 0.6);
+#info_div {
+    width: 100%;
+}
+
+#canvas {
+    border-bottom: 2px dashed white;
+}
+
+.control_panel {
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    margin: 10px;
+    background-color: #1e2c4d;
+}
+
+#control_panel_hidden {
+    padding: 5px;
+}
+
+#control_panel_hidden:hover {
+    padding: 5px;
+    outline: 2px solid #9794ff;
+}
+
+#control_panel_shown {
+    padding: 30px 15px 15px 15px;
+    outline: 2px solid white;
+}
+
+#control_panel_shown div {
+    font-size: 12pt;
+    margin-top: 0.3em;
     font-family: Trebuchet MS;
-    border: none;
-    color: white;
+}
+
+#control_panel_hide {
+    position: absolute;
+    top: 0px;
+    left: 5px;
+    cursor: pointer;
+}
+
+#control_panel_show {
+    cursor: pointer;
+}
+
+#control_panel_hide:hover {
+    outline: 1px solid #9794ff;
+}
+
+.hidden {
+    display: none;
+    visibility: none;
+    width: 0px;
+    height: 0px;
 }

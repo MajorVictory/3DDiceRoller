@@ -7,47 +7,18 @@
 <meta name="description" content="Online 3D dice roller"/>
 <title>Major's 3D Dice</title>
 
-<style type="text/css">@import "./includes/main.css";</style>
-<style type="text/css">@import "./includes/dice.css";</style>
 <style type="text/css">@import "./includes/login.css";</style>
 <!-- Original Source: http://www.teall.info/2014/01/online-3d-dice-roller.html -->
 
 <?php include_once('./colorsets.php'); ?>
 </head>
-<body style="margin: 0; overflow: hidden">
+<body>
     <input type="hidden" id="parent_notation" value="">
     <input type="hidden" id="parent_roll" value="0">
 
     <div id="waitform"></div>
 
-    <div id="control_panel_hidden" class="control_panel noselect" style="display:none;visibility:hidden;">
-        <div id="control_panel_show" class="control_label">⚙️</div>
-    </div>
-    <div id="control_panel_shown" class="control_panel noselect">
-        <div id="control_panel_hide" class="control_label">⚙️</div>
-        <div id="connection_message" class="control_label" style="color:orange">Loading...</div>
-        <div id="colorname" class="control_label">Dice Theme: </div>
-        <select id="color" name="color">
-            <?php foreach ($ColorSets as $group => $values) {
-                ?><optgroup label="<?= $group ?>"><?
-                foreach ($values as $name => $value) {
-                    ?> <option value="<?= $value ?>"<?= ($_GET['color'] == $value) ? 'selected="selected"' : '' ?>><?= $name ?></option> <?
-                }
-                ?></optgroup><?
-            } ?>
-        </select>
-        <select id="texture" name="texture">
-            <?php foreach ($Textures as $name => $value) {
-                ?> <option value="<?= $value ?>"<?= ($_GET['texture'] == $value) ? 'selected="selected"' : '' ?>><?= $name ?></option> <?
-            } ?>
-        </select>
-        <br/>
-        <br/>
-        <button id="reconnect">Reconnect</button>
-        <button id="logout">logout</button>
-    </div>
-
-    <div id="loginform" style="display: table; background-color: #f4f4f4; position: absolute; height: 100%; width: 100%;">
+    <div id="loginform">
         <div style="display: table-cell; vertical-align: middle">
             <div style="margin-left: auto; margin-right: auto; width: 100%">
                 <div class="loginform">
@@ -69,37 +40,60 @@
         </div>
     </div>
 
-    <div id="desk" class="noselect" style="position: relative; float: left">
-
-    <div id="info_div" style="display: none">
+    <div id="desk" class="noselect">
+        <div id="canvas"></div>
         <div class="center_field">
-            <span id="label"></span>
-        </div>
-        <div class="center_field">
-            <div class="bottom_field">
-                <span id="labelhelp"><!--click to continue or tap and drag again--></span>
+            <div class="info-field">
+                <span id="info_field" style="display: none"></span>
             </div>
         </div>
     </div>
     <div id="selector_div" style="display: none">
         <div class="center_field">
-            <div id="sethelp">
-                <!--choose your dice set by clicking each one,<br/>
-                tap and drag on free space of screen or hit throw button to roll-->
-            </div>
-        </div>
-        <div class="center_field">
             <div>
-                <input type="text" id="set" name="set" value="4d6"></input><br/>
+                <input type="text" id="set" name="set" value="2d20"></input><br/>
                 <button id="throw">Throw</button>
                 <button id="clear">Reset</button>
             </div>
+            <div id="sethelp">
+                choose your dice set by clicking each one,<br/>
+                tap and drag on free space of screen or hit throw button to roll
+            </div>
+            <div id="labelhelp">
+                click to continue or tap and drag again
+            </div>
         </div>
-    </div>
-    <div id="canvas"></div>
-    <div class="info-field">
-        <span id="info_field" style="display: none"></span>
-    </div>
+        <div id="info_div" style="display: none">
+            <div class="center_field">
+                <span id="label"></span>
+            </div>
+        </div>
+        <div id="control_panel_hidden" class="control_panel noselect" style="display:none;visibility:hidden;">
+            <div id="control_panel_show" class="control_label">⚙️</div>
+        </div>
+        <div id="control_panel_shown" class="control_panel noselect">
+            <div id="control_panel_hide" class="control_label">⚙️</div>
+            <div id="connection_message" class="control_label" style="color:orange">Loading...</div>
+            <div id="colorname" class="control_label">Dice Theme: </div>
+            <select id="color" name="color">
+                <?php foreach ($ColorSets as $group => $values) {
+                    ?><optgroup label="<?= $group ?>"><?
+                    foreach ($values as $name => $value) {
+                        ?> <option value="<?= $value ?>"<?= ($_GET['color'] == $value) ? 'selected="selected"' : '' ?>><?= $name ?></option> <?
+                    }
+                    ?></optgroup><?
+                } ?>
+            </select>
+            <select id="texture" name="texture">
+                <?php foreach ($Textures as $name => $value) {
+                    ?> <option value="<?= $value ?>"<?= ($_GET['texture'] == $value) ? 'selected="selected"' : '' ?>><?= $name ?></option> <?
+                } ?>
+            </select>
+            <br/>
+            <br/>
+            <button id="reconnect">Reconnect</button>
+            <button id="logout">logout</button>
+        </div>
     </div>
 
     <div id="log" class="teal-chat" style="display: none"></div>
@@ -119,7 +113,11 @@
 		window.addEventListener("message", receiveMessage, false);
 
         function receiveMessage(event) {
-            if (event.origin !== "https://www.improved-initiative.com") return;
+        	console.log(event);
+            if (event.origin !== "https://www.improved-initiative.com" &&
+            	event.origin !== "https://files.majorsplace.com" &&
+            	event.origin !== "https://rand.majorsplace.com" &&
+            	event.origin !== "https://dnd.majorsplace.com") return;
 
             parent_notation = $t.id('parent_notation');
             parent_roll = $t.id('parent_roll');

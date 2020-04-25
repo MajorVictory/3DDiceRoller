@@ -55,6 +55,7 @@ function login_initialize(container) {
     var desk = $t.id('desk');
     var log = new $t.chat.chat_box($t.id('log'));
     var updatetimer = null;
+    var deskrolling = false;
 
     var params = $t.get_url_params();
 
@@ -148,8 +149,9 @@ function login_initialize(container) {
         $t.hidden($t.id('control_panel_shown'), true);
         $t.hidden($t.id('control_panel_hidden'), false);
     }
-    $t.bind(control_panel_hide, ['keyup','mouseup','touchend'], on_control_panel_hide);
-    $t.bind(control_panel_hide, ['mousedown', 'touchstart'], function(ev) { ev.stopPropagation(); });
+    on_control_panel_hide();
+    $t.bind(control_panel_hide, ['keyup','mouseup','touchstart'], on_control_panel_hide);
+    $t.bind(control_panel_hide, ['mousedown', 'touchend'], function(ev) { ev.stopPropagation(); });
     $t.bind(control_panel_hide, 'focus', function(ev) { $t.set(container, { class: '' }); });
     $t.bind(control_panel_hide, 'blur', function(ev) { $t.set(container, { class: 'noselect' }); });
 
@@ -159,9 +161,9 @@ function login_initialize(container) {
         $t.hidden($t.id('control_panel_shown'), false);
         $t.hidden($t.id('control_panel_hidden'), true);
     }
-    on_control_panel_show();
-    $t.bind(control_panel_show, ['keyup','mouseup','touchend'], on_control_panel_show);
-    $t.bind(control_panel_show, ['mousedown', 'touchstart'], function(ev) { ev.stopPropagation(); });
+    //on_control_panel_show();
+    $t.bind(control_panel_show, ['keyup','mouseup','touchstart'], on_control_panel_show);
+    $t.bind(control_panel_show, ['mousedown', 'touchend'], function(ev) { ev.stopPropagation(); });
     $t.bind(control_panel_show, 'focus', function(ev) { $t.set(container, { class: '' }); });
     $t.bind(control_panel_show, 'blur', function(ev) { $t.set(container, { class: 'noselect' }); });
 
@@ -263,7 +265,7 @@ function login_initialize(container) {
 
         box = new $t.dice.dice_box(canvas, { w: 500, h: 300 });
         box.use_adapvite_timestep = false;
-
+        $t.box = box;
 
         if (params.notation) {
             set.value = params.notation;
@@ -295,7 +297,11 @@ function login_initialize(container) {
 
         function show_selector() {
             info_div.style.display = 'none';
-            selector_div.style.display = 'inline-block';
+            $t.id('labelhelp').style.display = 'none';
+
+            selector_div.style.display = 'block';
+            $t.id('sethelp').style.display = 'block';
+            deskrolling = false;
             applyColorSet(color_select.value, texture_select.value);
             $t.dice.setRandomMaterialInfo();
             box.draw_selector();
@@ -304,8 +310,11 @@ function login_initialize(container) {
         $t.show_selector = show_selector;
 
         function before_roll(vectors, notation, callback) {
-            info_div.style.display = 'none';
-            selector_div.style.display = 'none';
+            label.innerHTML = user+' is Rolling...';
+            console.log(user);
+            info_div.style.display = 'block';
+            $t.id('sethelp').style.display = 'none';
+            deskrolling = true;
             set_connection_message('');
             show_waitform(true);
             box.clear();
@@ -339,10 +348,14 @@ function login_initialize(container) {
 
         $t.bind(container, ['mouseup', 'touchend'], function(ev) {
             ev.stopPropagation();
-            if (selector_div.style.display == 'none') {
+
+            // if total display is up and dice aren't rolling, reset the selector
+            if (info_div.style.display != 'none') {
                 if (!box.rolling) show_selector();
                 return;
             }
+
+            // otherwise, select dice
             var name = box.search_dice_by_mouse(ev);
             if (name) {
                 var notation = $t.dice.parse_notation(set.value);
@@ -401,7 +414,6 @@ function login_initialize(container) {
             if (loginform) {
                 $t.remove(loginform);
                 loginform.style.display = 'none';
-                $t.element('div', { id: 'error_text', class: 'error-text noselect' }, desk);
                 mdice_initialize(container);
                 $t.id('info_field').style.display = "inline-block";
                 log.place.style.display = "inline-block";
@@ -418,8 +430,11 @@ function login_initialize(container) {
             if (log.roll_uuid) log.confirm_message(log.roll_uuid, undefined, true);
             else log.add_unconfirmed_message(res.user, make_notation_for_log(res.notation),
                     res.time, log.roll_uuid = $t.uuid(), true);
-            info_div.style.display = 'none';
-            selector_div.style.display = 'none';
+
+            label.innerHTML = res.user+' is Rolling...';
+            info_div.style.display = 'block';
+            //selector_div.style.display = 'none';
+            deskrolling = true;
             if (res.colorset.length > 0 || res.texture.length > 0) applyColorSet(res.colorset, res.texture, false);
             box.clear();
             box.rolling = true;
@@ -432,7 +447,9 @@ function login_initialize(container) {
                 }
                 r += ' = ' + (result.reduce(function(s, a) { return s + a; }) + res.notation.constant);
                 label.innerHTML = r;
-                info_div.style.display = 'inline-block';
+                info_div.style.display = 'block';
+                $t.id('labelhelp').style.display = 'block';
+                deskrolling = false;
                 box.rolling = false;
                 if (log.roll_uuid) {
                     log.confirm_message(log.roll_uuid, make_notation_for_log(res.notation, r));
