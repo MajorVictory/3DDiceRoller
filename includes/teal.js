@@ -158,7 +158,10 @@ else {
     }
 }
 
-teal.openSocket = function(address = 'wss://rand.majorsplace.com:32400') {
+teal.openSocket = function(address = 'dnd.majorsplace.com:32400', secure = false) {
+
+    address = secure ? 'wss://'+address : 'ws://'+address;
+
     this.socket = (this.socket == null || this.socket.readyState > WebSocket.OPEN) ? new WebSocket(address) : this.socket;
 
     //console.log(this.socket);

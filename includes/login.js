@@ -33,8 +33,31 @@ function unpack_vectors(vectors) {
 }
 
 function preload_and_init() {
-    var isReady = ImageLoader(sources, function(images) {
+    var isReady = ImageLoader(TEXTURELIST, function(images) {
         diceTextures = images;
+
+        var colorselect = $t.id('color');
+        var textureselect = $t.id('texture');
+
+        for(let i = 0, l = COLORCATEGORIES.length; i < l; i++){
+
+            var category = $t.element('optgroup', {label: COLORCATEGORIES[i]}, colorselect, undefined);
+
+            const itemprops = Object.entries(COLORSETS);
+            for (const [key, value] of itemprops) {
+
+                if (value.category == COLORCATEGORIES[i]) {
+                    $t.element('option', {value: key}, category, value.name);
+                }
+
+            }
+        }
+
+        const itemprops = Object.entries(TEXTURELIST);
+        for (const [key, value] of itemprops) {
+            $t.element('option', {value: key}, textureselect, value.name);
+        }
+
         login_initialize($t.id('desk'));
     });
 }
@@ -73,7 +96,7 @@ function login_initialize(container) {
     }
 
     if (params.server) {
-        reconnect_socket(params.server);
+        reconnect_socket(params.server, (params.secure == '1') || false);
     } else {
         reconnect_socket();
     }
@@ -177,14 +200,14 @@ function login_initialize(container) {
         }
     });
 
-    function reconnect_socket(address) {
+    function reconnect_socket(address, secure = false) {
         if ($t.socket && $t.socket.readyState <= WebSocket.OPEN) {
             $t.socket.close();
             location.reload();
         } else {
             set_connection_message("Connecting...");
         }
-        $t.openSocket(address);
+        $t.openSocket(address, secure);
 
         $t.socket.onerror = function(event) {
             set_connection_message("Connection Error", 'red', true);

@@ -9,8 +9,6 @@
 
 <style type="text/css">@import "./includes/login.css";</style>
 <!-- Original Source: http://www.teall.info/2014/01/online-3d-dice-roller.html -->
-
-<?php include_once('./colorsets.php'); ?>
 </head>
 <body>
     <input type="hidden" id="parent_notation" value="">
@@ -22,6 +20,7 @@
         <div style="display: table-cell; vertical-align: middle">
             <div style="margin-left: auto; margin-right: auto; width: 100%">
                 <div class="loginform">
+                    <h1>Major's 3D Dice Roller</h1>
                     <div class="lform">
                         <div>Player Name</div>
                         <input id="input_user" type="text" maxlength="35" value=""></input>
@@ -31,9 +30,11 @@
                     </div>
                     <br/>
                     <button id="button_join">Join</button>
-                    <p/>
+
                     <div class="smalllabel">
-                        created using <a href="http://threejs.org">three.js</a> and <a href="http://cannonjs.org">cannon.js</a>
+                        Created using <a href="http://threejs.org">three.js</a> and <a href="http://cannonjs.org">cannon.js</a>
+                        <br>
+                        Original source code and idea from <a href="http://www.teall.info/2014/07/multiplayer-3d-dice-roller.html">Tealyatina's Dice roller</a>
                     </div>
                 </div>
             </div>
@@ -68,32 +69,23 @@
                 <span id="label"></span>
             </div>
         </div>
-        <div id="control_panel_hidden" class="control_panel noselect" style="display:none;visibility:hidden;">
-            <div id="control_panel_show" class="control_label">⚙️</div>
-        </div>
-        <div id="control_panel_shown" class="control_panel noselect">
-            <div id="control_panel_hide" class="control_label">⚙️</div>
-            <div id="connection_message" class="control_label" style="color:orange">Loading...</div>
-            <div id="colorname" class="control_label">Dice Theme: </div>
-            <select id="color" name="color">
-                <?php foreach ($ColorSets as $group => $values) {
-                    ?><optgroup label="<?= $group ?>"><?
-                    foreach ($values as $name => $value) {
-                        ?> <option value="<?= $value ?>"<?= ($_GET['color'] == $value) ? 'selected="selected"' : '' ?>><?= $name ?></option> <?
-                    }
-                    ?></optgroup><?
-                } ?>
-            </select>
-            <select id="texture" name="texture">
-                <?php foreach ($Textures as $name => $value) {
-                    ?> <option value="<?= $value ?>"<?= ($_GET['texture'] == $value) ? 'selected="selected"' : '' ?>><?= $name ?></option> <?
-                } ?>
-            </select>
-            <br/>
-            <br/>
-            <button id="reconnect">Reconnect</button>
-            <button id="logout">logout</button>
-        </div>
+    </div>
+
+    <div id="control_panel_hidden" class="control_panel noselect" style="display:none;visibility:hidden;">
+        <div id="control_panel_show" class="control_label">⚙️</div>
+    </div>
+    <div id="control_panel_shown" class="control_panel noselect">
+        <div id="control_panel_hide" class="control_label">⚙️</div>
+        <div id="connection_message" class="control_label" style="color:orange">Loading...</div>
+        <div id="colorname" class="control_label">Dice Theme: </div>
+        <select id="color" name="color">
+        </select>
+        <select id="texture" name="texture">
+        </select>
+        <br/>
+        <br/>
+        <button id="reconnect">Reconnect</button>
+        <button id="logout">logout</button>
     </div>
 
     <div id="log" class="teal-chat" style="display: none"></div>
