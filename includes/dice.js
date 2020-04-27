@@ -622,10 +622,14 @@
     }
 
     this.dice_box.prototype.onmousemove = function(event) {
-        event.preventDefault();
-        mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
-        mouse.y = - ( event.clientY / window.innerHeight ) * 2 + 1;
 
+        event.preventDefault();
+
+        var clientX = (event.changedTouches) ? event.changedTouches[0].clientX : event.clientX;
+        var clientY = (event.changedTouches) ? event.changedTouches[0].clientY : event.clientY;
+
+        mouse.x = ( clientX / window.innerWidth ) * 2 - 1;
+        mouse.y = - ( clientY / window.innerHeight ) * 2 + 1;
         mouse.y = mouse.y - 0.25; // dumb fix for positioning of ray tracer
     }
 
@@ -955,6 +959,9 @@
     this.dice_box.prototype.search_dice_by_mouse = function(ev) {
 
         if (this.rolling) return;
+        if (ev) {
+            this.onmousemove(ev);
+        }
 
         this.raycaster.setFromCamera( mouse, this.camera );
         var intersects = this.raycaster.intersectObjects(this.dices);

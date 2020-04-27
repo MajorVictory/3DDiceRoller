@@ -169,24 +169,28 @@ function login_initialize(container) {
     var control_panel_hide = $t.id('control_panel_hide');
 
     function on_control_panel_hide(ev) {
+        console.log(this);
+        console.log(ev);
         $t.hidden($t.id('control_panel_shown'), true);
         $t.hidden($t.id('control_panel_hidden'), false);
+        if (ev) ev.preventDefault();
     }
     on_control_panel_hide();
-    $t.bind(control_panel_hide, ['keyup','mouseup','touchstart'], on_control_panel_hide);
-    $t.bind(control_panel_hide, ['mousedown', 'touchend'], function(ev) { ev.stopPropagation(); });
+    $t.bind(control_panel_hide, ['mouseup','touchend'], on_control_panel_hide);
+    //$t.bind(control_panel_hide, ['mousedown', 'touchstart'], function(ev) { ev.stopPropagation(); });
     $t.bind(control_panel_hide, 'focus', function(ev) { $t.set(container, { class: '' }); });
     $t.bind(control_panel_hide, 'blur', function(ev) { $t.set(container, { class: 'noselect' }); });
 
     var control_panel_show = $t.id('control_panel_show');
 
     function on_control_panel_show(ev) {
-        $t.hidden($t.id('control_panel_shown'), false);
         $t.hidden($t.id('control_panel_hidden'), true);
+        $t.hidden($t.id('control_panel_shown'), false);
+        if (ev) ev.preventDefault();
     }
     //on_control_panel_show();
-    $t.bind(control_panel_show, ['keyup','mouseup','touchstart'], on_control_panel_show);
-    $t.bind(control_panel_show, ['mousedown', 'touchend'], function(ev) { ev.stopPropagation(); });
+    $t.bind(control_panel_show, ['mouseup','touchend'], on_control_panel_show);
+    //$t.bind(control_panel_show, ['mousedown', 'touchstart'], function(ev) { ev.stopPropagation(); });
     $t.bind(control_panel_show, 'focus', function(ev) { $t.set(container, { class: '' }); });
     $t.bind(control_panel_show, 'blur', function(ev) { $t.set(container, { class: 'noselect' }); });
 
