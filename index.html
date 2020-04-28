@@ -1,14 +1,13 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<html xml:lang="en" lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<!DOCTYPE html>
+<html lang="en">
 
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="keywords" content="DnD, dangeon and dragons, roleplay, dice, roller, 3D, RPG, wargame"/>
 <meta name="description" content="Online 3D dice roller"/>
 <title>Major's 3D Dice</title>
-
-<style type="text/css">@import "./includes/login.css";</style>
-<!-- Original Source: http://www.teall.info/2014/01/online-3d-dice-roller.html -->
+<style type="text/css">@import "./includes/css/viewports.css";</style>
 </head>
 <body>
     <input type="hidden" id="parent_notation" value="">
@@ -42,31 +41,30 @@
     </div>
 
     <div id="desk" class="noselect">
+        <div id="selector_div" style="display: none">
+            <div class="center_field">
+                <div>
+                    <input type="text" id="set" name="set" value="2d20"></input><br/>
+                    <button id="throw">Throw</button>
+                    <button id="clear">Reset</button>
+                </div>
+                <div id="sethelp">
+                    Click to Add, Drag to Throw
+                </div>
+                <div id="labelhelp">
+                    Click to continue, Drag to throw again
+                </div>
+            </div>
+            <div id="info_div" style="display: none">
+                <div class="center_field">
+                    <span id="label"></span>
+                </div>
+            </div>
+        </div>
         <div id="canvas"></div>
         <div class="center_field">
             <div class="info-field">
                 <span id="info_field" style="display: none"></span>
-            </div>
-        </div>
-    </div>
-    <div id="selector_div" style="display: none">
-        <div class="center_field">
-            <div>
-                <input type="text" id="set" name="set" value="2d20"></input><br/>
-                <button id="throw">Throw</button>
-                <button id="clear">Reset</button>
-            </div>
-            <div id="sethelp">
-                choose your dice set by clicking each one,<br/>
-                tap and drag on free space of screen or hit throw button to roll
-            </div>
-            <div id="labelhelp">
-                click to continue or tap and drag again
-            </div>
-        </div>
-        <div id="info_div" style="display: none">
-            <div class="center_field">
-                <span id="label"></span>
             </div>
         </div>
     </div>

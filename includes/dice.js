@@ -294,21 +294,10 @@
         var materials = [];
         for (var i = 0; i < labels.length; ++i) {
 
-
-            /* this.material_options = {
-                specular: 0x0,
-                color: 0xb5b5b5,
-                shininess: 0,
-                flatShading: true
-            };*/
-
             var mat = new THREE.MeshPhongMaterial(this.material_options);
             //mat.emissiveMap.needsUpdate = true;
             mat.map = create_d4_text(this, labels[i], this.dice_texture_rand, this.label_color_rand, this.label_outline_rand, this.dice_color_rand)
             materials.push(mat);
-
-            //materials.push(new THREE.MeshPhongMaterial($t.copyto(this.material_options,
-            //            { map: create_d4_text(this, labels[i], this.dice_texture_rand, this.label_color_rand, this.label_outline_rand, this.dice_color_rand) })));
         }
         return materials;
     }
@@ -387,7 +376,7 @@
     this.desk_color = '#1e2c4d';//0xdfdfdf;
     this.use_shadows = true;
 
-    this.known_types = ['d4', 'd6', 'd8', 'd10', 'd12', 'd20', 'd100'];
+    this.known_types = ['d4', 'd6', 'd8', 'd10', 'd100', 'd12', 'd20'];
     this.dice_face_range = { 'd4': [1, 4], 'd6': [1, 6], 'd8': [1, 8], 'd10': [0, 9], 'd12': [1, 12], 'd20': [1, 20], 'd100': [0, 9] };
     this.dice_mass = { 'd4': 300, 'd6': 300, 'd8': 340, 'd10': 350, 'd12': 350, 'd20': 400, 'd100': 350 };
     this.dice_inertia = { 'd4': 5, 'd6': 13, 'd8': 10, 'd10': 9, 'd12': 8, 'd20': 6, 'd100': 9 };
@@ -548,7 +537,6 @@
     }
 
     var that = this;
-    var mouse = new THREE.Vector2();
 
     this.dice_box = function(container, dimentions) {
         this.use_adapvite_timestep = true;
@@ -558,11 +546,9 @@
         this.scene = new THREE.Scene();
         this.world = new CANNON.World();
         this.raycaster = new THREE.Raycaster();
-
-        //that.material_options.emissive = 'red';
-        //that.material_options.emissiveMap = new THREE.Texture(diceTextures['glitter']);;
-        //that.material_options.emissiveIntensity = 1;
-        //console.log(that.material_options);
+        this.rayvisual = null;
+        this.showdebugtracer = false;
+        this.mouse = new THREE.Vector2();
 
         this.renderer = window.WebGLRenderingContext
             ? new THREE.WebGLRenderer({ antialias: true })
@@ -616,6 +602,12 @@
         this.last_time = 0;
         this.running = false;
 
+        if (this.showdebugtracer) {
+            //this.raycaster.setFromCamera( this.mouse, this.camera );
+            this.rayvisual = new THREE.ArrowHelper(this.raycaster.ray.direction, this.raycaster.ray.origin, 1000, 0xff0000);
+            this.scene.add(this.rayvisual);
+        }
+
         this.renderer.render(this.scene, this.camera);
 
         document.addEventListener('mousemove', this.onmousemove, false);
@@ -625,12 +617,48 @@
 
         event.preventDefault();
 
-        var clientX = (event.changedTouches) ? event.changedTouches[0].clientX : event.clientX;
-        var clientY = (event.changedTouches) ? event.changedTouches[0].clientY : event.clientY;
+        var clientX = (event.changedTouches && event.changedTouches.length) ? event.changedTouches[0].clientX : event.clientX;
+        var clientY = (event.changedTouches && event.changedTouches.length) ? event.changedTouches[0].clientY : event.clientY;
 
-        mouse.x = ( clientX / window.innerWidth ) * 2 - 1;
-        mouse.y = - ( clientY / window.innerHeight ) * 2 + 1;
-        mouse.y = mouse.y - 0.25; // dumb fix for positioning of ray tracer
+
+        /*
+        var vec = new THREE.Vector3(); // create once and reuse
+        var pos = new THREE.Vector3(); // create once and reuse
+        var dir = new THREE.Vector3(); // create once and reuse
+
+        vec.set(
+            ( clientX / window.innerWidth ) * 2 - 1,
+            - ( clientY / window.innerHeight ) * 2 + 1,
+            0.5 );
+
+        $t.box.mouse.x = vec.x;
+        $t.box.mouse.y = vec.y;
+
+        vec.unproject( $t.box.camera );
+
+        vec.sub( $t.box.camera.position ).normalize();
+
+        var distance = ( 0.5 - $t.box.camera.position.z ) / vec.z;
+
+        pos.copy( $t.box.camera.position ).add( vec.multiplyScalar( distance ) );
+
+        dir.subVectors($t.box.camera.position, pos).normalize();
+
+        //$t.box.camera.lookAt(pos);
+        $t.box.raycaster.set($t.box.camera.position, dir);
+        $t.box.rayvisual.setDirection($t.box.raycaster.ray.direction);
+        $t.box.rayvisual.position.set(pos.x,pos.y,pos.z);
+        */
+
+        $t.box.mouse.x = ( clientX / window.innerWidth ) * 2 - 1;
+        $t.box.mouse.y = - ( clientY / window.innerHeight ) * 2 + 1;
+
+        $t.box.mouse.y -= 0.25; // dumb fix for positioning of ray tracer
+
+        if ($t.box.raycaster && $t.box.showdebugtracer) {
+            $t.box.raycaster.setFromCamera($t.box.mouse, $t.box.camera);
+            $t.box.rayvisual.setDirection($t.box.raycaster.ray.direction);
+        }
     }
 
     this.dice_box.prototype.reinit = function(container, dimentions) {
@@ -652,7 +680,9 @@
         this.wh = this.ch / this.aspect / Math.tan(10 * Math.PI / 180);
         if (this.camera) this.scene.remove(this.camera);
         this.camera = new THREE.PerspectiveCamera(20, this.cw / this.ch, 1, this.wh * 1.3);
+        this.camera.position.y = 200;
         this.camera.position.z = this.wh;
+        this.camera.lookAt(new THREE.Vector3(0,0,0));
 
         var mw = Math.max(this.w, this.h);
         if (this.light) this.scene.remove(this.light);
@@ -674,6 +704,11 @@
                 new THREE.MeshPhongMaterial({ color: that.desk_color }));
         this.desk.receiveShadow = that.use_shadows;
         this.scene.add(this.desk);
+
+        if (this.rayvisual && this.showdebugtracer) {
+            this.rayvisual = new THREE.ArrowHelper(this.raycaster.ray.direction, this.raycaster.ray.origin, 1000, 0xff0000);
+            this.scene.add(this.rayvisual);
+        }
 
         this.renderer.render(this.scene, this.camera);
     }
@@ -916,7 +951,8 @@
             this.dices[i].rotation.z += angle_change / 10;
         }
 
-        this.raycaster.setFromCamera( mouse, this.camera );
+        this.raycaster.setFromCamera( this.mouse, this.camera );
+        if (this.rayvisual) this.rayvisual.setDirection(this.raycaster.ray.direction);
         var intersects = this.raycaster.intersectObjects(this.dices);
         if ( intersects.length > 0 ) {
 
@@ -959,14 +995,13 @@
     this.dice_box.prototype.search_dice_by_mouse = function(ev) {
 
         if (this.rolling) return;
-        if (ev) {
-            this.onmousemove(ev);
-        }
+        if (ev) this.onmousemove(ev);
 
-        this.raycaster.setFromCamera( mouse, this.camera );
+        this.raycaster.setFromCamera( this.mouse, this.camera );
+        if (this.rayvisual) this.rayvisual.setDirection(this.raycaster.ray.direction);
         var intersects = this.raycaster.intersectObjects(this.dices);
 
-        //this.scene.add(new THREE.ArrowHelper(this.raycaster.ray.direction, this.raycaster.ray.origin, 100, 0xff0000) );
+        //this.scene.add(new THREE.ArrowHelper(this.raycaster.ray.direction, this.raycaster.ray.origin, 1000, 0x00ff00) );
 
         if (intersects.length) return intersects[0].object.userData;
     }
@@ -980,14 +1015,34 @@
         this.pane.position.set(0, 0, 1);
         this.scene.add(this.pane);
 
-        var mouse_captured = false;
+        /*for (var i = 0, pos = -3; i < that.known_types.length; ++i, ++pos) {
 
-        for (var i = 0, pos = -3; i < that.known_types.length; ++i, ++pos) {
             var dice = $t.dice['create_' + that.known_types[i]]();
+
             dice.position.set(pos * step, 0, step * 0.5);
             dice.castShadow = true;
             dice.userData = that.known_types[i];
-            this.dices.push(dice); this.scene.add(dice);
+
+            this.dices.push(dice);
+            this.scene.add(dice);
+        }*/
+
+
+        for (var i = 0, posx = -1, posy = 1; i < that.known_types.length; ++i, ++posx) {
+
+            if (posx > 1) {
+                posx = -1;
+                posy--;
+            }
+            
+            var dice = $t.dice['create_' + that.known_types[i]]();
+
+            dice.position.set(posx * step, posy * step, step * 0.5);
+            dice.castShadow = true;
+            dice.userData = that.known_types[i];
+
+            this.dices.push(dice);
+            this.scene.add(dice);
         }
 
         this.running = (new Date()).getTime();
@@ -1020,13 +1075,20 @@
     this.dice_box.prototype.bind_mouse = function(container, notation_getter, before_roll, after_roll) {
         var box = this;
         $t.bind(container, ['mousedown', 'touchstart'], function(ev) {
+            console.log(ev);
             ev.preventDefault();
             box.mouse_time = (new Date()).getTime();
             box.mouse_start = $t.get_mouse_coords(ev);
         });
         $t.bind(container, ['mouseup', 'touchend'], function(ev) {
+            console.log(ev);
+            console.log(box.rolling);
+            console.log(box.mouse_start);
             if (box.rolling) return;
             if (box.mouse_start == undefined) return;
+            if (box.mouse_start && ev.changedTouches && ev.changedTouches.length == 0) {
+                return;
+            }
             ev.stopPropagation();
             var m = $t.get_mouse_coords(ev);
             var vector = { x: m.x - box.mouse_start.x, y: -(m.y - box.mouse_start.y) };

@@ -208,8 +208,7 @@ teal.get_url_params = function() {
 }
 
 teal.get_mouse_coords = function(ev) {
-    var touches = ev.changedTouches;
-    if (touches) return { x: touches[0].clientX, y: touches[0].clientY };
+    if (ev && ev.changedTouches && ev.changedTouches.length > 0) return { x: ev.changedTouches[0].clientX, y: ev.changedTouches[0].clientY };
     return { x: ev.clientX, y: ev.clientY };
 }
 
