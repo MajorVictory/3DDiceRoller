@@ -12,6 +12,11 @@ function ImageLoader(sources, callback) {
 
     //for (var src in sources) {
 
+        if(value.source == '') {
+            ++loadedImages
+            continue;
+        }
+
         images[key] = new Image();
         images[key].onload = function() {
 
@@ -87,6 +92,14 @@ const TEXTURELIST = {
     'isabelle': {
         name: 'Isabelle',
         source: './textures/isabelle.png'
+    },
+    'none': {
+        name: 'None',
+        source: ''
+    },
+    'random': {
+        name: 'Random',
+        source: ''
     }
 };
 
@@ -97,9 +110,9 @@ function getTexture(texturename) {
     }
 
     if(texturename == 'random') {
-        var names = Object.keys(diceTextures);
+        let names = Object.keys(diceTextures);
         // add 'none' for possibility of no texture
-        names.push('none');
+        names.pop(); //remove 'random' from this list
 
         return getTexture(names[Math.floor(Math.random() * names.length)]);
     }
@@ -406,7 +419,7 @@ function randomColor() {
     return {background: background, foreground: foreground };
 }
 
-for (var i = 0; i < 6; i++) {
+for (var i = 0; i < 10; i++) {
     var randcolor = randomColor();
 
     if (COLORSETS['random'].texture.name != '') {

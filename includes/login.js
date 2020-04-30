@@ -49,7 +49,6 @@ function preload_and_init() {
                 if (value.category == COLORCATEGORIES[i]) {
                     $t.element('option', {value: key}, category, value.name);
                 }
-
             }
         }
 
@@ -77,8 +76,9 @@ function login_initialize(container) {
     var info_div = $t.id('info_div');
     var desk = $t.id('desk');
     var log = new $t.chat.chat_box($t.id('log'));
-    var updatetimer = null;
     var deskrolling = false;
+
+    $t.hidden(desk, true);
 
     var params = $t.get_url_params();
 
@@ -105,7 +105,6 @@ function login_initialize(container) {
         set_connection_message("Connection Error", 'red', true);
         show_waitform(false);
         console.log(event);
-        clearTimeout($t.updatetimer);
     }
 
     $t.socket.onopen = function(event) {
@@ -122,7 +121,6 @@ function login_initialize(container) {
         }
         console.log(event);
         show_waitform(false);
-        clearTimeout($t.updatetimer);
     }
 
     $t.socket.onmessage = function(message) {
@@ -151,7 +149,6 @@ function login_initialize(container) {
         if($t.show_selector) $t.show_selector();
     }
     $t.bind(color_select, ['keyup','change','touchend'], on_color_select_change);
-    $t.bind(color_select, ['mousedown', 'mouseup', 'touchstart'], function(ev) { ev.stopPropagation(); });
     $t.bind(color_select, 'focus', function(ev) { $t.set(container, { class: '' }); });
     $t.bind(color_select, 'blur', function(ev) { $t.set(container, { class: 'noselect' }); });
 
@@ -162,15 +159,12 @@ function login_initialize(container) {
         if($t.show_selector) $t.show_selector();
     }
     $t.bind(texture_select, ['keyup','change','touchend'], on_texture_select_change);
-    $t.bind(texture_select, ['mousedown', 'mouseup', 'touchstart'], function(ev) { ev.stopPropagation(); });
     $t.bind(texture_select, 'focus', function(ev) { $t.set(container, { class: '' }); });
     $t.bind(texture_select, 'blur', function(ev) { $t.set(container, { class: 'noselect' }); });
 
     var control_panel_hide = $t.id('control_panel_hide');
 
     function on_control_panel_hide(ev) {
-        console.log(this);
-        console.log(ev);
         if (ev) ev.stopPropagation();
         $t.hidden($t.id('control_panel_hidden'), false);
         $t.hidden($t.id('control_panel_shown'), true);
@@ -178,25 +172,31 @@ function login_initialize(container) {
     }
     on_control_panel_hide();
     $t.bind(control_panel_hide, 'click', on_control_panel_hide);
-    //$t.bind(control_panel_hide, ['mousedown', 'touchstart'], function(ev) { ev.stopPropagation(); });
     $t.bind(control_panel_hide, 'focus', function(ev) { $t.set(container, { class: '' }); });
     $t.bind(control_panel_hide, 'blur', function(ev) { $t.set(container, { class: 'noselect' }); });
 
     var control_panel_show = $t.id('control_panel_show');
 
     function on_control_panel_show(ev) {
-        console.log(this);
-        console.log(ev);
         if (ev) ev.stopPropagation();
         $t.hidden($t.id('control_panel_shown'), false);
         $t.hidden($t.id('control_panel_hidden'), true);
         if (ev) ev.preventDefault();
     }
-    //on_control_panel_show();
     $t.bind(control_panel_show, 'click', on_control_panel_show);
-    //$t.bind(control_panel_show, ['mousedown', 'touchstart'], function(ev) { ev.stopPropagation(); });
     $t.bind(control_panel_show, 'focus', function(ev) { $t.set(container, { class: '' }); });
     $t.bind(control_panel_show, 'blur', function(ev) { $t.set(container, { class: 'noselect' }); });
+
+    var toggle_selector = $t.id('toggle_selector');
+
+    function on_toggle_selector(ev) {
+        if (ev) ev.stopPropagation();
+        if (selector_div) $t.hidden(selector_div, selector_div.style.display != 'none');
+        if (ev) ev.preventDefault();
+    }
+    $t.bind(toggle_selector, 'click', on_toggle_selector);
+    $t.bind(toggle_selector, 'focus', function(ev) { $t.set(container, { class: '' }); });
+    $t.bind(toggle_selector, 'blur', function(ev) { $t.set(container, { class: 'noselect' }); });
 
     var parent_notation = $t.id('parent_notation');
     var parent_roll = $t.id('parent_roll');
@@ -221,7 +221,6 @@ function login_initialize(container) {
             set_connection_message("Connection Error", 'red', true);
             show_waitform(false);
             console.log(event);
-            clearTimeout($t.updatetimer);
         }
 
         $t.socket.onopen = function(event) {
@@ -238,7 +237,6 @@ function login_initialize(container) {
             }
             console.log(event);
             show_waitform(false);
-            clearTimeout($t.updatetimer);
         }
 
         $t.socket.onmessage = function(message) {
@@ -278,6 +276,7 @@ function login_initialize(container) {
 
     function mdice_initialize(container) {
         log.own_user = user;
+        $t.hidden(desk, false);
         resize();
         on_set_change();
 
@@ -314,7 +313,6 @@ function login_initialize(container) {
             if (cid) {
                 $t.rpc({ method: 'logout', cid: cid });
                 $t.socket.close();
-                clearTimeout($t.updatetimer);
             }
         }
         $t.bind(window, 'beforeunload', close);
@@ -503,7 +501,6 @@ function login_initialize(container) {
     function login() {
         set_connection_message(' ');
         show_waitform(true);
-        clearTimeout($t.updatetimer);
         try {
 
             user = $t.id('input_user').value;

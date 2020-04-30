@@ -4,7 +4,6 @@ window.teal = {};
 window.$t = window.teal;
 
 teal.socket = null;
-teal.updatetimer = null;
 
 teal.copyto = function(obj, res) {
     if (obj == null || typeof obj !== 'object') return obj;

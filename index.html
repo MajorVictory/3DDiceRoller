@@ -44,9 +44,9 @@
         <div id="selector_div" style="display: none">
             <div class="center_field">
                 <div>
-                    <input type="text" id="set" name="set" value="2d20"></input><br/>
-                    <button id="throw">Throw</button>
                     <button id="clear">Reset</button>
+                    <input type="text" id="set" name="set" value="2d20"></input>
+                    <button id="throw">Throw</button>
                 </div>
                 <div id="sethelp">
                     Click to Add, Drag to Throw
@@ -55,13 +55,13 @@
                     Click to continue, Drag to throw again
                 </div>
             </div>
-            <div id="info_div" style="display: none">
-                <div class="center_field">
-                    <span id="label"></span>
-                </div>
-            </div>
         </div>
         <div id="canvas"></div>
+        <div id="info_div" style="display: none">
+            <div class="center_field">
+                <span id="label"></span>
+            </div>
+        </div>
         <div class="center_field">
             <div class="info-field">
                 <span id="info_field" style="display: none"></span>
@@ -80,6 +80,9 @@
         </select>
         <select id="texture" name="texture">
         </select>
+        <br/>
+        <br/>
+        <button id="toggle_selector">Toggle Selector</button>
         <br/>
         <br/>
         <button id="reconnect">Reconnect</button>

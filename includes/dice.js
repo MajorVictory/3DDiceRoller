@@ -490,11 +490,23 @@
     }
 
     this.parse_notation = function(notation) {
+
+        var ret = { set: [], constant: 0, result: [], error: false, boost: 1 }, res;
+        if (notation) {
+            let rage = (notation.split('!').length-1) || 0;
+            console.log('rage: '+rage);
+            if (rage > 0) {
+                ret.boost = Math.min(Math.max(rage, 0), 2) * 4;
+            }
+            console.log('boost: '+ret.boost);
+
+            notation = notation.split('!').join(''); //remove and continue
+        }
+
         var no = notation.split('@');
         var d20roll = /^(\s*(\+|\-)\s*(\d+)\s*){0,1}$/;
         var dr0 = /\s*(\d*)([a-z]+)(\d+)(\s*(\+|\-)\s*(\d+)){0,1}\s*(\+|$)/gi;
         var dr1 = /(\b)*(\d+)(\b)*/gi;
-        var ret = { set: [], constant: 0, result: [], error: false }, res;
         if (res = d20roll.exec(no[0])) {
             ret.set.push('d20');
             if (res[2] && res[3]) {
@@ -515,9 +527,11 @@
                 else ret.constant -= parseInt(res[6]);
             }
         }
+
         while (res = dr1.exec(no[1])) {
             ret.result.push(parseInt(res[2]));
         }
+
         return ret;
     }
 
@@ -678,11 +692,13 @@
         this.renderer.setSize(this.cw * 2, this.ch * 2);
 
         this.wh = this.ch / this.aspect / Math.tan(10 * Math.PI / 180);
+        this.cameraheight_selector = this.wh / 1.5;
+        this.cameraheight_rolling = this.wh;
         if (this.camera) this.scene.remove(this.camera);
         this.camera = new THREE.PerspectiveCamera(20, this.cw / this.ch, 1, this.wh * 1.3);
-        this.camera.position.y = 200;
-        this.camera.position.z = this.wh;
+        this.camera.position.z = this.cameraheight_selector;
         this.camera.lookAt(new THREE.Vector3(0,0,0));
+        
 
         var mw = Math.max(this.w, this.h);
         if (this.light) this.scene.remove(this.light);
@@ -736,7 +752,7 @@
             var projector = Math.abs(vec.x / vec.y);
             if (projector > 1.0) pos.y /= projector; else pos.x *= projector;
             var velvec = make_random_vector(vector);
-            var velocity = { x: velvec.x * boost, y: velvec.y * boost, z: -10 };
+            var velocity = { x: velvec.x * (boost * notation.boost), y: velvec.y * (boost * notation.boost), z: -10 };
             var inertia = that.dice_inertia[notation.set[i]];
             var angle = {
                 x: -(rnd() * vec.y * 5 + inertia * vec.y),
@@ -1009,6 +1025,8 @@
     this.dice_box.prototype.draw_selector = function() {
         this.clear();
         var step = this.w / 4.5;
+
+        this.camera.position.z = this.cameraheight_selector;
         this.pane = new THREE.Mesh(new THREE.PlaneGeometry(this.w * 6, this.h * 6, 1, 1), 
                 new THREE.MeshPhongMaterial(that.selector_back_colors));
         this.pane.receiveShadow = true;
@@ -1068,6 +1086,7 @@
         if (notation.set.length == 0) return;
         var vectors = box.generate_vectors(notation, vector, boost);
         box.rolling = true;
+        box.camera.position.z = box.cameraheight_rolling;
         if (before_roll) before_roll.call(box, vectors, notation, roll);
         else roll();
     }
@@ -1106,9 +1125,9 @@
 
     this.dice_box.prototype.bind_throw = function(button, notation_getter, before_roll, after_roll) {
         var box = this;
-        $t.bind(button, ['mouseup', 'touchend'], function(ev) {
-            ev.stopPropagation();
-            box.start_throw(notation_getter, before_roll, after_roll);
+        $t.bind(button, ['mouseup', 'touchend'], function(event) {
+            event.stopPropagation();
+            box.start_throw(notation_getter, before_roll, after_roll, event);
         });
     }
 

@@ -94,25 +94,31 @@ p {
     padding: 5px 15px;
 }
 
-#labelhelp {
-    font-size: 12pt;
-    padding: 5px 15px;
-    bottom: 50px;
+#set {
+    display: inline;
+    text-align: center;
+    line-height: 1em;
+    font-size: 1em;
+    margin-bottom: 5px;
+    max-width: 16em;
 }
 
-#set {
-    text-align: center;
-    font-size: 15pt;
+#throw, #clear {
+    display: inline;
+    font-size: 1em;
+    cursor: pointer;
+    line-height: 1em;
+    width: 4em;
     margin-bottom: 5px;
 }
 
-#sethelp, #colorname {
+#sethelp, #labelhelp, #colorname {
     font-size: .8em;
     background: none;
-    margin-bottom: 5px;
 }
 
 #selector_div {
+    position: absolute;
     width: 100%;
     background-color: rgba(0,0,0,0.25);
     border-bottom: 2px dashed white;
@@ -122,12 +128,6 @@ p {
     width: 9em;
 }
 
-#selector_div button, #selector_div select {
-    font-size: 12pt;
-    cursor: pointer;
-    line-height: 1.3;
-}
-
 .dice_place {
     position: absolute;
     border: solid black 1px;
@@ -135,7 +135,6 @@ p {
 
 #loginform {
     display: table;
-    position: absolute;
     height: 100%;
     width: 100%;
 }
@@ -165,9 +164,7 @@ p {
 
 .smalllabel {
     text-align: center;
-    position: absolute;
-    bottom: 1.2em;
-    margin: 0px 20px;
+    margin: 20px;
 }
 
 .info-field {
