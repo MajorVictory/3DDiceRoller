@@ -469,7 +469,7 @@ function login_initialize(container) {
             box.rolling = true;
             unpack_vectors(res.vectors);
             box.roll(res.vectors, res.notation.result, function(result) {
-                var r = result.join(' ');
+                var r = '['+result.join(', ')+']';
                 if (res.notation.constant) {
                     if (res.notation.constant > 0) r += ' +' + res.notation.constant;
                     else r += ' -' + Math.abs(res.notation.constant);
