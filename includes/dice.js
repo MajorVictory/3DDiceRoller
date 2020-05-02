@@ -166,12 +166,17 @@
     this.cache_hits = 0;
     this.cache_misses = 0;
 
+    this.label_color = '';
+    this.dice_color = '';
+    this.label_outline = '';
+    this.dice_texture = '';
+
     this.create_dice_materials = function(face_labels, size, margin, type) {
         function create_text_texture(diceobj, text, texture, forecolor, outlinecolor, backcolor, type) {
             if (text === undefined) return null;
 
             // an attempt at materials caching
-            var cachestring = type + text + texture.src + forecolor + outlinecolor + backcolor;
+            var cachestring = type + text + texture.name + forecolor + outlinecolor + backcolor;
             if (diceobj.materials_cache[cachestring] != null) {
                 diceobj.cache_hits++;
                 return diceobj.materials_cache[cachestring];
@@ -183,8 +188,8 @@
             canvas.width = canvas.height = ts;
 
             //create underlying texture
-            if (texture != '') {
-                context.drawImage(texture, 0, 0, canvas.width, canvas.height);
+            if (texture.name != '' && texture.name != 'none') {
+                context.drawImage(texture.texture, 0, 0, canvas.width, canvas.height);
                 context.globalCompositeOperation = 'multiply';
             } else {
                 context.globalCompositeOperation = 'source-over';
@@ -215,15 +220,15 @@
             if (text == '6' || text == '9') {
                 context.fillText('  .', canvas.width / 2, canvas.height / 2);
             }
-            var texture = new THREE.Texture(canvas);
-            texture.needsUpdate = true;
+            var compositetexture = new THREE.Texture(canvas);
+            compositetexture.needsUpdate = true;
             //context.clearRect(0, 0, canvas.width, canvas.height);
 
             // cache new texture
             diceobj.cache_misses++;
-            diceobj.materials_cache[cachestring] = texture;
+            diceobj.materials_cache[cachestring] = compositetexture;
 
-            return texture;
+            return compositetexture;
         }
 
         var materials = [];
@@ -249,7 +254,7 @@
         function create_d4_text(diceobj, text, texture, forecolor, outlinecolor, backcolor) {
 
             // an attempt at materials caching
-            var cachestring = 'd4' + text.join() + texture.src + forecolor + outlinecolor + backcolor;
+            var cachestring = 'd4' + text.join() + texture.name + forecolor + outlinecolor + backcolor;
             if (diceobj.materials_cache[cachestring] != null) {
                 diceobj.cache_hits++;
                 return diceobj.materials_cache[cachestring];
@@ -261,8 +266,8 @@
             canvas.width = canvas.height = ts;
 
             //create underlying texture
-            if (texture != '') {
-                context.drawImage(texture, 0, 0, canvas.width, canvas.height);
+            if (texture.name != '' && texture.name != 'none') {
+                context.drawImage(texture.texture, 0, 0, canvas.width, canvas.height);
                 context.globalCompositeOperation = 'multiply';
             }
 
@@ -296,14 +301,14 @@
                 context.rotate(Math.PI * 2 / 3);
                 context.translate(-hw, -hh);
             }
-            var texture = new THREE.Texture(canvas);
-            texture.needsUpdate = true;
+            var compositetexture = new THREE.Texture(canvas);
+            compositetexture.needsUpdate = true;
 
             // cache new texture
             diceobj.cache_misses++;
-            diceobj.materials_cache[cachestring] = texture;
+            diceobj.materials_cache[cachestring] = compositetexture;
 
-            return texture;
+            return compositetexture;
         }
 
         var materials = [];
@@ -416,7 +421,6 @@
 
     this.create_df = function() {
         if (!this.df_geometry) this.df_geometry = this.create_d6_geometry(this.scale * 0.9);
-        this.setRandomMaterialInfo();
         let mesh = new THREE.Mesh(this.df_geometry, this.create_dice_materials(this.df_dice_face_labels, this.scale / 2, 1.0, 'df'));
 
         return this.fixmaterials(mesh, 3);
@@ -424,7 +428,6 @@
 
     this.create_d1 = function() {
         if (!this.d1_geometry) this.d1_geometry = this.create_d6_geometry(this.scale * 0.9);
-        this.setRandomMaterialInfo();
         let mesh = new THREE.Mesh(this.d1_geometry, this.create_dice_materials(this.d1_dice_face_labels, this.scale / 2, 1.0, 'd1'));
 
         return this.fixmaterials(mesh, 1);
@@ -432,7 +435,6 @@
 
     this.create_d2 = function() {
         if (!this.d2_geometry) this.d2_geometry = this.create_d6_geometry(this.scale * 0.9);
-        this.setRandomMaterialInfo();
         let mesh = new THREE.Mesh(this.d2_geometry, this.create_dice_materials(this.d2_dice_face_labels, this.scale / 2, 1.0, 'd2'));
 
         return this.fixmaterials(mesh, 2);
@@ -440,7 +442,6 @@
 
     this.create_d3 = function() {
         if (!this.d3_geometry) this.d3_geometry = this.create_d6_geometry(this.scale * 0.9);
-        this.setRandomMaterialInfo();
         let mesh = new THREE.Mesh(this.d3_geometry, this.create_dice_materials(this.d3_dice_face_labels, this.scale / 2, 1.0, 'd3'));
 
         return this.fixmaterials(mesh, 3);
@@ -448,49 +449,41 @@
 
     this.create_d4 = function() {
         if (!this.d4_geometry) this.d4_geometry = this.create_d4_geometry(this.scale * 1.2);
-        this.setRandomMaterialInfo();
         return new THREE.Mesh(this.d4_geometry, this.create_d4_materials(this.scale / 2, this.scale * 2, d4_labels[0]));
     }
 
     this.create_d6 = function() {
         if (!this.d6_geometry) this.d6_geometry = this.create_d6_geometry(this.scale * 0.9);
-        this.setRandomMaterialInfo();
         return new THREE.Mesh(this.d6_geometry, this.create_dice_materials(this.d6_dice_face_labels, this.scale / 2, 1.0, 'd6'));
     }
 
     this.create_dsex = function() {
         if (!this.dsex_geometry) this.dsex_geometry = this.create_d6_geometry(this.scale * 0.9);
-        this.setRandomMaterialInfo();
         return new THREE.Mesh(this.dsex_geometry, this.create_dice_materials(this.dsex_dice_face_labels, this.scale / 2, 1.0, 'dsex'));
     }
 
     this.create_d8 = function() {
         if (!this.d8_geometry) this.d8_geometry = this.create_d8_geometry(this.scale);
-        this.setRandomMaterialInfo();
         return new THREE.Mesh(this.d8_geometry, this.create_dice_materials(this.d8_dice_face_labels, this.scale / 2, 1.2, 'd8'));
     }
 
     this.create_d10 = function() {
         if (!this.d10_geometry) this.d10_geometry = this.create_d10_geometry(this.scale * 0.9);
-        this.setRandomMaterialInfo();
         return new THREE.Mesh(this.d10_geometry, this.create_dice_materials(this.d10_dice_face_labels, this.scale / 2, 1.0, 'd10'));
     }
 
     this.create_d12 = function() {
         if (!this.d12_geometry) this.d12_geometry = this.create_d12_geometry(this.scale * 0.9);
-        this.setRandomMaterialInfo();
         return new THREE.Mesh(this.d12_geometry, this.create_dice_materials(this.d12_dice_face_labels, this.scale / 2, 1.0, 'd12'));
     }
 
     this.create_d20 = function() {
         if (!this.d20_geometry) this.d20_geometry = this.create_d20_geometry(this.scale);
-        this.setRandomMaterialInfo();
         return new THREE.Mesh(this.d20_geometry, this.create_dice_materials(this.d20_dice_face_labels, this.scale / 2, 1.0, 'd20'));
     }
 
     this.create_d100 = function() {
         if (!this.d100_geometry) this.d100_geometry = this.create_d10_geometry(this.scale * 0.9);
-        this.setRandomMaterialInfo();
         return new THREE.Mesh(this.d100_geometry, this.create_dice_materials(this.d100_dice_face_labels, this.scale / 2, 1.5, 'd100'));
     }
 
@@ -620,7 +613,7 @@
     var that = this;
 
     this.dice_box = function(container, dimentions) {
-        this.use_adapvite_timestep = true;
+        this.use_adaptive_timestep = true;
         this.animate_selector = true;
 
         this.dices = [];
@@ -838,6 +831,8 @@
         //$t.dice.cache_misses = 0;
         //$t.dice.cache_hits = 0;
 
+        that.setRandomMaterialInfo();
+
         var dice = that['create_' + type]();
         dice.castShadow = true;
         dice.dice_type = type;
@@ -950,7 +945,7 @@
         var time_diff = (time - this.last_time) / 1000;
         if (time_diff > 3) time_diff = that.frame_rate;
         ++this.iteration;
-        if (this.use_adapvite_timestep) {
+        if (this.use_adaptive_timestep) {
             while (time_diff > that.frame_rate * 1.1) {
                 this.world.step(that.frame_rate);
                 time_diff -= that.frame_rate;
@@ -980,7 +975,7 @@
                         (that.frame_rate - time_diff) * 1000);
                 }
                 else requestAnimationFrame(function() { t.__animate(tid); });
-            })(this, threadid, this.use_adapvite_timestep);
+            })(this, threadid, this.use_adaptive_timestep);
         }
     }
 
@@ -1041,19 +1036,12 @@
         let valueindex = values.indexOf(modvalue);
         let resultindex = values.indexOf(modresult);
 
-        console.log(values);
-        console.log('valueindex - '+value+' -> ('+modvalue+'): '+valueindex);
-        console.log('resultindex - '+result+' -> ('+modresult+'): '+resultindex);
-
         if (valueindex < 0 || resultindex < 0) return;
         if (valueindex == resultindex) return;
 
         // find material index for correspondig value -> face
         // and swap them
         let geom = dice.geometry.clone();
-
-        console.log(dice);
-        console.log(geom.faces);
 
         // find list of faces that use the matching material index for the given value/result
         let geomindex_value = [];
@@ -1067,9 +1055,6 @@
 
         let material_value = (valueindex+magic);
         let material_result = (resultindex+magic);
-
-        console.log('material_value:'+material_value);
-        console.log('material_result:'+material_result);
 
         for (var i = 0, l = geom.faces.length; i < l; ++i) {
             var matindex = geom.faces[i].materialIndex;
@@ -1086,22 +1071,15 @@
             }
         }
 
-        console.log('geomindex_value:');
-        console.log(geomindex_value);
-        console.log('geomindex_result:');
-        console.log(geomindex_result);
-
         if (geomindex_value.length <= 0 || geomindex_result.length <= 0) return;
 
         //swap the materials
         for(let i = 0, l = geomindex_value.length; i < l; i++) {
             geom.faces[geomindex_value[i]].materialIndex = material_result;
-            console.log('faces['+geomindex_value[i]+'] : ' + material_result);
         }
 
         for(let i = 0, l = geomindex_result.length; i < l; i++) {
             geom.faces[geomindex_result[i]].materialIndex = material_value;
-            console.log('faces['+geomindex_result[i]+'] : ' + material_value);
         }
 
         dice.geometry = geom;
@@ -1131,7 +1109,7 @@
 
         this.prepare_dices_for_roll(vectors);
         if (values != undefined && values.length) {
-            this.use_adapvite_timestep = false;
+            this.use_adaptive_timestep = true;
             var res = this.emulate_throw();
             this.prepare_dices_for_roll(vectors);
             for (var i in res)
@@ -1213,7 +1191,7 @@
         if (intersects.length) return intersects[0].object.userData;
     }
 
-    this.dice_box.prototype.draw_selector = function() {
+    this.dice_box.prototype.draw_selector = function(alldice = false) {
         this.clear();
         var step = this.w / 4.5;
 
@@ -1224,18 +1202,24 @@
         this.pane.position.set(0, 0, 1);
         this.scene.add(this.pane);
 
-        for (var i = 0, posx = -1, posy = 1; i < that.selector_dice.length; ++i, ++posx) {
+        let dicelist = alldice ? that.known_types : that.selector_dice;
+        let posxstart = dicelist ? -2 : -1;
+        let poswrap = dicelist ? 2 : 1;
 
-            if (posx > 1) {
-                posx = -1;
+        for (var i = 0, posx = posxstart, posy = 1; i < dicelist.length; ++i, ++posx) {
+
+            if (posx > poswrap) {
+                posx = posxstart;
                 posy--;
             }
+
+            $t.dice.setRandomMaterialInfo();
             
-            var dice = $t.dice['create_' + that.selector_dice[i]]();
+            var dice = $t.dice['create_' + dicelist[i]]();
 
             dice.position.set(posx * step, posy * step, step * 0.5);
             dice.castShadow = true;
-            dice.userData = that.selector_dice[i];
+            dice.userData = dicelist[i];
 
             this.dices.push(dice);
             this.scene.add(dice);
@@ -1248,14 +1232,14 @@
     }
 
     function throw_dices(box, vector, boost, dist, notation_getter, before_roll, after_roll) {
-        var uat = $t.dice.use_adapvite_timestep;
+        var uat = $t.dice.use_adaptive_timestep;
         function roll(request_results) {
             if (after_roll) {
                 box.clear();
                 box.roll(vectors, request_results || notation.result, function(result) {
                     if (after_roll) after_roll.call(box, notation, result);
                     box.rolling = false;
-                    $t.dice.use_adapvite_timestep = uat;
+                    $t.dice.use_adaptive_timestep = uat;
                 });
             }
         }
@@ -1272,15 +1256,11 @@
     this.dice_box.prototype.bind_mouse = function(container, notation_getter, before_roll, after_roll) {
         var box = this;
         $t.bind(container, ['mousedown', 'touchstart'], function(ev) {
-            console.log(ev);
             ev.preventDefault();
             box.mouse_time = (new Date()).getTime();
             box.mouse_start = $t.get_mouse_coords(ev);
         });
         $t.bind(container, ['mouseup', 'touchend'], function(ev) {
-            console.log(ev);
-            console.log(box.rolling);
-            console.log(box.mouse_start);
             if (box.rolling) return;
             if (box.mouse_start == undefined) return;
             if (box.mouse_start && ev.changedTouches && ev.changedTouches.length == 0) {

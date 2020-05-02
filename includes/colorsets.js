@@ -105,27 +105,31 @@ const TEXTURELIST = {
         name: 'None',
         source: ''
     },
-    'random': {
-        name: 'Random',
+    '': {
+        name: '~ Preset ~',
         source: ''
     }
 };
 
 function getTexture(texturename) {
 
-    if (typeof texturename == 'array') {
+    if (Array.isArray(texturename)) {
 
         let textures = [];
-
-        for(let i = 0, length1 = texturename.length; i < length1; i++){
-            textures.push(getTexture(texturename[i]));
+        for(let i = 0, l = texturename.length; i < l; i++){
+            if (typeof texturename[i] == 'string') {
+                textures.push(getTexture(texturename[i]));
+            }
         }
         return textures;
+    }
 
+    if (!texturename || texturename == '') {
+        return {name:'',texture:''};
     }
 
     if (texturename == 'none') {
-        return {name:'',texture:''};
+        return {name:'none',texture:''};
     }
 
     if(texturename == 'random') {
@@ -142,7 +146,7 @@ function getTexture(texturename) {
     return {name:'',texture:''};
 }
 
-const COLORSETS = {
+var COLORSETS = {
     'radiant': {
         name: 'Radiant',
         category: 'Damage Types',
@@ -275,7 +279,7 @@ const COLORSETS = {
         foreground: 'white',
         background: ['#ff007c', '#df73ff','#f400a1','#df00ff','#ff33cc'],
         outline: '#570000',
-        texture: 'marble',
+        texture: 'skulls',
         description: 'Pink Dreams, for Ethan'
     },
     'inspired': {
@@ -392,7 +396,7 @@ const COLORSETS = {
         foreground: [],
         outline: [],
         background: [],
-        texture: 'random',
+        texture: [],
         description: 'RaNdOm'
     },
     'black': {
@@ -424,42 +428,48 @@ const COLORCATEGORIES = [
 
 function randomColor() {
     // random colors
-    var rgb=[];
+    let rgb=[];
     rgb[0] = Math.floor(Math.random() * 254);
     rgb[1] = Math.floor(Math.random() * 254);
     rgb[2] = Math.floor(Math.random() * 254);
 
     // this is an attempt to make the foregroudn color stand out from the background color
     // it sometimes produces ok results
-    var brightness = ((parseInt(rgb[0]) * 299) + (parseInt(rgb[1]) * 587) +  (parseInt(rgb[2]) * 114)) / 1000;
-    var foreground = (brightness > 126) ? 'rgb(30,30,30)' : 'rgb(230,230,230)'; // high brightness = dark text, else bright text
-    var background = 'rgb(' + rgb[0] + ',' + rgb[1] + ',' + rgb[2] + ')';
+    let brightness = ((parseInt(rgb[0]) * 299) + (parseInt(rgb[1]) * 587) +  (parseInt(rgb[2]) * 114)) / 1000;
+    let foreground = (brightness > 126) ? 'rgb(30,30,30)' : 'rgb(230,230,230)'; // high brightness = dark text, else bright text
+    let background = 'rgb(' + rgb[0] + ',' + rgb[1] + ',' + rgb[2] + ')';
 
     return {background: background, foreground: foreground };
 }
 
-for (var i = 0; i < 10; i++) {
-    var randcolor = randomColor();
+function initColorSets() {
 
-    if (COLORSETS['random'].texture.name != '') {
-        COLORSETS['random'].foreground.push(randcolor.foreground); 
-        COLORSETS['random'].background.push(randcolor.background);
-        COLORSETS['random'].outline.push(randcolor.background);
-    } else {
-        COLORSETS['random'].foreground.push(randcolor.foreground); 
-        COLORSETS['random'].background.push(randcolor.background);
-        COLORSETS['random'].outline.push('black');
+    let sets = Object.entries(COLORSETS);
+    for (const [name, data] of sets) {
+        COLORSETS[name].texture = getTexture(data.texture);
     }
-} 
+
+    // generate the colors and textures for the random set
+    for (let i = 0; i < 10; i++) {
+        let randcolor = randomColor();
+        let randtex = getTexture('random');
+
+        if (randtex.name != '') {
+            COLORSETS['random'].foreground.push(randcolor.foreground); 
+            COLORSETS['random'].background.push(randcolor.background);
+            COLORSETS['random'].outline.push(randcolor.background);
+            COLORSETS['random'].texture.push(randtex);
+        } else {
+            COLORSETS['random'].foreground.push(randcolor.foreground); 
+            COLORSETS['random'].background.push(randcolor.background);
+            COLORSETS['random'].outline.push('black');
+            COLORSETS['random'].texture.push('');
+        }
+    }
+}
 
 function getColorSet(colorsetname) {
-
     let colorset = COLORSETS[colorsetname] || COLORSETS['random'];
-
-    if (colorset.texture && typeof colorset.texture == 'string') {
-        colorset.texture = getTexture(colorset.texture);
-    }
-
     return colorset;
 }
 
@@ -467,7 +477,6 @@ function applyColorSet(colorset, texture = null, update = true) {
 
     var urlargs = [];
     var colordata = getColorSet(colorset);
-    var texturedata = getTexture(texture);
 
     if (colorset && colorset.length > 0) {
     	$t.dice.materials_cache = {};
@@ -477,12 +486,7 @@ function applyColorSet(colorset, texture = null, update = true) {
         $t.dice.label_color = colordata.foreground;
         $t.dice.dice_color = colordata.background;
         $t.dice.label_outline = colordata.outline;
-        $t.dice.dice_texture = colordata.texture.texture;
-
-        if (texture == null) {
-            texture = colordata.texture.name;
-            texturedata = getTexture(texture);
-        }
+        $t.dice.dice_texture = colordata.texture;
 
         urlargs.push('colorset='+colordata.name);
 
@@ -491,21 +495,29 @@ function applyColorSet(colorset, texture = null, update = true) {
 	    }
     }
 
-    if (texture || texture == '') {
-        $t.dice.dice_texture = texturedata.texture;
+    if (texture || (colordata.texture && !Array.isArray(colordata.texture))) {
 
-        urlargs.push('texture='+texturedata.name);
+        var texturedata = getTexture((texture || colordata.texture.name));
+
+        let tex = Array.isArray(texturedata) ? '' : texturedata;
+
+        if (texturedata.name) {
+            $t.dice.dice_texture = texturedata;
+        }
+
+        urlargs.push('texture='+tex.name);
 
         if (update) {
-		    $t.selectByValue($t.id('texture'), texturedata.name);
-	    }
+            $t.selectByValue($t.id('texture'), tex.name);
+        }
+    } else {
+        if (update) {
+            $t.selectByValue($t.id('texture'), '');
+        }
     }
 
     if (update && urlargs.length > 0) {
-
-        var urltext = 'Dice Theme: <a href="?'+urlargs.join('&')+'">'+colordata.description+'</a>';
-
         $t.empty($t.id('colorname'));
-        $t.id('colorname').innerHTML = urltext;
+        $t.id('colorname').innerHTML = 'Dice Theme: <a href="?'+urlargs.join('&')+'">'+colordata.description+'</a>';
     }
 }

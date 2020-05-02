@@ -36,6 +36,9 @@ function preload_and_init() {
     var isReady = ImageLoader(TEXTURELIST, function(images) {
         diceTextures = images;
 
+        // init colorset textures
+        initColorSets();
+
         var colorselect = $t.id('color');
         var textureselect = $t.id('texture');
 
@@ -55,6 +58,14 @@ function preload_and_init() {
         const itemprops = Object.entries(TEXTURELIST);
         for (const [key, value] of itemprops) {
             $t.element('option', {value: key}, textureselect, value.name);
+        }
+
+        var params = $t.get_url_params();
+
+        if (params.colorset || params.texture) {
+            applyColorSet((params.colorset || 'random'), (params.texture || null));
+        } else {
+            applyColorSet('random');
         }
 
         login_initialize($t.id('desk'));
@@ -154,7 +165,7 @@ function login_initialize(container) {
 
     
     function on_texture_select_change(ev) {
-        applyColorSet(color_select.value, texture_select.value);
+        applyColorSet(color_select.value, (texture_select.value || null));
         $t.rpc( { method: 'texture', texture: texture_select.value });
         if($t.show_selector) $t.show_selector();
     }
@@ -294,7 +305,7 @@ function login_initialize(container) {
         });
 
         box = new $t.dice.dice_box(canvas, { w: 500, h: 300 });
-        box.use_adapvite_timestep = false;
+        box.use_adaptive_timestep = true;
         $t.box = box;
 
         if (params.notation) {
@@ -325,15 +336,18 @@ function login_initialize(container) {
         });
 
         function show_selector() {
+
+            console.log('params', params);
+
             info_div.style.display = 'none';
             $t.id('labelhelp').style.display = 'none';
 
             selector_div.style.display = 'block';
             $t.id('sethelp').style.display = 'block';
             deskrolling = false;
-            applyColorSet(color_select.value, texture_select.value);
+            applyColorSet(color_select.value, (texture_select.value || null));
             $t.dice.setRandomMaterialInfo();
-            box.draw_selector();
+            box.draw_selector((params.alldice && params.alldice == '1'));
         }
 
         $t.show_selector = show_selector;
