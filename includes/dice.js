@@ -1203,8 +1203,8 @@
         this.scene.add(this.pane);
 
         let dicelist = alldice ? that.known_types : that.selector_dice;
-        let posxstart = dicelist ? -2 : -1;
-        let poswrap = dicelist ? 2 : 1;
+        let posxstart = alldice ? -2 : -1;
+        let poswrap = alldice ? 2 : 1;
 
         for (var i = 0, posx = posxstart, posy = 1; i < dicelist.length; ++i, ++posx) {
 
