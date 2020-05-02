@@ -75,7 +75,15 @@ const TEXTURELIST = {
     },
     'leopard': {
         name: 'Leopard',
-        source: './textures/leopard.jpg'
+        source: './textures/leopard.png'
+    },
+    'tiger': {
+        name: 'Tiger',
+        source: './textures/tiger.png'
+    },
+    'cheetah': {
+        name: 'Cheetah',
+        source: './textures/cheetah.png'
     },
     'astral': {
         name: 'Astral Sea',
@@ -104,6 +112,17 @@ const TEXTURELIST = {
 };
 
 function getTexture(texturename) {
+
+    if (typeof texturename == 'array') {
+
+        let textures = [];
+
+        for(let i = 0, length1 = texturename.length; i < length1; i++){
+            textures.push(getTexture(texturename[i]));
+        }
+        return textures;
+
+    }
 
     if (texturename == 'none') {
         return {name:'',texture:''};
@@ -304,13 +323,13 @@ const COLORSETS = {
         texture: 'astral',
         description: 'The Astral Sea, for Austin'
     },
-    'leopard': {
-        name: 'Leopard',
+    'tigerking': {
+        name: 'Tiger King',
         category: 'Other',
         foreground: '#ffffff',
         background: '#FFCC40',
         outline: 'black',
-        texture: 'leopard',
+        texture: ['leopard', 'tiger', 'cheetah'],
         description: 'Leopard Print'
     },
     'covid': {
