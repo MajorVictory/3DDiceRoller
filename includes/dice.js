@@ -146,17 +146,17 @@
         return geom;
     }
 
-    this.d1_dice_face_labels = [' ', ' ', '1'];
-    this.d2_dice_face_labels = [' ', ' ', '1', '2'];
-    this.d3_dice_face_labels = [' ', ' ', '1', '2', '3'];
-    this.df_dice_face_labels = [' ', ' ', '-', '0', '+'];
-    this.d6_dice_face_labels = [' ', ' ', '1', '2', '3', '4', '5', '6'];
-    this.dsex_dice_face_labels = [' ', ' ', '🍆', '🍑', '👌', '💦', '🙏', '💥'];
-    this.d8_dice_face_labels = [' ', ' ', '1', '2', '3', '4', '5', '6', '7', '8'];
-    this.d10_dice_face_labels = [' ', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
-    this.d12_dice_face_labels = [' ', ' ', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12'];
-    this.d20_dice_face_labels = [' ', ' ', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15', '16', '17', '18', '19', '20'];
-    this.d100_dice_face_labels = [' ', '00', '10', '20', '30', '40', '50', '60', '70', '80', '90'];
+    this.d1_dice_face_labels =      [' ', ' ', '1'];
+    this.d2_dice_face_labels =      [' ', ' ', '1', '2'];
+    this.d3_dice_face_labels =      [' ', ' ', '1', '2', '3'];
+    this.df_dice_face_labels =      [' ', ' ', '-', '0', '+'];
+    this.d6_dice_face_labels =      [' ', ' ', '1', '2', '3', '4', '5', '6'];
+    this.dsex_dice_face_labels =    [' ', ' ', '🍆', '🍑', '👌', '💦', '🙏', '💥'];
+    this.d8_dice_face_labels =      [' ', ' ', '1', '2', '3', '4', '5', '6', '7', '8'];
+    this.d10_dice_face_labels =     [' ', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
+    this.d12_dice_face_labels =     [' ', ' ', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12'];
+    this.d20_dice_face_labels =     [' ', ' ', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15', '16', '17', '18', '19', '20'];
+    this.d100_dice_face_labels =    [' ', '00', '10', '20', '30', '40', '50', '60', '70', '80', '90'];
 
     function calc_texture_size(approx) {
         return Math.pow(2, Math.floor(Math.log(approx) / Math.log(2)));
@@ -613,7 +613,7 @@
     var that = this;
 
     this.dice_box = function(container, dimentions) {
-        this.use_adaptive_timestep = true;
+        this.use_adaptive_timestep = false;
         this.animate_selector = true;
 
         this.dices = [];
@@ -1107,9 +1107,10 @@
 
     this.dice_box.prototype.roll = function(vectors, values, callback) {
 
+        this.camera.position.z = this.cameraheight_rolling;
         this.prepare_dices_for_roll(vectors);
         if (values != undefined && values.length) {
-            this.use_adaptive_timestep = true;
+            this.use_adaptive_timestep = false;
             var res = this.emulate_throw();
             this.prepare_dices_for_roll(vectors);
             for (var i in res)

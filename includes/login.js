@@ -305,7 +305,7 @@ function login_initialize(container) {
         });
 
         box = new $t.dice.dice_box(canvas, { w: 500, h: 300 });
-        box.use_adaptive_timestep = true;
+        box.use_adaptive_timestep = false;
         $t.box = box;
 
         if (params.notation) {
@@ -458,15 +458,15 @@ function login_initialize(container) {
                 $t.remove(loginform);
                 loginform.style.display = 'none';
                 mdice_initialize(container);
-                $t.id('info_field').style.display = "inline-block";
+                $t.id('label_players').style.display = "inline-block";
                 log.place.style.display = "inline-block";
             }
             set_connection_message(' ');
         },
         userlist: function(res) {
-            var f = $t.id('info_field');
+            var f = $t.id('label_players');
             f.innerHTML = res.room + ': ' + res.list.join(', ');
-            log.add_info('user ' + res.user + ' has ' + { 'add': 'joined', 'del': 'left' }[res.act] + ' the room');
+            log.add_info(res.user + ' has ' + { 'add': 'joined', 'del': 'left' }[res.act] + ' the room');
         },
         roll: function(res) {
             teal.id('waitform').style.display = "none";

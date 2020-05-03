@@ -173,7 +173,7 @@ p {
     font-size: 12pt;
     position: absolute;
     width: 100%;
-    bottom: 1em;
+    bottom: 2em;
 }
 
 .error-text {
@@ -263,6 +263,8 @@ p {
 
 #info_div {
     width: 100%;
+    position: relative;
+    bottom: 2em;
 }
 
 #canvas {
