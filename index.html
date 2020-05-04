@@ -25,6 +25,8 @@
                         <input id="input_user" type="text" maxlength="35" value=""></input>
                         <div>Room Name</div>
                         <input id="input_room" type="text" maxlength="35" value=""></input>
+                        <div>Password (optional)</div>
+                        <input id="input_pass" type="password" maxlength="100" value=""></input>
                         <div id="login_message"></div>
                     </div>
                     <br/>
@@ -44,9 +46,10 @@
         <div id="selector_div" style="display: none">
             <div class="center_field">
                 <div>
-                    <button id="clear">Reset</button>
+                    <button id="clear" title="Reset Dice">Reset</button>
                     <input type="text" id="set" name="set" value="2d20"></input>
-                    <button id="throw">Throw</button>
+                    <button id="throw" title="Throw Dice">Throw</button>
+                    <button id="rage" title="Add Rage">!</button>
                 </div>
                 <div id="sethelp">
                     Click to Add, Drag to Throw
@@ -92,7 +95,8 @@
     <div id="log" class="teal-chat" style="display: none"></div>
 
     <script src="./libs/three.min.js"></script>
-    <script src="./libs/cannon.min.js"></script>
+    <!-- <script src="./libs/cannon.min.js"></script> -->
+    <script src="./libs/cannon.js"></script>
 
     <script type="text/javascript" src="./includes/teal.js"></script>
     <script type="text/javascript" src="./includes/teal.chat.js"></script>

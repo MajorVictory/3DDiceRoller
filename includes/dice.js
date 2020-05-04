@@ -645,30 +645,30 @@
         var desk_body_material = new CANNON.Material();
         var barrier_body_material = new CANNON.Material();
         this.world.addContactMaterial(new CANNON.ContactMaterial(
-                    desk_body_material, this.dice_body_material, 0.01, 0.5));
+                    desk_body_material, this.dice_body_material, {friction: 0.01, restitution: 0.5}));
         this.world.addContactMaterial(new CANNON.ContactMaterial(
-                    barrier_body_material, this.dice_body_material, 0, 1.0));
+                    barrier_body_material, this.dice_body_material, {friction: 0, restitution: 1.0}));
         this.world.addContactMaterial(new CANNON.ContactMaterial(
-                    this.dice_body_material, this.dice_body_material, 0, 0.5));
+                    this.dice_body_material, this.dice_body_material, {friction: 0, restitution: 0.5}));
 
-        this.world.add(new CANNON.RigidBody(0, new CANNON.Plane(), desk_body_material));
+        this.world.add(new CANNON.Body({mass: 0, shape: new CANNON.Plane(), material: desk_body_material}));
         var barrier;
-        barrier = new CANNON.RigidBody(0, new CANNON.Plane(), barrier_body_material);
+        barrier = new CANNON.Body({mass: 0, shape: new CANNON.Plane(), material: barrier_body_material});
         barrier.quaternion.setFromAxisAngle(new CANNON.Vec3(1, 0, 0), Math.PI / 2);
         barrier.position.set(0, this.h * 0.93, 0);
         this.world.add(barrier);
 
-        barrier = new CANNON.RigidBody(0, new CANNON.Plane(), barrier_body_material);
+        barrier = new CANNON.Body({mass: 0, shape: new CANNON.Plane(), material: barrier_body_material});
         barrier.quaternion.setFromAxisAngle(new CANNON.Vec3(1, 0, 0), -Math.PI / 2);
         barrier.position.set(0, -this.h * 0.93, 0);
         this.world.add(barrier);
 
-        barrier = new CANNON.RigidBody(0, new CANNON.Plane(), barrier_body_material);
+        barrier = new CANNON.Body({mass: 0, shape: new CANNON.Plane(), material: barrier_body_material});
         barrier.quaternion.setFromAxisAngle(new CANNON.Vec3(0, 1, 0), -Math.PI / 2);
         barrier.position.set(this.w * 0.93, 0, 0);
         this.world.add(barrier);
 
-        barrier = new CANNON.RigidBody(0, new CANNON.Plane(), barrier_body_material);
+        barrier = new CANNON.Body({mass: 0, shape: new CANNON.Plane(), material: barrier_body_material});
         barrier.quaternion.setFromAxisAngle(new CANNON.Vec3(0, 1, 0), Math.PI / 2);
         barrier.position.set(-this.w * 0.93, 0, 0);
         this.world.add(barrier);
@@ -836,7 +836,7 @@
         var dice = that['create_' + type]();
         dice.castShadow = true;
         dice.dice_type = type;
-        dice.body = new CANNON.RigidBody(that.dice_mass[type], dice.geometry.cannon_shape, this.dice_body_material);
+        dice.body = new CANNON.Body({mass: that.dice_mass[type], shape: dice.geometry.cannon_shape, material: this.dice_body_material});
         dice.body.position.set(pos.x, pos.y, pos.z);
         dice.body.quaternion.setFromAxisAngle(new CANNON.Vec3(axis.x, axis.y, axis.z), axis.a * Math.PI * 2);
         dice.body.angularVelocity.set(angle.x, angle.y, angle.z);

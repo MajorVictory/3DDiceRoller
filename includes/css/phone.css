@@ -103,13 +103,20 @@ p {
     max-width: 16em;
 }
 
-#throw, #clear {
+#throw, #clear, #rage {
     display: inline;
     font-size: 1em;
     cursor: pointer;
     line-height: 1em;
-    width: 4em;
     margin-bottom: 5px;
+}
+
+#throw, #clear {
+    width: 4em;
+}
+
+#rage {
+    width: 2em;
 }
 
 #sethelp, #labelhelp, #colorname {
