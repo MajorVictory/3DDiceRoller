@@ -25,7 +25,7 @@
                         <input id="input_user" type="text" maxlength="35" value=""></input>
                         <div>Room Name</div>
                         <input id="input_room" type="text" maxlength="35" value=""></input>
-                        <div>Password (optional)</div>
+                        <div>Room Password (optional)</div>
                         <input id="input_pass" type="password" maxlength="100" value=""></input>
                         <div id="login_message"></div>
                     </div>
@@ -46,10 +46,11 @@
         <div id="selector_div" style="display: none">
             <div class="center_field">
                 <div>
-                    <button id="clear" title="Reset Dice">Reset</button>
+                    <button id="clear" title="Reset Dice">❌</button>
+                    <button id="save" title="Save Favorite"></button>
                     <input type="text" id="set" name="set" value="2d20"></input>
-                    <button id="throw" title="Throw Dice">Throw</button>
-                    <button id="rage" title="Add Rage">!</button>
+                    <button id="rage" title="Add Rage">💢</button>
+                    <button id="throw" title="Throw Dice">🎲</button>
                 </div>
                 <div id="sethelp">
                     Click to Add, Drag to Throw
@@ -94,13 +95,30 @@
 
     <div id="log" class="teal-chat" style="display: none"></div>
 
+    <div id="fav_container">
+        <div class="fav_draggable">
+            <button class="fav_edit">✏️</button>
+            <span class="fav_name">Attack</span>
+            <div>
+                <button class="fav_delete">❌</button>
+                <input type="text" class="fav_notation" value="2d20"></input>
+                <button class="fav_throw">🎲</button>
+            </div>
+            <input type="hidden" class="fav_colorset" value=""></input>
+            <input type="hidden" class="fav_texture" value=""></input>
+        </div>
+    </div>
+
     <script src="./libs/three.min.js"></script>
     <!-- <script src="./libs/cannon.min.js"></script> -->
     <script src="./libs/cannon.js"></script>
 
+    <script type="text/javascript" src="https://code.jquery.com/jquery-3.5.0.min.js"></script>
+    <script type="text/javascript" src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
     <script type="text/javascript" src="./includes/teal.js"></script>
     <script type="text/javascript" src="./includes/teal.chat.js"></script>
     <script type="text/javascript" src="./includes/colorsets.js"></script>
+    <script type="text/javascript" src="./includes/DiceFavorites.js"></script>
     <script type="text/javascript" src="./includes/dice.js"></script>
     <script type="text/javascript" src="./includes/login.js"></script>
     <script type="text/javascript" defer="defer">

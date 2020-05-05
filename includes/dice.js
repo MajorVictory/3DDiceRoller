@@ -1060,12 +1060,10 @@
             var matindex = geom.faces[i].materialIndex;
 
             if (matindex == material_value) {
-                console.log('faces['+i+'] : ' + geom.faces[i].materialIndex);
                 geomindex_value.push(i);
                 continue;
             }
             if (matindex == material_result) {
-                console.log('faces['+i+'] : ' + geom.faces[i].materialIndex);
                 geomindex_result.push(i);
                 continue;
             }

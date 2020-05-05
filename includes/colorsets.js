@@ -518,6 +518,6 @@ function applyColorSet(colorset, texture = null, update = true) {
 
     if (update && urlargs.length > 0) {
         $t.empty($t.id('colorname'));
-        $t.id('colorname').innerHTML = 'Dice Theme: '+colordata.description+' - <a href="?'+urlargs.join('&')+'"></a>';
+        $t.id('colorname').innerHTML = 'Dice Theme: '+colordata.description+' - <a href="?'+urlargs.join('&')+'">🔗</a>';
     }
 }

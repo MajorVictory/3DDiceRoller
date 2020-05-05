@@ -77,7 +77,7 @@ p {
 
 .center_field button {
     font-family: Trebuchet MS;
-    padding: 5px 5px;
+    padding: 5px 4px;
 }
 
 .bottom_field {
@@ -103,20 +103,52 @@ p {
     max-width: 16em;
 }
 
-#throw, #clear, #rage {
+#clear, #save, #throw, #rage {
     display: inline;
     font-size: 1em;
     cursor: pointer;
     line-height: 1em;
     margin-bottom: 5px;
-}
-
-#throw, #clear {
-    width: 4em;
-}
-
-#rage {
     width: 2em;
+}
+
+.fav_draggable {
+    position: absolute;
+    top: 30px;
+    left: 10px;
+    background-color: #1e2c4d;
+    padding: 2px 5px 0px 5px;
+    outline: 2px solid white;
+    cursor: move;
+    display: none;
+}
+
+.fav_draggable button {
+    display: inline;
+    font-size: 1em;
+    cursor: pointer;
+    line-height: 1em;
+    margin-bottom: 5px;
+    padding: 3px 0px;
+    width: 2em;
+}
+
+.fav_draggable input {
+    display: inline;
+    font-size: 1em;
+    cursor: pointer;
+    line-height: 1em;
+    margin-bottom: 5px;
+    padding: 3px 5px;
+    width: 5ex;
+    max-width: 16em;
+}
+
+.fav_name {
+    position: relative;
+    top: 1px;
+    font-size: 1.25em;
+    line-height: 1.25em;
 }
 
 #sethelp, #labelhelp, #colorname {
@@ -318,6 +350,18 @@ p {
 }
 
 #control_panel_hide:hover {
+    outline: 1px solid #9794ff;
+}
+
+#colorname {
+    margin-bottom: 5px;
+}
+
+#colorname a {
+    text-decoration: none;
+}
+
+#colorname a:hover {
     outline: 1px solid #9794ff;
 }
 
