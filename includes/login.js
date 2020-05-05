@@ -351,7 +351,7 @@ function login_initialize(container) {
 
         $t.bind($t.id('rage'), ['mouseup', 'touchend'], function(ev) {
             ev.stopPropagation();
-            rage = 0;
+            let rage = 0;
             // count '!'
             for(let i = 0, l = set.value.length; i < l; i++){
                 rage += (set.value.charAt(i) == '!') ? 1 : 0;
@@ -360,7 +360,7 @@ function login_initialize(container) {
             rage += 1;
             if (rage > 3) rage = 0;
 
-            var newval = set.value.replace(/!/g, '');
+            let newval = set.value.replace(/!/g, '');
             set.value = newval+('!'.repeat(rage));
             on_set_change();
         });
@@ -382,9 +382,9 @@ function login_initialize(container) {
             }
 
             // otherwise, select dice
-            var name = box.search_dice_by_mouse(ev);
+            let name = box.search_dice_by_mouse(ev);
             if (name) {
-                var notation = $t.dice.parse_notation(set.value);
+                let notation = $t.dice.parse_notation(set.value);
                 notation.set.push(name);
                 set.value = $t.dice.stringify_notation(notation);
                 on_set_change();
