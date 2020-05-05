@@ -166,6 +166,8 @@ class DiceFavorites {
 
 		let savedata = JSON.parse(storage.getItem('DiceFavorites.favorites'));
 
+		if (savedata == null) return;
+
 		for(let i = 0, l = savedata.length; i < l; i++){
 			let entry = savedata[i];
 
