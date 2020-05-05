@@ -42,6 +42,8 @@ function preload_and_init() {
         var colorselect = $t.id('color');
         var textureselect = $t.id('texture');
 
+        $t.favorites = new DiceFavorites();
+
         for(let i = 0, l = COLORCATEGORIES.length; i < l; i++){
 
             var category = $t.element('optgroup', {label: COLORCATEGORIES[i]}, colorselect, undefined);
@@ -83,7 +85,6 @@ function login_initialize(container) {
     var color_select = $t.id('color');
     var texture_select = $t.id('texture');
     var socket_button = $t.id('reconnect');
-    var connection_message = $t.id('connection_message');
     var info_div = $t.id('info_div');
     var desk = $t.id('desk');
     var log = new $t.chat.chat_box($t.id('log'));
@@ -110,38 +111,6 @@ function login_initialize(container) {
         reconnect_socket(params.server, (params.secure == '1') || false);
     } else {
         reconnect_socket();
-    }
-
-    $t.socket.onerror = function(event) {
-        set_connection_message("Connection Error", 'red', true);
-        show_waitform(false);
-        console.log(event);
-    }
-
-    $t.socket.onopen = function(event) {
-        set_connection_message("Connected", 'green');
-        show_waitform(false);
-        console.log(event);
-    }
-
-    $t.socket.onclose = function(event) {
-        if (event.wasClean) {
-            set_connection_message("Connection Ended");
-        } else {
-            set_connection_message("Connection Failed", 'red', true);    
-        }
-        console.log(event);
-        show_waitform(false);
-    }
-
-    $t.socket.onmessage = function(message) {
-        if (message && message.data) {
-            var data = JSON.parse(message.data);
-            if(data && data.cid) {
-                cid = data.cid;
-                console.log("Client id: "+cid);
-            }
-        }
     }
 
     function socket_button_press(ev) {
@@ -222,7 +191,8 @@ function login_initialize(container) {
     function reconnect_socket(address, secure = false) {
         if ($t.socket && $t.socket.readyState <= WebSocket.OPEN) {
             $t.socket.close();
-            location.reload();
+            //location.reload();
+            set_connection_message("Reconnecting...");
         } else {
             set_connection_message("Connecting...");
         }
@@ -257,6 +227,25 @@ function login_initialize(container) {
                     cid = data.cid;
                     console.log("Client id: "+cid);
                 }
+
+                if (data.error) {
+                    set_connection_message(data.error, 'red');
+                    show_waitform(false);
+                    set_login_message(data.error, 'red');
+                }
+
+                if (data.method == 'join' && data.action == 'login') {
+                    log.own_user = data.user;
+                    show_waitform(false);
+                    requestAnimationFrame(function() {});
+                }
+
+                if(!data.action || data.action.length < 1) return;
+
+                if (action_pool.hasOwnProperty(data.action)) {
+                    action_pool[data.action](data);
+                }
+                teal.id('waitform').style.display = "none";
             }
         }
     }
@@ -285,106 +274,100 @@ function login_initialize(container) {
         return res;
     }
 
+    function setSaveButtonText() {
+
+        let icons = [
+            '❤️', '🧡', '💛', '💚', '💙', '💜', '🖤', '🤍', '💖', '💗', '🤎'
+        ];
+
+        $t.id('save').innerHTML = icons[Math.floor(Math.random() * icons.length)];
+    }
+
     function mdice_initialize(container) {
+
         log.own_user = user;
         $t.hidden(desk, false);
         resize();
         on_set_change();
 
-        function on_set_change(ev) { set.style.width = set.value.length + 3 + 'ex'; }
+        $t.favorites.retrieve();
+        $t.favorites.ensureOnScreen();
+
+        $t.bind($t.id('clear'), ['mouseup', 'touchend'], function(ev) {
+            ev.stopPropagation();
+            set.value = '0';
+            on_set_change();
+            show_selector();
+        });
+
+        setSaveButtonText();
+
+        $t.bind($t.id('save'), ['mouseup', 'touchend'], function(ev) {
+            ev.stopPropagation();
+
+            let names = [
+                '👊 Melee',
+                '🏹 Piercing',
+                '🧱 Bludgeoning',
+                '🗡️ Slash',
+                '🚶 Walk',
+                '🧡 Fire',
+                '💙 Cold',
+                '💛 Lightning',
+                '🤎 Thunder',
+                '💚 Acid',
+                '🤍 Radiant',
+                '🖤 Necrotic',
+                '💜 Force',
+                '🤏 Grapple',
+                '🤺 Dodge',
+                '🛡️ Parry',
+                '🦶 Jump',
+                '💥 Explode',
+                '💦 Splash',
+                '🍂 Fall',
+            ];
+
+            let name = prompt('Set Name for Favorite', names[Math.floor(Math.random() * names.length)]);
+
+            teal.favorites.create(name, set.value, color_select.value, texture_select.value, ev.pageX, ev.pageY);
+            teal.favorites.store();
+
+            setSaveButtonText();
+        });
+
+        function on_set_change(ev) { 
+            set.style.width = set.value.length + 3 + 'ex';
+
+            if(ev && ev.keyCode && ev.keyCode == 13) {
+                $t.raise_event($t.id('throw'), 'mouseup');
+            }
+        }
         $t.bind(set, 'keyup', on_set_change);
         $t.bind(set, 'mousedown', function(ev) { ev.stopPropagation(); });
         $t.bind(set, 'mouseup', function(ev) { ev.stopPropagation(); });
         $t.bind(set, 'focus', function(ev) { $t.set(container, { class: '' }); });
         $t.bind(set, 'blur', function(ev) { $t.set(container, { class: 'noselect' }); });
 
-        $t.bind($t.id('clear'), ['mouseup', 'touchend'], function(ev) {
+        $t.bind($t.id('rage'), ['mouseup', 'touchend'], function(ev) {
             ev.stopPropagation();
-            set.value = '0';
+            rage = 0;
+            // count '!'
+            for(let i = 0, l = set.value.length; i < l; i++){
+                rage += (set.value.charAt(i) == '!') ? 1 : 0;
+            }
+
+            rage += 1;
+            if (rage > 3) rage = 0;
+
+            var newval = set.value.replace(/!/g, '');
+            set.value = newval+('!'.repeat(rage));
             on_set_change();
         });
 
         box = new $t.dice.dice_box(canvas, { w: 500, h: 300 });
         box.use_adaptive_timestep = false;
         $t.box = box;
-
-        if (params.notation) {
-            set.value = params.notation;
-        }
-        if (params.roll) {
-            $t.raise_event($t.id('throw'), 'mouseup');
-        }
-
-        $t.bind(window, 'resize', function() {
-            resize();
-            box.reinit(canvas, { w: 500, h: 300 });
-        });
-
-        function close() {
-            if (cid) {
-                $t.rpc({ method: 'logout', cid: cid });
-                $t.socket.close();
-            }
-        }
-        $t.bind(window, 'beforeunload', close);
-        window.onbeforeunload = close;
-        window.onunload = close;
-
-        $t.bind($t.id('logout'), 'click', function() {
-            close();
-            location.reload();
-        });
-
-        function show_selector() {
-
-            console.log('params', params);
-
-            info_div.style.display = 'none';
-            $t.id('labelhelp').style.display = 'none';
-
-            selector_div.style.display = 'block';
-            $t.id('sethelp').style.display = 'block';
-            deskrolling = false;
-            applyColorSet(color_select.value, (texture_select.value || null));
-            $t.dice.setRandomMaterialInfo();
-            box.draw_selector((params.alldice && params.alldice == '1'));
-        }
-
-        $t.show_selector = show_selector;
-
-        function before_roll(vectors, notation, callback) {
-            label.innerHTML = user+' is Rolling...';
-            console.log(user);
-            info_div.style.display = 'block';
-            $t.id('sethelp').style.display = 'none';
-            deskrolling = true;
-            set_connection_message('');
-            show_waitform(true);
-            box.clear();
-            var time = new Date().getTime();
-            log.add_unconfirmed_message(user, make_notation_for_log(notation),
-                    time, log.roll_uuid = $t.uuid());
-            try {
-                pack_vectors(vectors);
-
-                $t.rpc({ method: 'roll', cid: cid, vectors: vectors, notation: notation, time: time },
-                function(response) {
-                    if (response.method != 'roll') return;
-                    if (response && response.error) set_connection_message(response.error, 'red');
-                    show_waitform(false);
-                    callback();
-                });
-            }
-            catch (e) {
-                set_connection_message(connection_error_text, 'red', true);
-                console.log(e);
-                callback();
-            }
-        }
-
-        function notation_getter() {
-            return $t.dice.parse_notation(set.value);
-        }
 
         box.bind_mouse(container, notation_getter, before_roll);
         box.bind_throw($t.id('throw'), notation_getter, before_roll);
@@ -408,6 +391,88 @@ function login_initialize(container) {
             }
         });
 
+        if (params.colorset || params.texture) {
+            applyColorSet(params.colorset, params.texture);
+        } else {
+            applyColorSet('random', null);
+        }
+
+        if (params.notation) {
+            set.value = params.notation;
+        }
+        if (params.roll) {
+            $t.raise_event($t.id('throw'), 'mouseup');
+        }
+
+        $t.bind(window, 'resize', function() {
+            resize();
+            box.reinit(canvas, { w: 500, h: 300 });
+            teal.favorites.ensureOnScreen();
+        });
+
+        function close() {
+            if (cid) {
+                $t.rpc({ method: 'logout', cid: cid });
+                $t.socket.close();
+            }
+        }
+        $t.bind(window, 'beforeunload', close);
+        window.onbeforeunload = close;
+        window.onunload = close;
+
+        $t.bind($t.id('logout'), 'click', function() {
+            close();
+            location.reload();
+        });
+
+        function show_selector() {
+
+            info_div.style.display = 'none';
+            $t.id('labelhelp').style.display = 'none';
+
+            selector_div.style.display = 'block';
+            $t.id('sethelp').style.display = 'block';
+            deskrolling = false;
+            applyColorSet(color_select.value, (texture_select.value || null));
+            $t.dice.setRandomMaterialInfo();
+            box.draw_selector((params.alldice && params.alldice == '1'));
+        }
+
+        $t.show_selector = show_selector;
+
+        function before_roll(vectors, notation, callback) {
+            label.innerHTML = user+' is Rolling...';
+            info_div.style.display = 'block';
+            $t.id('sethelp').style.display = 'none';
+            deskrolling = true;
+            set_connection_message('');
+            show_waitform(true);
+            box.clear();
+            var time = new Date().getTime();
+            log.add_unconfirmed_message(log.own_user, make_notation_for_log(notation),
+                    time, log.roll_uuid = $t.uuid());
+            try {
+                pack_vectors(vectors);
+
+                $t.rpc({ method: 'roll', cid: cid, vectors: vectors, notation: notation, time: time },
+                function(response) {
+                    if (response.method != 'roll') return;
+                    if (response && response.error) set_connection_message(response.error, 'red');
+                    show_waitform(false);
+                    callback();
+                });
+            }
+            catch (e) {
+                set_connection_message(connection_error_text, 'red', true);
+                console.log(e);
+                callback();
+            }
+        }
+
+        function notation_getter() {
+            return $t.dice.parse_notation(set.value);
+        }
+
         log.bind_send(function(text) {
             var notation = $t.dice.parse_notation(text);
             var uuid = $t.uuid();
@@ -421,12 +486,8 @@ function login_initialize(container) {
                     if (i == l) text = $t.element('hr');
                 }
                 var time = new Date().getTime();
-                log.add_unconfirmed_message(user, text, time, uuid);
-                $t.rpc({ method: 'chat', cid: cid, text: text, time: time, uuid: uuid },
-                function(response) {
-                    if (response.method != 'chat') return;
-                    if (response && response.error) set_connection_message(response.error, 'red');
-                });
+                log.add_unconfirmed_message(log.own_user, text, time, uuid);
+                $t.rpc({ method: 'chat', cid: cid, text: text, time: time, uuid: uuid });
             }
         });
 
@@ -451,6 +512,7 @@ function login_initialize(container) {
         $t.id('waitform').style.visibility = show ? 'visible' : 'hidden';
     }
 
+    // actions performed when the server sends a command
     var action_pool = {
         login: function(res) {
             var loginform = $t.id('loginform');
@@ -460,6 +522,11 @@ function login_initialize(container) {
                 mdice_initialize(container);
                 $t.id('label_players').style.display = "inline-block";
                 log.place.style.display = "inline-block";
+                log.own_user = res.user;
+
+
+                $t.rpc( { method: 'colorset', colorset: color_select.value });
+                $t.rpc( { method: 'texture', texture: texture_select.value });
             }
             set_connection_message(' ');
         },
@@ -509,49 +576,37 @@ function login_initialize(container) {
         },
         texture: function(res) {
             alert("texture: "+res.texture);
+        },
+        roomlist: function(res) {
+            console.log(res);
         }
     };
 
     function login() {
         set_connection_message(' ');
         show_waitform(true);
-        try {
 
-            user = $t.id('input_user').value;
-            room = $t.id('input_room').value;
-            $t.rpc( { method: 'join', user: user, room: room } );
+        let user = $t.id('input_user').value;
+        let room = $t.id('input_room').value;
+        let pass = $t.id('input_pass').value;
 
-            $t.socket.addEventListener('message', function(response) {
-
-                var data = JSON.parse(response.data);
-
-                if (data.error) {
-                    set_connection_message(data.error, 'red');
-                    show_waitform(false);
-                    set_login_message(data.error, 'red');
-                }
-
-                if (data.method == 'join' && data.action == 'login') {
-                    requestAnimationFrame(function() {});
-                }
-
-                if(!data.action || data.action.length < 1) return;
-
-                if (action_pool.hasOwnProperty(data.action)) {
-                    action_pool[data.action](data);
-                }
-                teal.id('waitform').style.display = "none";
-            });
-        }
-        catch (e) {
-            set_connection_message(e, 'red', true);
-        }
+        $t.rpc( { method: 'join', user: user, room: room, pass: pass } );
     }
 
     set_connection_message(' ');
     show_waitform(false);
 
-    $t.bind($t.id('button_join'), "click", function() {
+    function submit_login(ev) {
+        if(ev && ev.keyCode && ev.keyCode == 13) {
+            $t.raise_event($t.id('button_join'), 'click');
+        }
+    }
+
+    $t.bind($t.id('input_user'), 'keyup', submit_login);
+    $t.bind($t.id('input_room'), 'keyup', submit_login);
+    $t.bind($t.id('input_pass'), 'keyup', submit_login);
+
+    $t.bind($t.id('button_join'), 'click', function(ev) {
         login();
     });
 }

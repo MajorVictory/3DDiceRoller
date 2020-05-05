@@ -488,7 +488,7 @@ function applyColorSet(colorset, texture = null, update = true) {
         $t.dice.label_outline = colordata.outline;
         $t.dice.dice_texture = colordata.texture;
 
-        urlargs.push('colorset='+colordata.name);
+        urlargs.push('colorset='+colorset);
 
 	    if (update) {
 		    $t.selectByValue($t.id('color'), colorset);
@@ -518,6 +518,6 @@ function applyColorSet(colorset, texture = null, update = true) {
 
     if (update && urlargs.length > 0) {
         $t.empty($t.id('colorname'));
-        $t.id('colorname').innerHTML = 'Dice Theme: <a href="?'+urlargs.join('&')+'">'+colordata.description+'</a>';
+        $t.id('colorname').innerHTML = 'Dice Theme: '+colordata.description+' - <a href="?'+urlargs.join('&')+'">🔗</a>';
     }
 }
