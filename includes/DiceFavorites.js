@@ -33,8 +33,8 @@ class DiceFavorites {
 	    }
 	}
 
-	// schedules a save in 2 seconds, resets timer if called sooner
-	saveSoon() {
+	// schedules a save in 5 seconds, resets timer if called sooner
+	saveSoon(time = 5000) {
 		if (this.savetimeout) {
 			clearTimeout(this.savetimeout);
 		}
@@ -61,7 +61,7 @@ class DiceFavorites {
         draggable.find('.fav_texture').val(texture);
 
         draggable.find('.fav_delete').click(function() {
-        	$(this).parent().parent().remove();
+        	$(this).parent().remove();
         	teal.favorites.saveSoon();
         });
 

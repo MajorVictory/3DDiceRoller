@@ -3,6 +3,7 @@
 window.teal = {};
 window.$t = window.teal;
 
+teal.offline = false;
 teal.socket = null;
 
 teal.copyto = function(obj, res) {
@@ -171,6 +172,13 @@ teal.openSocket = function(address = 'dnd.majorsplace.com:32400', secure = false
 // should emulate an ajax send-receive loop
 // send a message, wait for one-time response
 teal.rpc = function(params, callback, noparse) {
+
+    if(this.offline) {
+        if (callback != null) {
+            callback.call(this.socket, params);
+        }
+        return;
+    }
 
     // check if socket already open, 
     if (this.socket.readyState == WebSocket.OPEN) {
