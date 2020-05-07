@@ -3,8 +3,10 @@
 window.teal = {};
 window.$t = window.teal;
 
-teal.offline = false;
+teal.offline = true;
 teal.socket = null;
+teal.socketAddress = 'dnd.majorsplace.com:32400';
+teal.socketSecure = false;
 
 teal.copyto = function(obj, res) {
     if (obj == null || typeof obj !== 'object') return obj;
@@ -158,9 +160,9 @@ else {
     }
 }
 
-teal.openSocket = function(address = 'dnd.majorsplace.com:32400', secure = false) {
+teal.openSocket = function(address, secure) {
 
-    address = secure ? 'wss://'+address : 'ws://'+address;
+    address = (secure || this.socketSecure) ? 'wss://'+(address || this.socketAddress) : 'ws://'+(address || this.socketAddress);
 
     this.socket = (this.socket == null || this.socket.readyState > WebSocket.OPEN) ? new WebSocket(address) : this.socket;
 
