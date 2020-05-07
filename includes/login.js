@@ -33,7 +33,7 @@ function unpack_vectors(vectors) {
 }
 
 function preload_and_init() {
-    var isReady = ImageLoader(TEXTURELIST, function(images) {
+    ImageLoader(TEXTURELIST, function(images) {
         diceTextures = images;
 
         // init colorset textures
@@ -441,7 +441,7 @@ function login_initialize(container) {
         $t.show_selector = show_selector;
 
         function before_roll(vectors, notation, callback) {
-            label.innerHTML = user+' is Rolling...';
+            label.innerHTML = log.own_user+' is Rolling...';
             info_div.style.display = 'block';
             $t.id('sethelp').style.display = 'none';
             deskrolling = true;
@@ -451,21 +451,27 @@ function login_initialize(container) {
             var time = new Date().getTime();
             log.add_unconfirmed_message(log.own_user, make_notation_for_log(notation),
                     time, log.roll_uuid = $t.uuid());
-            try {
-                pack_vectors(vectors);
 
-                $t.rpc({ method: 'roll', cid: cid, vectors: vectors, notation: notation, time: time },
-                function(response) {
-                    if (response.method != 'roll') return;
-                    if (response && response.error) set_connection_message(response.error, 'red');
-                    show_waitform(false);
+            if ($t.offline) {
+                action_pool['roll']({ method: 'roll', user: log.own_user, cid: cid, vectors: vectors, notation: notation, time: time, colorset: color_select.value, texture: texture_select.value });
+
+            } else {
+                try {
+                    pack_vectors(vectors);
+
+                    $t.rpc({ method: 'roll', cid: cid, vectors: vectors, notation: notation, time: time },
+                    function(response) {
+                        if (response.method != 'roll') return;
+                        if (response && response.error) set_connection_message(response.error, 'red');
+                        show_waitform(false);
+                        callback();
+                    });
+                }
+                catch (e) {
+                    set_connection_message(connection_error_text, 'red', true);
+                    console.log(e);
                     callback();
-                });
-            }
-            catch (e) {
-                set_connection_message(connection_error_text, 'red', true);
-                console.log(e);
-                callback();
+                }
             }
         }
 
@@ -495,9 +501,9 @@ function login_initialize(container) {
     }
 
     function set_connection_message(text, color = 'orange') {
-        $t.empty($t.id('connection_message'))
-        $t.inner(text, $t.id('connection_message'));
-        $t.id('connection_message').style.color = color;
+        $('.connection_message').each(function() {
+            $(this).text(text).css({color: color});
+        });
     }
 
     function set_login_message(text, color = 'red') {
@@ -548,7 +554,7 @@ function login_initialize(container) {
             if (res.colorset.length > 0 || res.texture.length > 0) applyColorSet(res.colorset, res.texture, false);
             box.clear();
             box.rolling = true;
-            unpack_vectors(res.vectors);
+            if (!$t.offline) unpack_vectors(res.vectors);
             box.roll(res.vectors, res.notation.result, function(result) {
                 var r = '['+result.join(', ')+']';
                 if (res.notation.constant) {
@@ -608,6 +614,14 @@ function login_initialize(container) {
 
     $t.bind($t.id('button_join'), 'click', function(ev) {
         login();
+    });
+
+    $t.bind($t.id('button_single'), 'click', function(ev) {
+        if ($t.socket && $t.socket.readyState <= WebSocket.OPEN) {
+            $t.socket.close();
+        }
+        $t.offline = true;
+        action_pool['login']({user: 'Yourself'});
     });
 }
 

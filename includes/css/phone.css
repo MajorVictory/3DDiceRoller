@@ -118,9 +118,17 @@ p {
     left: 10px;
     background-color: #1e2c4d;
     padding: 2px 5px 0px 5px;
-    outline: 2px solid white;
+    border: 2px dashed white;
     cursor: move;
     display: none;
+}
+
+.fav_draggable:hover {
+    border: 2px solid #9794ff;
+}
+
+.fav_draggable:hover > legend {
+    color: white;
 }
 
 .fav_draggable button {
@@ -129,6 +137,7 @@ p {
     cursor: pointer;
     line-height: 1em;
     margin-bottom: 5px;
+    margin-right: 5px;
     padding: 3px 0px;
     width: 2em;
 }
@@ -170,6 +179,22 @@ p {
 .dice_place {
     position: absolute;
     border: solid black 1px;
+}
+
+fieldset {
+    border: 2px dashed white;
+    margin: 0px auto 10px auto;
+}
+
+legend {
+    font-size: 1.5em;
+    margin: 0px auto;
+}
+
+
+#loginform fieldset {
+    min-width: 16em;
+    width: 22em;
 }
 
 #loginform {
@@ -225,22 +250,22 @@ p {
     top: 3.5em;
 }
 
-#connection_message {
+.connection_message {
     position: absolute;
-    top: 5px;
-    right: 5px;
+    top: -0.25em;
+    right: 0.5em;
     text-align: right;
 }
 
-#button_join {
+#button_join, #button_single {
     font-size: 20pt;
     cursor: pointer;
-    width: 5em;
+    width: 8em;
     padding: 5px 15px;
 }
 
 .chat-notation {
-    border: 1px rgba(0, 0, 0, 0.2) solid;
+    border: 1px solid #9794ff;
     font-style: normal;
     padding: 0px 3px;
     border-radius: 3px;
@@ -312,24 +337,26 @@ p {
 
 .control_panel {
     position: absolute;
-    top: 0px;
-    left: 0px;
     margin: 10px;
     background-color: #1e2c4d;
 }
 
 #control_panel_hidden {
     padding: 5px;
+    top: 1em;
+    left: 1em;
 }
 
 #control_panel_hidden:hover {
     padding: 5px;
-    outline: 2px solid #9794ff;
+    border: 2px solid #9794ff;
 }
 
 #control_panel_shown {
     padding: 30px 15px 15px 15px;
-    outline: 2px solid white;
+    border: 2px dashed white;
+    top: 0em;
+    left: 1em;
 }
 
 #control_panel_shown div {
@@ -340,8 +367,8 @@ p {
 
 #control_panel_hide {
     position: absolute;
-    top: 0px;
-    left: 5px;
+    top: -0.5em;
+    left: 0.5em;
     cursor: pointer;
 }
 
@@ -350,7 +377,7 @@ p {
 }
 
 #control_panel_hide:hover {
-    outline: 1px solid #9794ff;
+    border: 1px solid #9794ff;
 }
 
 #colorname {
