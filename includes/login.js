@@ -476,7 +476,8 @@ function login_initialize(container) {
             $t.id('sethelp').style.display = 'block';
             deskrolling = false;
             applyColorSet(color_select.value, (texture_select.value || null));
-            $t.dice.setRandomMaterialInfo();
+            $t.dice.DiceFactory.setRandomMaterialInfo();
+            box.alldice = params.alldice;
             box.draw_selector((params.alldice && params.alldice == '1'));
         }
 
@@ -592,12 +593,28 @@ function login_initialize(container) {
             box.rolling = true;
             if (!$t.offline) unpack_vectors(res.vectors);
             box.roll(res.vectors, res.notation.result, function(result) {
+
                 var r = '['+result.join(', ')+']';
-                if (res.notation.constant) {
-                    if (res.notation.constant > 0) r += ' +' + res.notation.constant;
-                    else r += ' -' + Math.abs(res.notation.constant);
+
+                if (res.notation.constant != '') {
+                    if(res.notation.op == '-') {
+                        r += ' -' + Math.abs(res.notation.constant);
+                        r += ' = ' + (result.reduce(function(s, a) { return s + a; }) - res.notation.constant);
+                    } else if (res.notation.op == '*') {
+                        r += ' '+ res.notation.op + res.notation.constant;
+                        r += ' = ' + (result.reduce(function(s, a) { return s + a; }) * res.notation.constant);
+
+                    } else if (res.notation.op == '/') {
+                        r += ' '+ res.notation.op + res.notation.constant;
+                        r += ' = ' + (result.reduce(function(s, a) { return s + a; }) / res.notation.constant);
+
+                    } else {
+                        r += ' '+ res.notation.op + res.notation.constant;
+                        r += ' = ' + (result.reduce(function(s, a) { return s + a; }) + res.notation.constant);
+                    }
+                } else {
+                    r += ' = ' + result.reduce(function(s, a) { return s + a; });
                 }
-                r += ' = ' + (result.reduce(function(s, a) { return s + a; }) + res.notation.constant);
                 label.innerHTML = r;
                 info_div.style.display = 'block';
                 $t.id('labelhelp').style.display = 'block';

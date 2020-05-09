@@ -49,6 +49,10 @@ p {
     margin-bottom: 0px;
 }
 
+.eote {
+    font-family: 'EOTE Symbol' !important;
+}
+
 #svg *, .svg * {
     -moz-user-select: none;
     -webkit-user-select: none;

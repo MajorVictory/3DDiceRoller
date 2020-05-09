@@ -479,14 +479,14 @@ function applyColorSet(colorset, texture = null, update = true) {
     var colordata = getColorSet(colorset);
 
     if (colorset && colorset.length > 0) {
-    	$t.dice.materials_cache = {};
-    	$t.dice.cache_hits = 0;
-    	$t.dice.cache_misses = 0;
+    	$t.dice.DiceFactory.materials_cache = {};
+    	$t.dice.DiceFactory.cache_hits = 0;
+    	$t.dice.DiceFactory.cache_misses = 0;
 
-        $t.dice.label_color = colordata.foreground;
-        $t.dice.dice_color = colordata.background;
-        $t.dice.label_outline = colordata.outline;
-        $t.dice.dice_texture = colordata.texture;
+        $t.dice.DiceFactory.label_color = colordata.foreground;
+        $t.dice.DiceFactory.dice_color = colordata.background;
+        $t.dice.DiceFactory.label_outline = colordata.outline;
+        $t.dice.DiceFactory.dice_texture = colordata.texture;
 
         urlargs.push('colorset='+colorset);
 
@@ -502,7 +502,7 @@ function applyColorSet(colorset, texture = null, update = true) {
         let tex = Array.isArray(texturedata) ? '' : texturedata;
 
         if (texturedata.name) {
-            $t.dice.dice_texture = texturedata;
+            $t.dice.DiceFactory.dice_texture = texturedata;
         }
 
         urlargs.push('texture='+tex.name);

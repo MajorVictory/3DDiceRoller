@@ -2,10 +2,6 @@
 
 (function(dice) {
 
-    var random_storage = [];
-    this.use_true_random = false;
-    this.frame_rate = 1 / 60;
-
     function prepare_rnd(callback) {
         if (!random_storage.length && $t.dice.use_true_random) {
             try {
@@ -36,561 +32,75 @@
         return a;
     }
 
-    function create_shape(vertices, faces, radius) {
-        var cv = new Array(vertices.length), cf = new Array(faces.length);
-        for (var i = 0; i < vertices.length; ++i) {
-            var v = vertices[i];
-            cv[i] = new CANNON.Vec3(v.x * radius, v.y * radius, v.z * radius);
-        }
-        for (var i = 0; i < faces.length; ++i) {
-            cf[i] = faces[i].slice(0, faces[i].length - 1);
-        }
-        return new CANNON.ConvexPolyhedron(cv, cf);
-    }
+    let random_storage = [];
 
-    function make_geom(vertices, faces, radius, tab, af) {
-        var geom = new THREE.Geometry();
-        for (var i = 0; i < vertices.length; ++i) {
-            var vertex = vertices[i].multiplyScalar(radius);
-            vertex.index = geom.vertices.push(vertex) - 1;
-        }
-        for (var i = 0; i < faces.length; ++i) {
-            var ii = faces[i], fl = ii.length - 1;
-            var aa = Math.PI * 2 / fl;
-            for (var j = 0; j < fl - 2; ++j) {
-                geom.faces.push(new THREE.Face3(ii[0], ii[j + 1], ii[j + 2], [geom.vertices[ii[0]],
-                            geom.vertices[ii[j + 1]], geom.vertices[ii[j + 2]]], 0, ii[fl] + 1));
-                geom.faceVertexUvs[0].push([
-                        new THREE.Vector2((Math.cos(af) + 1 + tab) / 2 / (1 + tab),
-                            (Math.sin(af) + 1 + tab) / 2 / (1 + tab)),
-                        new THREE.Vector2((Math.cos(aa * (j + 1) + af) + 1 + tab) / 2 / (1 + tab),
-                            (Math.sin(aa * (j + 1) + af) + 1 + tab) / 2 / (1 + tab)),
-                        new THREE.Vector2((Math.cos(aa * (j + 2) + af) + 1 + tab) / 2 / (1 + tab),
-                            (Math.sin(aa * (j + 2) + af) + 1 + tab) / 2 / (1 + tab))]);
-            }
-        }
-        geom.computeFaceNormals();
-        geom.boundingSphere = new THREE.Sphere(new THREE.Vector3(), radius);
-        return geom;
-    }
-
-    function chamfer_geom(vectors, faces, chamfer) {
-        var chamfer_vectors = [], chamfer_faces = [], corner_faces = new Array(vectors.length);
-        for (var i = 0; i < vectors.length; ++i) corner_faces[i] = [];
-        for (var i = 0; i < faces.length; ++i) {
-            var ii = faces[i], fl = ii.length - 1;
-            var center_point = new THREE.Vector3();
-            var face = new Array(fl);
-            for (var j = 0; j < fl; ++j) {
-                var vv = vectors[ii[j]].clone();
-                center_point.add(vv);
-                corner_faces[ii[j]].push(face[j] = chamfer_vectors.push(vv) - 1);
-            }
-            center_point.divideScalar(fl);
-            for (var j = 0; j < fl; ++j) {
-                var vv = chamfer_vectors[face[j]];
-                vv.subVectors(vv, center_point).multiplyScalar(chamfer).addVectors(vv, center_point);
-            }
-            face.push(ii[fl]);
-            chamfer_faces.push(face);
-        }
-        for (var i = 0; i < faces.length - 1; ++i) {
-            for (var j = i + 1; j < faces.length; ++j) {
-                var pairs = [], lastm = -1;
-                for (var m = 0; m < faces[i].length - 1; ++m) {
-                    var n = faces[j].indexOf(faces[i][m]);
-                    if (n >= 0 && n < faces[j].length - 1) {
-                        if (lastm >= 0 && m != lastm + 1) pairs.unshift([i, m], [j, n]);
-                        else pairs.push([i, m], [j, n]);
-                        lastm = m;
-                    }
-                }
-                if (pairs.length != 4) continue;
-                chamfer_faces.push([chamfer_faces[pairs[0][0]][pairs[0][1]],
-                        chamfer_faces[pairs[1][0]][pairs[1][1]],
-                        chamfer_faces[pairs[3][0]][pairs[3][1]],
-                        chamfer_faces[pairs[2][0]][pairs[2][1]], -1]);
-            }
-        }
-        for (var i = 0; i < corner_faces.length; ++i) {
-            var cf = corner_faces[i], face = [cf[0]], count = cf.length - 1;
-            while (count) {
-                for (var m = faces.length; m < chamfer_faces.length; ++m) {
-                    var index = chamfer_faces[m].indexOf(face[face.length - 1]);
-                    if (index >= 0 && index < 4) {
-                        if (--index == -1) index = 3;
-                        var next_vertex = chamfer_faces[m][index];
-                        if (cf.indexOf(next_vertex) >= 0) {
-                            face.push(next_vertex);
-                            break;
-                        }
-                    }
-                }
-                --count;
-            }
-            face.push(-1);
-            chamfer_faces.push(face);
-        }
-        return { vectors: chamfer_vectors, faces: chamfer_faces };
-    }
-
-    function create_geom(vertices, faces, radius, tab, af, chamfer) {
-        var vectors = new Array(vertices.length);
-        for (var i = 0; i < vertices.length; ++i) {
-            vectors[i] = (new THREE.Vector3).fromArray(vertices[i]).normalize();
-        }
-        var cg = chamfer_geom(vectors, faces, chamfer);
-        var geom = make_geom(cg.vectors, cg.faces, radius, tab, af);
-        //var geom = make_geom(vectors, faces, radius, tab, af); // Without chamfer
-        geom.cannon_shape = create_shape(vectors, faces, radius);
-        return geom;
-    }
-
-    this.d1_dice_face_labels =      [' ', ' ', '1'];
-    this.d2_dice_face_labels =      [' ', ' ', '1', '2'];
-    this.d3_dice_face_labels =      [' ', ' ', '1', '2', '3'];
-    this.df_dice_face_labels =      [' ', ' ', '-', '0', '+'];
-    this.d6_dice_face_labels =      [' ', ' ', '1', '2', '3', '4', '5', '6'];
-    this.dsex_dice_face_labels =    [' ', ' ', '🍆', '🍑', '👌', '💦', '🙏', '💥'];
-    this.d8_dice_face_labels =      [' ', ' ', '1', '2', '3', '4', '5', '6', '7', '8'];
-    this.d10_dice_face_labels =     [' ', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
-    this.d12_dice_face_labels =     [' ', ' ', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12'];
-    this.d20_dice_face_labels =     [' ', ' ', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15', '16', '17', '18', '19', '20'];
-    this.d100_dice_face_labels =    [' ', '00', '10', '20', '30', '40', '50', '60', '70', '80', '90'];
-
-    function calc_texture_size(approx) {
-        return Math.pow(2, Math.floor(Math.log(approx) / Math.log(2)));
-    }
-
-    this.materials_cache = {};
-    this.cache_hits = 0;
-    this.cache_misses = 0;
-
-    this.label_color = '';
-    this.dice_color = '';
-    this.label_outline = '';
-    this.dice_texture = '';
-
-    this.create_dice_materials = function(face_labels, size, margin, type) {
-        function create_text_texture(diceobj, text, texture, forecolor, outlinecolor, backcolor, type) {
-            if (text === undefined) return null;
-
-            // an attempt at materials caching
-            var cachestring = type + text + texture.name + forecolor + outlinecolor + backcolor;
-            if (diceobj.materials_cache[cachestring] != null) {
-                diceobj.cache_hits++;
-                return diceobj.materials_cache[cachestring];
-            }
-
-            var canvas = document.createElement("canvas");
-            var context = canvas.getContext("2d");
-            var ts = calc_texture_size(size + size * 2 * margin) * 2;
-            canvas.width = canvas.height = ts;
-
-            //create underlying texture
-            if (texture.name != '' && texture.name != 'none') {
-                context.drawImage(texture.texture, 0, 0, canvas.width, canvas.height);
-                context.globalCompositeOperation = 'multiply';
-            } else {
-                context.globalCompositeOperation = 'source-over';
-            }
-
-            // create color
-            context.fillStyle = backcolor;
-            context.fillRect(0, 0, canvas.width, canvas.height);
-
-            // create text
-            context.globalCompositeOperation = 'source-over';
-            context.font = ts / (1 + 2 * margin) + "pt Arial";
-            context.textAlign = "center";
-            context.textBaseline = "middle";
-
-            // attempt to outline the text with a meaningful color
-            if (outlinecolor != 'none') {
-                context.strokeStyle = outlinecolor;
-                context.lineWidth = 5;
-                context.strokeText(text, canvas.width / 2, canvas.height / 2);
-                if (text == '6' || text == '9') {
-                    context.strokeText('  .', canvas.width / 2, canvas.height / 2);
-                }
-            }
-
-            context.fillStyle = forecolor;
-            context.fillText(text, canvas.width / 2, canvas.height / 2);
-            if (text == '6' || text == '9') {
-                context.fillText('  .', canvas.width / 2, canvas.height / 2);
-            }
-            var compositetexture = new THREE.Texture(canvas);
-            compositetexture.needsUpdate = true;
-            //context.clearRect(0, 0, canvas.width, canvas.height);
-
-            // cache new texture
-            diceobj.cache_misses++;
-            diceobj.materials_cache[cachestring] = compositetexture;
-
-            return compositetexture;
-        }
-
-        var materials = [];
-        for (var i = 0; i < face_labels.length; ++i) {
-
-            var mat = new THREE.MeshPhongMaterial(this.material_options);
-            //mat.emissiveMap.needsUpdate = true;
-            mat.map = create_text_texture(this, face_labels[i], this.dice_texture_rand, this.label_color_rand, this.label_outline_rand, this.dice_color_rand, type)
-            
-            materials.push(mat);
-        }
-        return materials;
-    }
-
-    var d4_labels = [
-        [[], [0, 0, 0], [2, 4, 3], [1, 3, 4], [2, 1, 4], [1, 2, 3]],
-        [[], [0, 0, 0], [2, 3, 4], [3, 1, 4], [2, 4, 1], [3, 2, 1]],
-        [[], [0, 0, 0], [4, 3, 2], [3, 4, 1], [4, 2, 1], [3, 1, 2]],
-        [[], [0, 0, 0], [4, 2, 3], [1, 4, 3], [4, 1, 2], [1, 3, 2]]
-    ];
-
-    this.create_d4_materials = function(size, margin, labels) {
-        function create_d4_text(diceobj, text, texture, forecolor, outlinecolor, backcolor) {
-
-            // an attempt at materials caching
-            var cachestring = 'd4' + text.join() + texture.name + forecolor + outlinecolor + backcolor;
-            if (diceobj.materials_cache[cachestring] != null) {
-                diceobj.cache_hits++;
-                return diceobj.materials_cache[cachestring];
-            }
-
-            var canvas = document.createElement("canvas");
-            var context = canvas.getContext("2d");
-            var ts = calc_texture_size(size + margin) * 2;
-            canvas.width = canvas.height = ts;
-
-            //create underlying texture
-            if (texture.name != '' && texture.name != 'none') {
-                context.drawImage(texture.texture, 0, 0, canvas.width, canvas.height);
-                context.globalCompositeOperation = 'multiply';
-            }
-
-            // create color
-            context.fillStyle = backcolor;
-            context.fillRect(0, 0, canvas.width, canvas.height);
-
-            // create text
-            context.globalCompositeOperation = 'source-over';
-            context.font = (ts - margin) / 1.5 + "pt Arial";
-            context.textAlign = "center";
-            context.textBaseline = "middle";
-            context.fillStyle = forecolor;
-
-            var hw = (canvas.width / 2);
-            var hh = (canvas.height / 2);
-
-            //draw the numbers
-            for (var i in text) {
-
-                // attempt to outline the text with a meaningful color
-                if (outlinecolor != 'none') {
-                    context.strokeStyle = outlinecolor;
-                    context.lineWidth = 5;
-                    context.strokeText(text[i], hw, hh - ts * 0.3);
-                }
-
-                context.fillStyle = forecolor;
-                context.fillText(text[i], hw, hh - ts * 0.3);
-                context.translate(hw, hh);
-                context.rotate(Math.PI * 2 / 3);
-                context.translate(-hw, -hh);
-            }
-            var compositetexture = new THREE.Texture(canvas);
-            compositetexture.needsUpdate = true;
-
-            // cache new texture
-            diceobj.cache_misses++;
-            diceobj.materials_cache[cachestring] = compositetexture;
-
-            return compositetexture;
-        }
-
-        var materials = [];
-        for (var i = 0; i < labels.length; ++i) {
-
-            var mat = new THREE.MeshPhongMaterial(this.material_options);
-            //mat.emissiveMap.needsUpdate = true;
-            mat.map = create_d4_text(this, labels[i], this.dice_texture_rand, this.label_color_rand, this.label_outline_rand, this.dice_color_rand)
-            materials.push(mat);
-        }
-        return materials;
-    }
-
-    this.create_d4_geometry = function(radius) {
-        var vertices = [[1, 1, 1], [-1, -1, 1], [-1, 1, -1], [1, -1, -1]];
-        var faces = [[1, 0, 2, 1], [0, 1, 3, 2], [0, 3, 2, 3], [1, 2, 3, 4]];
-        return create_geom(vertices, faces, radius, -0.1, Math.PI * 7 / 6, 0.96);
-    }
-
-    this.create_d6_geometry = function(radius) {
-        var vertices = [[-1, -1, -1], [1, -1, -1], [1, 1, -1], [-1, 1, -1],
-                [-1, -1, 1], [1, -1, 1], [1, 1, 1], [-1, 1, 1]];
-        var faces = [[0, 3, 2, 1, 1], [1, 2, 6, 5, 2], [0, 1, 5, 4, 3],
-                [3, 7, 6, 2, 4], [0, 4, 7, 3, 5], [4, 5, 6, 7, 6]];
-        return create_geom(vertices, faces, radius, 0.1, Math.PI / 4, 0.96);
-    }
-
-    this.create_d8_geometry = function(radius) {
-        var vertices = [[1, 0, 0], [-1, 0, 0], [0, 1, 0], [0, -1, 0], [0, 0, 1], [0, 0, -1]];
-        var faces = [[0, 2, 4, 1], [0, 4, 3, 2], [0, 3, 5, 3], [0, 5, 2, 4], [1, 3, 4, 5],
-                [1, 4, 2, 6], [1, 2, 5, 7], [1, 5, 3, 8]];
-        return create_geom(vertices, faces, radius, 0, -Math.PI / 4 / 2, 0.965);
-    }
-
-    this.create_d10_geometry = function(radius) {
-        var a = Math.PI * 2 / 10, k = Math.cos(a), h = 0.105, v = -1;
-        var vertices = [];
-        for (var i = 0, b = 0; i < 10; ++i, b += a) {
-            vertices.push([Math.cos(b), Math.sin(b), h * (i % 2 ? 1 : -1)]);
-        }
-        vertices.push([0, 0, -1]);
-        vertices.push([0, 0, 1]);
-        
-        var faces = [[5, 7, 11, 0], [4, 2, 10, 1], [1, 3, 11, 2], [0, 8, 10, 3], [7, 9, 11, 4],
-                [8, 6, 10, 5], [9, 1, 11, 6], [2, 0, 10, 7], [3, 5, 11, 8], [6, 4, 10, 9],
-                [1, 0, 2, v], [1, 2, 3, v], [3, 2, 4, v], [3, 4, 5, v], [5, 4, 6, v],
-                [5, 6, 7, v], [7, 6, 8, v], [7, 8, 9, v], [9, 8, 0, v], [9, 0, 1, v]];
-        return create_geom(vertices, faces, radius, 0, Math.PI * 6 / 5, 0.945);
-    }
-
-    this.create_d12_geometry = function(radius) {
-        var p = (1 + Math.sqrt(5)) / 2, q = 1 / p;
-        var vertices = [[0, q, p], [0, q, -p], [0, -q, p], [0, -q, -p], [p, 0, q],
-                [p, 0, -q], [-p, 0, q], [-p, 0, -q], [q, p, 0], [q, -p, 0], [-q, p, 0],
-                [-q, -p, 0], [1, 1, 1], [1, 1, -1], [1, -1, 1], [1, -1, -1], [-1, 1, 1],
-                [-1, 1, -1], [-1, -1, 1], [-1, -1, -1]];
-        var faces = [[2, 14, 4, 12, 0, 1], [15, 9, 11, 19, 3, 2], [16, 10, 17, 7, 6, 3], [6, 7, 19, 11, 18, 4],
-                [6, 18, 2, 0, 16, 5], [18, 11, 9, 14, 2, 6], [1, 17, 10, 8, 13, 7], [1, 13, 5, 15, 3, 8],
-                [13, 8, 12, 4, 5, 9], [5, 4, 14, 9, 15, 10], [0, 12, 8, 10, 16, 11], [3, 19, 7, 17, 1, 12]];
-        return create_geom(vertices, faces, radius, 0.2, -Math.PI / 4 / 2, 0.968);
-    }
-
-    this.create_d20_geometry = function(radius) {
-        var t = (1 + Math.sqrt(5)) / 2;
-        var vertices = [[-1, t, 0], [1, t, 0 ], [-1, -t, 0], [1, -t, 0],
-                [0, -1, t], [0, 1, t], [0, -1, -t], [0, 1, -t],
-                [t, 0, -1], [t, 0, 1], [-t, 0, -1], [-t, 0, 1]];
-        var faces = [[0, 11, 5, 1], [0, 5, 1, 2], [0, 1, 7, 3], [0, 7, 10, 4], [0, 10, 11, 5],
-                [1, 5, 9, 6], [5, 11, 4, 7], [11, 10, 2, 8], [10, 7, 6, 9], [7, 1, 8, 10],
-                [3, 9, 4, 11], [3, 4, 2, 12], [3, 2, 6, 13], [3, 6, 8, 14], [3, 8, 9, 15],
-                [4, 9, 5, 16], [2, 4, 11, 17], [6, 2, 10, 18], [8, 6, 7, 19], [9, 8, 1, 20]];
-        return create_geom(vertices, faces, radius, -0.2, -Math.PI / 4 / 2, 0.955);
-    }
-
-    this.material_options = {
-        specular: 0x0,
-        color: 0xb5b5b5,
-        shininess: 0,
-        flatShading: true
-    };
-
+    this.use_true_random = false;
+    this.frame_rate = 1 / 60;
+    this.known_types = ['df', 'd1', 'd2', 'd3', 'd4', 'd6', 'dsex', 'd8', 'd10', 'd100', 'd12', 'd20'];
+    this.selector_dice = ['d4', 'd6', 'd8', 'd10', 'd100', 'd12', 'd20'];
     this.ambient_light_color = 0xf0f5fb;
     this.spot_light_color = 0xefdfd5;
     this.selector_back_colors = { color: '#1e2c4d', shininess: 0 };
     this.desk_color = '#1e2c4d';//0xdfdfdf;
     this.use_shadows = true;
 
-    this.known_types = ['df', 'd1', 'd2', 'd3', 'd4', 'd6', 'dsex', 'd8', 'd10', 'd100', 'd12', 'd20'];
-    this.selector_dice = ['d4', 'd6', 'd8', 'd10', 'd100', 'd12', 'd20'];
-    this.dice_face_range = {'df': [-1, 1], 'd1': [1, 1], 'd2': [1, 2], 'd3': [1, 3], 'd4': [1, 4], 'd6': [1, 6], 'dsex': [1, 6], 'd8': [1, 8], 'd10': [0, 9], 'd12': [1, 12], 'd20': [1, 20], 'd100': [0, 90, 10]};
-    this.dice_mass = {'df': 300, 'd1': 300, 'd2': 300, 'd3': 300, 'd4': 300, 'd6': 300, 'dsex': 300, 'd8': 340, 'd10': 350, 'd12': 350, 'd20': 400, 'd100': 350};
-    this.dice_inertia = {'df': 13, 'd1': 13, 'd2': 13, 'd3': 13, 'd4': 5, 'd6': 13, 'dsex': 13, 'd8': 10, 'd10': 9, 'd12': 8, 'd20': 6, 'd100': 9 };
-
-    this.scale = 50;
-
-    this.fixmaterials = function(mesh, unique_sides) {
-
-        // this makes the mesh reuse textures for other sides
-        for (let i = 0, l = mesh.geometry.faces.length; i < l; ++i) {
-            var matindex = mesh.geometry.faces[i].materialIndex - 2;
-            if (matindex < unique_sides) continue;
-
-            let modmatindex = (matindex % unique_sides);
-
-            mesh.geometry.faces[i].materialIndex = modmatindex + 2;
-        }
-        mesh.geometry.elementsNeedUpdate = true;
-        return mesh;
-    }
-
-    this.create_df = function() {
-        if (!this.df_geometry) this.df_geometry = this.create_d6_geometry(this.scale * 0.9);
-        let mesh = new THREE.Mesh(this.df_geometry, this.create_dice_materials(this.df_dice_face_labels, this.scale / 2, 1.0, 'df'));
-
-        return this.fixmaterials(mesh, 3);
-    }
-
-    this.create_d1 = function() {
-        if (!this.d1_geometry) this.d1_geometry = this.create_d6_geometry(this.scale * 0.9);
-        let mesh = new THREE.Mesh(this.d1_geometry, this.create_dice_materials(this.d1_dice_face_labels, this.scale / 2, 1.0, 'd1'));
-
-        return this.fixmaterials(mesh, 1);
-    }
-
-    this.create_d2 = function() {
-        if (!this.d2_geometry) this.d2_geometry = this.create_d6_geometry(this.scale * 0.9);
-        let mesh = new THREE.Mesh(this.d2_geometry, this.create_dice_materials(this.d2_dice_face_labels, this.scale / 2, 1.0, 'd2'));
-
-        return this.fixmaterials(mesh, 2);
-    }
-
-    this.create_d3 = function() {
-        if (!this.d3_geometry) this.d3_geometry = this.create_d6_geometry(this.scale * 0.9);
-        let mesh = new THREE.Mesh(this.d3_geometry, this.create_dice_materials(this.d3_dice_face_labels, this.scale / 2, 1.0, 'd3'));
-
-        return this.fixmaterials(mesh, 3);
-    }
-
-    this.create_d4 = function() {
-        if (!this.d4_geometry) this.d4_geometry = this.create_d4_geometry(this.scale * 1.2);
-        return new THREE.Mesh(this.d4_geometry, this.create_d4_materials(this.scale / 2, this.scale * 2, d4_labels[0]));
-    }
-
-    this.create_d6 = function() {
-        if (!this.d6_geometry) this.d6_geometry = this.create_d6_geometry(this.scale * 0.9);
-        return new THREE.Mesh(this.d6_geometry, this.create_dice_materials(this.d6_dice_face_labels, this.scale / 2, 1.0, 'd6'));
-    }
-
-    this.create_dsex = function() {
-        if (!this.dsex_geometry) this.dsex_geometry = this.create_d6_geometry(this.scale * 0.9);
-        return new THREE.Mesh(this.dsex_geometry, this.create_dice_materials(this.dsex_dice_face_labels, this.scale / 2, 1.0, 'dsex'));
-    }
-
-    this.create_d8 = function() {
-        if (!this.d8_geometry) this.d8_geometry = this.create_d8_geometry(this.scale);
-        return new THREE.Mesh(this.d8_geometry, this.create_dice_materials(this.d8_dice_face_labels, this.scale / 2, 1.2, 'd8'));
-    }
-
-    this.create_d10 = function() {
-        if (!this.d10_geometry) this.d10_geometry = this.create_d10_geometry(this.scale * 0.9);
-        return new THREE.Mesh(this.d10_geometry, this.create_dice_materials(this.d10_dice_face_labels, this.scale / 2, 1.0, 'd10'));
-    }
-
-    this.create_d12 = function() {
-        if (!this.d12_geometry) this.d12_geometry = this.create_d12_geometry(this.scale * 0.9);
-        return new THREE.Mesh(this.d12_geometry, this.create_dice_materials(this.d12_dice_face_labels, this.scale / 2, 1.0, 'd12'));
-    }
-
-    this.create_d20 = function() {
-        if (!this.d20_geometry) this.d20_geometry = this.create_d20_geometry(this.scale);
-        return new THREE.Mesh(this.d20_geometry, this.create_dice_materials(this.d20_dice_face_labels, this.scale / 2, 1.0, 'd20'));
-    }
-
-    this.create_d100 = function() {
-        if (!this.d100_geometry) this.d100_geometry = this.create_d10_geometry(this.scale * 0.9);
-        return new THREE.Mesh(this.d100_geometry, this.create_dice_materials(this.d100_dice_face_labels, this.scale / 2, 1.5, 'd100'));
-    }
-
-    this.setRandomMaterialInfo = function() {
-        //reset random choices
-        this.dice_color_rand = '';
-        this.label_color_rand = '';
-        this.label_outline_rand = '';
-        this.dice_texture_rand = '';
-
-        // set base color first
-        if (Array.isArray(this.dice_color)) {
-
-            var colorindex = Math.floor(Math.random() * this.dice_color.length);
-
-            // if color list and label list are same length, treat them as a parallel list
-            if (Array.isArray(this.label_color) && this.label_color.length == this.dice_color.length) {
-                this.label_color_rand = this.label_color[colorindex];
-
-                // if label list and outline list are same length, treat them as a parallel list
-                if (Array.isArray(this.label_outline) && this.label_outline.length == this.label_color.length) {
-                    this.label_outline_rand = this.label_outline[colorindex];
-                }
-            }
-            // if texture list is same length do the same
-            if (Array.isArray(this.dice_texture) && this.dice_texture.length == this.dice_color.length) {
-                this.dice_texture_rand = this.dice_texture[colorindex];
-            }
-
-            this.dice_color_rand = this.dice_color[colorindex];
-        } else {
-            this.dice_color_rand = this.dice_color;
-        }
-
-        // if selected label color is still not set, pick one
-        if (this.label_color_rand == '' && Array.isArray(this.label_color)) {
-            var colorindex = this.label_color[Math.floor(Math.random() * this.label_color.length)];
-
-            // if label list and outline list are same length, treat them as a parallel list
-            if (Array.isArray(this.label_outline) && this.label_outline.length == this.label_color.length) {
-                this.label_outline_rand = this.label_outline[colorindex];
-            }
-
-            this.label_color_rand = this.label_color[colorindex];
-
-        } else if (this.label_color_rand == '') {
-            this.label_color_rand = this.label_color;
-        }
-
-        // if selected label outline is still not set, pick one
-        if (this.label_outline_rand == '' && Array.isArray(this.label_outline)) {
-            var colorindex = this.label_outline[Math.floor(Math.random() * this.label_outline.length)];
-
-            this.label_outline_rand = this.label_outline[colorindex];
-            
-        } else if (this.label_outline_rand == '') {
-            this.label_outline_rand = this.label_outline;
-        }
-
-        // same for textures list
-        if (this.dice_texture_rand == '' && Array.isArray(this.dice_texture)) {
-            this.dice_texture_rand = this.dice_texture[Math.floor(Math.random() * this.dice_texture.length)];
-        } else if (this.dice_texture_rand == '') {
-            this.dice_texture_rand = this.dice_texture;
-        }
-    }
+    this.DiceFactory = new DiceFactory();
 
     this.parse_notation = function(notation) {
 
-        var ret = { set: [], constant: 0, result: [], error: false, boost: 1 }, res;
+        let ret = { 
+            set: [], 
+            op: '', 
+            constant: '', 
+            result: [], 
+            error: false, 
+            boost: 1
+        };
+        let res;
+
         if (notation) {
             let rage = (notation.split('!').length-1) || 0;
             if (rage > 0) {
                 ret.boost = Math.min(Math.max(rage, 0), 3) * 4;
             }
-
             notation = notation.split('!').join(''); //remove and continue
         }
 
         var no = notation.split('@');
         var d20roll = /^(\s*(\+|\-)\s*(\d+)\s*){0,1}$/;
-        var dr0 = /\s*(\d*)([a-z]+)(\d+|f+|sex)(\s*(\+|\-)\s*(\d+)){0,1}\s*(\+|$)/gi;
+
+        var dr0 = /\s*(\d*)([a-z]+)(\d+|\w+)(\s*(\+|\-|\*|\/)\s*(\d+)){0,1}\s*(\+|$)/gi;
+
+
         var dr1 = /(\b)*(\d+)(\b)*/gi;
+
         if (res = d20roll.exec(no[0])) {
             ret.set.push('d20');
             if (res[2] && res[3]) {
-                if (res[2] == '+') ret.constant += parseInt(res[3]);
-                else ret.constant -= parseInt(res[3]);
+                ret.op = res[2];
+                ret.constant = parseInt(res[3]);
             }
         }
         while (res = dr0.exec(no[0])) {
+            console.log('res', res);
             var command = res[2];
             if (command != 'd') { ret.error = true; continue; }
             var count = parseInt(res[1]);
             if (res[1] == '') count = 1;
             var type = 'd' + res[3];
-            if (this.known_types.indexOf(type) == -1) { ret.error = true; continue; }
+            if (!this.DiceFactory.dice[type]) { ret.error = true; continue; }
             while (count--) ret.set.push(type);
             if (res[5] && res[6]) {
-                if (res[5] == '+') ret.constant += parseInt(res[6]);
-                else ret.constant -= parseInt(res[6]);
+                ret.op = res[5];
+                ret.constant = parseInt(res[6]);
             }
         }
 
         while (res = dr1.exec(no[1])) {
             ret.result.push(parseInt(res[2]));
         }
+
+        console.log('ret', ret);
 
         return ret;
     }
@@ -604,8 +114,13 @@
             notation += (dict[i] > 1 ? dict[i] : '') + i;
         }
         if (nn.constant) {
-            if (nn.constant > 0) notation += ' + ' + nn.constant;
-            else notation += ' - ' + Math.abs(nn.constant);
+            if (nn.constant > 0) {
+                if (nn.op == '-') {
+                    notation += ' - ' + Math.abs(nn.constant);
+                } else {
+                    notation += ' '+nn.op+' ' + nn.constant;
+                }
+            }
         }
         return notation;
     }
@@ -753,10 +268,11 @@
 
         this.wh = this.ch / this.aspect / Math.tan(10 * Math.PI / 180);
         this.cameraheight_selector = this.wh / 1.5;
+        this.cameraheight_selector_all = this.wh;
         this.cameraheight_rolling = this.wh;
         if (this.camera) this.scene.remove(this.camera);
         this.camera = new THREE.PerspectiveCamera(20, this.cw / this.ch, 1, this.wh * 1.3);
-        this.camera.position.z = this.cameraheight_selector;
+        this.camera.position.z = this.alldice ? this.cameraheight_selector_all : this.cameraheight_selector;
         this.camera.lookAt(new THREE.Vector3(0,0,0));
         
 
@@ -813,10 +329,11 @@
             if (projector > 1.0) pos.y /= projector; else pos.x *= projector;
             var velvec = make_random_vector(vector);
             var velocity = { x: velvec.x * (boost * notation.boost), y: velvec.y * (boost * notation.boost), z: -10 };
-            var inertia = that.dice_inertia[notation.set[i]];
+
+            let diceobj = that.DiceFactory.get(notation.set[i]);
             var angle = {
-                x: -(rnd() * vec.y * 5 + inertia * vec.y),
-                y: rnd() * vec.x * 5 + inertia * vec.x,
+                x: -(rnd() * vec.y * 5 + diceobj.inertia * vec.y),
+                y: rnd() * vec.x * 5 + diceobj.inertia * vec.x,
                 z: 0
             };
             var axis = { x: rnd(), y: rnd(), z: rnd(), a: rnd() };
@@ -831,21 +348,24 @@
         //$t.dice.cache_misses = 0;
         //$t.dice.cache_hits = 0;
 
-        that.setRandomMaterialInfo();
+        let diceobj = that.DiceFactory.get(type);
+        if(!diceobj) return;
 
-        var dice = that['create_' + type]();
-        dice.castShadow = true;
-        dice.dice_type = type;
-        dice.body = new CANNON.Body({mass: that.dice_mass[type], shape: dice.geometry.cannon_shape, material: this.dice_body_material});
-        dice.body.position.set(pos.x, pos.y, pos.z);
-        dice.body.quaternion.setFromAxisAngle(new CANNON.Vec3(axis.x, axis.y, axis.z), axis.a * Math.PI * 2);
-        dice.body.angularVelocity.set(angle.x, angle.y, angle.z);
-        dice.body.velocity.set(velocity.x, velocity.y, velocity.z);
-        dice.body.linearDamping = 0.1;
-        dice.body.angularDamping = 0.1;
-        this.scene.add(dice);
-        this.dices.push(dice);
-        this.world.add(dice.body);
+        let dicemesh = that.DiceFactory.create(diceobj.type);
+        if(!dicemesh) return;
+
+        dicemesh.castShadow = true;
+        dicemesh.dice_type = type;
+        dicemesh.body = new CANNON.Body({mass: diceobj.mass, shape: dicemesh.geometry.cannon_shape, material: this.dice_body_material});
+        dicemesh.body.position.set(pos.x, pos.y, pos.z);
+        dicemesh.body.quaternion.setFromAxisAngle(new CANNON.Vec3(axis.x, axis.y, axis.z), axis.a * Math.PI * 2);
+        dicemesh.body.angularVelocity.set(angle.x, angle.y, angle.z);
+        dicemesh.body.velocity.set(velocity.x, velocity.y, velocity.z);
+        dicemesh.body.linearDamping = 0.1;
+        dicemesh.body.angularDamping = 0.1;
+        this.scene.add(dicemesh);
+        this.dices.push(dicemesh);
+        this.world.add(dicemesh.body);
 
         //console.log('cache hits: '+$t.dice.cache_hits);
         //console.log('cache misses: '+$t.dice.cache_misses);
@@ -879,27 +399,31 @@
         return res;
     }
 
-    function get_dice_value(dice) {
-        var vector = new THREE.Vector3(0, 0, dice.dice_type == 'd4' ? -1 : 1);
+    function get_dice_value(dicemesh) {
+        var vector = new THREE.Vector3(0, 0, dicemesh.dice_type == 'd4' ? -1 : 1);
         var closest_face, closest_angle = Math.PI * 2;
-        for (var i = 0, l = dice.geometry.faces.length; i < l; ++i) {
-            var face = dice.geometry.faces[i];
+        for (var i = 0, l = dicemesh.geometry.faces.length; i < l; ++i) {
+            var face = dicemesh.geometry.faces[i];
             if (face.materialIndex == 0) continue;
-            var angle = face.normal.clone().applyQuaternion(dice.body.quaternion).angleTo(vector);
+            var angle = face.normal.clone().applyQuaternion(dicemesh.body.quaternion).angleTo(vector);
             if (angle < closest_angle) {
                 closest_angle = angle;
                 closest_face = face;
             }
         }
         var matindex = closest_face.materialIndex - 1;
-        if (dice.dice_type == 'd4') return matindex;
-        if (dice.dice_type == 'd10' || dice.dice_type == 'd100') matindex += 1;
+        if (dicemesh.dice_type == 'd4') return matindex;
+        if (dicemesh.dice_type == 'd10' || dicemesh.dice_type == 'd100') matindex += 1;
 
-        let valuerange = that.dice_face_range[dice.dice_type];
-        let values = range(valuerange[0], valuerange[1], valuerange[2] || 1);
-        let val = values[((matindex-1) % values.length)];
-        if (dice.dice_type == 'd10' && val == 0) return 10;
-        if (dice.dice_type == 'd100' && val == 0) return 100;
+
+        console.log('dicemesh', dicemesh);
+        let diceobj = that.DiceFactory.get(dicemesh.dice_type);
+        console.log('diceobj', diceobj);
+        let val = diceobj.values[((matindex-1) % diceobj.values.length)];
+        console.log('val', val);
+
+        if (dicemesh.dice_type == 'd10' && val == 0) return 10;
+        if (dicemesh.dice_type == 'd100' && val == 0) return 100;
         return val;
     }
 
@@ -1007,8 +531,8 @@
             return;
         }
 
-        let valuerange = that.dice_face_range[dice.dice_type];
-        let values = range(valuerange[0], valuerange[1], valuerange[2] || 1);
+        let diceobj = this.DiceFactory.get(dice.dice_type);
+        let values = diceobj.values[((matindex-1) % diceobj.values.length)];
 
         if (dice.dice_type == 'd10' && value == 10) value = 0;
         if (dice.dice_type == 'd100' && value == 100) value = 0;
@@ -1084,21 +608,23 @@
     }
 
     function shift_d4_faces(dice, value, res) {
-        var r = that.dice_face_range[dice.dice_type];
-        if (!(value >= r[0] && value <= r[1])) return;
+        if (!(value >= 1 && value <= 4)) return;
         var num = value - res;
         var geom = dice.geometry.clone();
         for (var i = 0, l = geom.faces.length; i < l; ++i) {
             var matindex = geom.faces[i].materialIndex;
             if (matindex == 0) continue;
             matindex += num - 1;
-            while (matindex > r[1]) matindex -= r[1];
-            while (matindex < r[0]) matindex += r[1];
+            while (matindex > 4) matindex -= 4;
+            while (matindex < 1) matindex += 4;
             geom.faces[i].materialIndex = matindex + 1;
         }
         if (dice.dice_type == 'd4' && num != 0) {
             if (num < 0) num += 4;
-            dice.material = that.create_d4_materials(that.scale / 2, that.scale * 2, d4_labels[num]);
+
+            let diceobj = this.DiceFactory.get(dice.dice_type);
+
+            dice.material = this.DiceFactory.createTextMeterial(diceobj, diceobj.labels[num]);
         }
         dice.geometry = geom;
     }
@@ -1140,26 +666,39 @@
         var intersects = this.raycaster.intersectObjects(this.dices);
         if ( intersects.length > 0 ) {
 
+            let diceobj = that.DiceFactory.get(intersects[0].object.userData);
+
             if ( this.INTERSECTED != intersects[0].object ) {
                 
                 if ( this.INTERSECTED ) {
-                    for(let i = 0, length1 = this.INTERSECTED.material.length; i < length1; i++){
-                        this.INTERSECTED.material[i].emissive.setHex( this.INTERSECTED.currentHex );
+                    for(let i = 0, l = this.INTERSECTED.material.length; i < l; i++){
+                        if (diceobj.color && i == 0) continue;
+                        this.INTERSECTED.material[i].emissive.setHex( diceobj.color || this.INTERSECTED.currentHex );
                         this.INTERSECTED.material[i].emissiveIntensity = this.INTERSECTED.currentintensity;
                     }
                 }
-                this.INTERSECTED = intersects[0].object;
-                this.INTERSECTED.currentHex = this.INTERSECTED.material[0].emissive.getHex();
-                this.INTERSECTED.currentintensity = this.INTERSECTED.material[0].emissiveIntensity;
 
-                for(let i = 0, length1 = this.INTERSECTED.material.length; i < length1; i++){
-                    this.INTERSECTED.material[i].emissive.setHex( 0xffffff );
+                this.INTERSECTED = intersects[0].object;
+                this.INTERSECTED.currentHex = this.INTERSECTED.material[1].emissive.getHex();
+                this.INTERSECTED.currentintensity = this.INTERSECTED.material[1].emissiveIntensity;
+
+                for(let i = 0, l = this.INTERSECTED.material.length; i < l; i++){
+                    if (diceobj.color && i == 0) continue;
+                    if (diceobj.color) {
+                        this.INTERSECTED.material[i].emissive = new THREE.Color(diceobj.color);
+                    } else {
+                        this.INTERSECTED.material[i].emissive.setHex( 0xffffff );
+                    }
                     this.INTERSECTED.material[i].emissiveIntensity = 0.5;
                 }
             }
         } else {
                 if ( this.INTERSECTED ) {
-                    for(let i = 0, length1 = this.INTERSECTED.material.length; i < length1; i++){
+
+                    let diceobj = that.DiceFactory.get(this.INTERSECTED.userData);
+
+                    for(let i = 0, l = this.INTERSECTED.material.length; i < l; i++){
+                        if (diceobj.color && i == 0) continue;
                         this.INTERSECTED.material[i].emissive.setHex( this.INTERSECTED.currentHex );
                         this.INTERSECTED.material[i].emissiveIntensity = this.INTERSECTED.currentintensity;
                     }
@@ -1194,14 +733,14 @@
         this.clear();
         var step = this.w / 4.5;
 
-        this.camera.position.z = this.cameraheight_selector;
+        this.camera.position.z = alldice ? this.cameraheight_selector_all : this.cameraheight_selector;
         this.pane = new THREE.Mesh(new THREE.PlaneGeometry(this.w * 6, this.h * 6, 1, 1), 
                 new THREE.MeshPhongMaterial(that.selector_back_colors));
         this.pane.receiveShadow = true;
         this.pane.position.set(0, 0, 1);
         this.scene.add(this.pane);
 
-        let dicelist = alldice ? that.known_types : that.selector_dice;
+        let dicelist = alldice ? Object.keys(that.DiceFactory.dice) : that.selector_dice;
         let posxstart = alldice ? -2 : -1;
         let poswrap = alldice ? 2 : 1;
 
@@ -1212,16 +751,13 @@
                 posy--;
             }
 
-            $t.dice.setRandomMaterialInfo();
-            
-            var dice = $t.dice['create_' + dicelist[i]]();
+            var dicemesh = $t.dice.DiceFactory.create(dicelist[i]);
+            dicemesh.position.set(posx * step, posy * step, step * 0.5);
+            dicemesh.castShadow = true;
+            dicemesh.userData = dicelist[i];
 
-            dice.position.set(posx * step, posy * step, step * 0.5);
-            dice.castShadow = true;
-            dice.userData = dicelist[i];
-
-            this.dices.push(dice);
-            this.scene.add(dice);
+            this.dices.push(dicemesh);
+            this.scene.add(dicemesh);
         }
 
         this.running = (new Date()).getTime();
