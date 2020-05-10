@@ -427,7 +427,9 @@ function login_initialize(container) {
             let name = box.search_dice_by_mouse(ev);
             if (name) {
                 let notation = $t.dice.parse_notation(set.value);
-                notation.set.push(name);
+
+                notation.addSet(1, name, '', '', '+');
+
                 set.value = $t.dice.stringify_notation(notation);
                 on_set_change();
             }
@@ -567,7 +569,6 @@ function login_initialize(container) {
                 log.place.style.display = "inline-block";
                 log.own_user = res.user;
 
-
                 $t.rpc( { method: 'colorset', colorset: color_select.value });
                 $t.rpc( { method: 'texture', texture: texture_select.value });
             }
@@ -594,22 +595,19 @@ function login_initialize(container) {
             if (!$t.offline) unpack_vectors(res.vectors);
             box.roll(res.vectors, res.notation.result, function(result) {
 
+                console.log('result', result);
+
                 var r = '['+result.join(', ')+']';
 
                 if (res.notation.constant != '') {
+                        r += ' ' + res.notation.op + Math.abs(res.notation.constant);
                     if(res.notation.op == '-') {
-                        r += ' -' + Math.abs(res.notation.constant);
                         r += ' = ' + (result.reduce(function(s, a) { return s + a; }) - res.notation.constant);
                     } else if (res.notation.op == '*') {
-                        r += ' '+ res.notation.op + res.notation.constant;
                         r += ' = ' + (result.reduce(function(s, a) { return s + a; }) * res.notation.constant);
-
                     } else if (res.notation.op == '/') {
-                        r += ' '+ res.notation.op + res.notation.constant;
                         r += ' = ' + (result.reduce(function(s, a) { return s + a; }) / res.notation.constant);
-
                     } else {
-                        r += ' '+ res.notation.op + res.notation.constant;
                         r += ' = ' + (result.reduce(function(s, a) { return s + a; }) + res.notation.constant);
                     }
                 } else {

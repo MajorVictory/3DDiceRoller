@@ -67,7 +67,8 @@ class DiceFactory {
 		diceobj = new DicePreset('dsex', 'd6');
 		diceobj.setLabels(['🍆', '🍑', '👌', '💦', '🙏', '💥']);
 		diceobj.setValues(1,6);
-		diceobj.scale = 0.9;
+        diceobj.scale = 0.9;
+        diceobj.display = 'labels';
 		this.dice[diceobj.type] = diceobj;
 
 		diceobj = new DicePreset('d8');
@@ -109,23 +110,25 @@ class DiceFactory {
 		//star wars dice
 
 		// Ability
-		diceobj = new DicePreset('dab', 'd8');
+		diceobj = new DicePreset('ddab', 'd8');
 		diceobj.setLabels(['s','a',"s\na","s\ns",'a','s',"a\na",'']);
 		diceobj.setValues(1,8);
         diceobj.font = 'EOTE Symbol';
         diceobj.color = '#00FF00';
+        diceobj.display = 'labels';
 		this.dice[diceobj.type] = diceobj;
 
         // Difficulty
-        diceobj = new DicePreset('dif', 'd8');
+        diceobj = new DicePreset('ddif', 'd8');
         diceobj.setLabels(['t','f',"f\nt",'t','',"t\nt", "f\nf", 't']);
         diceobj.setValues(1,8);
         diceobj.font = 'EOTE Symbol';
         diceobj.color = '#8000FC';
+        diceobj.display = 'labels';
         this.dice[diceobj.type] = diceobj;
 
         // Proficiency
-        diceobj = new DicePreset('pro', 'd12');
+        diceobj = new DicePreset('dpro', 'd12');
         diceobj.setLabels(["a\na",'a',"a\na",'x','s',"s\na",'s',"s\na","s\ns","s\na","s\ns",'']);
         diceobj.setValues(1,12);
         diceobj.mass = 350;
@@ -133,10 +136,11 @@ class DiceFactory {
         diceobj.scale = 0.9;
         diceobj.font = 'EOTE Symbol';
         diceobj.color = '#FFFF00';
+        diceobj.display = 'labels';
         this.dice[diceobj.type] = diceobj;
 
         // Challenge
-        diceobj = new DicePreset('cha', 'd12');
+        diceobj = new DicePreset('dcha', 'd12');
         diceobj.setLabels(["t\nt",'t',"t\nt",'t',"t\nf",'f',"t\nf",'f',"f\nf",'y',"f\nf",'']);
         diceobj.setValues(1,12);
         diceobj.mass = 350;
@@ -144,10 +148,11 @@ class DiceFactory {
         diceobj.scale = 0.9;
         diceobj.font = 'EOTE Symbol';
         diceobj.color = '#FF0000';
+        diceobj.display = 'labels';
         this.dice[diceobj.type] = diceobj;
 
         // Force
-        diceobj = new DicePreset('for', 'd12');
+        diceobj = new DicePreset('dfor', 'd12');
         diceobj.setLabels(['z',"Z\nZ",'z',"Z\nZ",'z',"Z\nZ",'z','Z','z','Z','z',"z\nz"]);
         diceobj.setValues(1,12);
         diceobj.mass = 350;
@@ -155,23 +160,26 @@ class DiceFactory {
         diceobj.scale = 0.9;
         diceobj.font = 'EOTE Symbol';
         diceobj.color = '#FFFFFF';
+        diceobj.display = 'labels';
         this.dice[diceobj.type] = diceobj;
 
         // Boost
-        diceobj = new DicePreset('boo', 'd6');
+        diceobj = new DicePreset('dboo', 'd6');
         diceobj.setLabels(["s  \n  a","a  \n  a",'s','a','','']);
         diceobj.setValues(1,6);
         diceobj.scale = 0.9;
         diceobj.font = 'EOTE Symbol';
         diceobj.color = '#00FFFF';
+        diceobj.display = 'labels';
         this.dice[diceobj.type] = diceobj;
 
         // Setback
-        diceobj = new DicePreset('set', 'd6');
+        diceobj = new DicePreset('dset', 'd6');
         diceobj.setLabels(['','t','f']);
         diceobj.setValues(1,3);
         diceobj.scale = 0.9;
         diceobj.font = 'EOTE Symbol';
+        diceobj.display = 'labels';
         this.dice[diceobj.type] = diceobj;
 	}
 
@@ -201,7 +209,7 @@ class DiceFactory {
         		return this.fixmaterials(mesh, 1);
         	case 'd2':
         		return this.fixmaterials(mesh, 2);
-        	case 'd3': case 'df': case 'set': 
+        	case 'd3': case 'df': case 'dset': 
         		return this.fixmaterials(mesh, 3);
         	default:
         		return mesh;
@@ -634,7 +642,8 @@ class DicePreset {
 		this.values = [];
 		this.mass = 300;
 		this.inertia = 13;
-		this.geometry = null;
+        this.geometry = null;
+        this.display = 'values';
 	}
 
 	setValues(min = 1, max = 20, step = 1) {
@@ -671,4 +680,138 @@ class DicePreset {
         }
         return a;
     }
+}
+
+class DiceNotation {
+
+    constructor(notation, dicefactory) {
+
+        this.dicefactory = dicefactory;
+
+        this.set = [];
+        this.setkeys = [];
+        this.op = '';
+        this.constant = '';
+        this.result = [];
+        this.error = false;
+        this.boost = 1;
+
+        if (notation) {
+            let rage = (notation.split('!').length-1) || 0;
+            if (rage > 0) {
+                this.boost = Math.min(Math.max(rage, 0), 3) * 4;
+            }
+            notation = notation.split('!').join(''); //remove and continue
+        }
+
+        notation = notation.split(' ').join(''); // remove spaces
+
+        let no = notation.split('@');// 0: dice notations, 1: forced results
+        let rollregex = new RegExp(/^(\d*|)([a-z]{1}(?:[a-z]{1,3}|\d+)|)(?:([a-z]{1,2})(\d+)|)(?:(\+|\-|\*|\/)(\d+)|){0,1}(\+|\-|\*|\/|$)/, 'i');
+        let resultsregex = new RegExp(/(\b)*(\d+)(\b)*/, 'gi'); // forced results: '1, 2, 3' or '1 2 3'
+        let res;
+
+        let runs = 0;
+        let breaklimit = 25;
+
+        // dice notations
+        let notationstring = no[0];
+        while (notationstring.length > 0 && (res = rollregex.exec(notationstring)) !== null && runs < breaklimit) {
+            runs++;
+            //console.log('notationstring', notationstring);
+            //console.log(res);
+
+            //remove this notation so we can move on
+            notationstring = notationstring.substring(res[0].length);
+
+            let amount = res[1];
+            let type = res[2];
+            let funcname = res[3];
+            let funcargs = res[4];
+            let operator = res[5];
+            let constant = res[6];
+            let nextoperator = res[7];
+
+            this.addSet(amount, type, funcname, funcargs, nextoperator);
+
+            if (operator && constant) {
+                this.op = operator;
+                this.constant = parseInt(constant);
+            }
+        }
+
+        // forced results
+        if (!this.error && no[1] && (res = no[1].match(resultsregex)) !== null) {
+            //console.log('forceresult', no[1]);
+            //console.log(res);
+            this.result.push(...res);
+        }
+    }
+
+    stringify() {
+        let output = '';
+
+        if (this.set.length < 1) return output;
+
+        for(let i = 0, l = this.set.length; i < l; i++){
+            let set = this.set[i];
+
+            output += set.num + set.type;
+            output += (set.func) ? set.func : '';
+            output += (set.arg) ? set.arg : '';
+            output += (set.nextop) ? set.nextop : '';
+        }
+
+        output += (this.constant) ? this.op+''+Math.abs(this.constant) : '';
+        output += (set.nextop) ? set.nextop : '';
+
+        if(this.result && this.result.length > 0) {
+            output += '@'+this.result.join(',');
+        }
+
+        if (this.boost > 1) {
+            output += ('!'.repeat(this.boost-1));
+        }
+        return output;
+    }
+
+    addSet(amount, type, funcname = '', funcargs = '', nextoperator = '') {
+
+        if (type == null) type = 'd20'; //enforce default of d20 is type is null only
+
+        let diceobj = this.dicefactory.get(type);
+        if (diceobj == null) { this.error = true; return; }
+
+        amount = parseInt(amount || 1);
+
+        // update a previous set if these match
+        // has the added bonus of combining duplicate
+        let setkey = type+''+funcname+''+funcargs+''+nextoperator;
+        let update = (this.setkeys[setkey] != null);
+
+        let setentry = {};
+        if (update) setentry = this.set[(this.setkeys[setkey]-1)];
+        /* setentry = {
+            num: 0,
+            type: '',
+            func: '',
+            arg: 0,
+            nextop: '',
+        } */
+        if (amount > 0) {
+
+            setentry.num = update ? (amount + setentry.num) : amount;
+            setentry.type = diceobj.type;
+            if (funcname) setentry.func = funcname;
+            if (funcargs) setentry.arg = funcargs;
+            if (nextoperator) setentry.nextop = nextoperator;
+
+            if (!update)  {
+                this.setkeys[setkey] = this.set.push(setentry);
+            } else {
+                this.set[(this.setkeys[setkey]-1)] = setentry;
+            }
+        }
+    }
+
 }

@@ -47,82 +47,64 @@
     this.DiceFactory = new DiceFactory();
 
     this.parse_notation = function(notation) {
-
-        let ret = { 
-            set: [], 
-            op: '', 
-            constant: '', 
-            result: [], 
-            error: false, 
-            boost: 1
-        };
-        let res;
-
-        if (notation) {
-            let rage = (notation.split('!').length-1) || 0;
-            if (rage > 0) {
-                ret.boost = Math.min(Math.max(rage, 0), 3) * 4;
-            }
-            notation = notation.split('!').join(''); //remove and continue
-        }
-
-        var no = notation.split('@');
-        var d20roll = /^(\s*(\+|\-)\s*(\d+)\s*){0,1}$/;
-
-        var dr0 = /\s*(\d*)([a-z]+)(\d+|\w+)(\s*(\+|\-|\*|\/)\s*(\d+)){0,1}\s*(\+|$)/gi;
-
-
-        var dr1 = /(\b)*(\d+)(\b)*/gi;
-
-        if (res = d20roll.exec(no[0])) {
-            ret.set.push('d20');
-            if (res[2] && res[3]) {
-                ret.op = res[2];
-                ret.constant = parseInt(res[3]);
-            }
-        }
-        while (res = dr0.exec(no[0])) {
-            console.log('res', res);
-            var command = res[2];
-            if (command != 'd') { ret.error = true; continue; }
-            var count = parseInt(res[1]);
-            if (res[1] == '') count = 1;
-            var type = 'd' + res[3];
-            if (!this.DiceFactory.dice[type]) { ret.error = true; continue; }
-            while (count--) ret.set.push(type);
-            if (res[5] && res[6]) {
-                ret.op = res[5];
-                ret.constant = parseInt(res[6]);
-            }
-        }
-
-        while (res = dr1.exec(no[1])) {
-            ret.result.push(parseInt(res[2]));
-        }
-
-        console.log('ret', ret);
-
-        return ret;
+        return new DiceNotation(notation, this.DiceFactory);
     }
 
-    this.stringify_notation = function(nn) {
-        var dict = {}, notation = '';
-        for (var i in nn.set) 
-            if (!dict[nn.set[i]]) dict[nn.set[i]] = 1; else ++dict[nn.set[i]];
-        for (var i in dict) {
-            if (notation.length) notation += ' + ';
-            notation += (dict[i] > 1 ? dict[i] : '') + i;
+    this.stringify_notation = function(notation) {
+        return notation.stringify();
+    }
+
+    this.test_notations = function(teststring = '') {
+
+        let teststrings = [];
+
+        if (teststring != '') {
+            teststrings.push(teststring);
+        } else {
+            teststrings = [
+                '8',
+                '10',
+                '100',
+                '8h1',
+                '10h1',
+                '100h1',
+                '8h20',
+                '10h4000',
+                '800l098029384@8,8,8,8,8',
+                '+7',
+                '+10',
+                '+100',
+                '1d4',
+                '1d4+8d6l+4dsex+7',
+                '10d4',
+                '10d20',
+                '10d20+7',
+                '8d4h4',
+                '8d4h4+7',
+                '10d4l2',
+                '10d20',
+                '10d20+7',
+                '4dsex',
+                '4dwww+',
+                'ddab',
+                'ddif',
+                'dpro',
+                'dcha',
+                'dfor',
+                'dboo',
+                'dset'
+            ];
         }
-        if (nn.constant) {
-            if (nn.constant > 0) {
-                if (nn.op == '-') {
-                    notation += ' - ' + Math.abs(nn.constant);
-                } else {
-                    notation += ' '+nn.op+' ' + nn.constant;
-                }
-            }
+
+        for(let i = 0, l = teststrings.length; i < l; i++){
+            console.log(i, teststrings[i]);
+
+            let parsed = this.parse_notation(teststrings[i]);
+            console.log('parse_notation', parsed);
+
+            let stringified = this.stringify_notation(parsed);
+            console.log('stringify_notation', stringified);
         }
-        return notation;
     }
 
     var that = this;
@@ -318,7 +300,12 @@
 
     this.dice_box.prototype.generate_vectors = function(notation, vector, boost) {
         var vectors = [];
+        console.log('notation', notation);
         for (var i in notation.set) {
+
+            console.log('i', i);
+            console.log('i', notation.set[i]);
+
             var vec = make_random_vector(vector);
             var pos = {
                 x: this.w * (vec.x > 0 ? -1 : 1) * 0.9,
@@ -330,15 +317,20 @@
             var velvec = make_random_vector(vector);
             var velocity = { x: velvec.x * (boost * notation.boost), y: velvec.y * (boost * notation.boost), z: -10 };
 
-            let diceobj = that.DiceFactory.get(notation.set[i]);
-            var angle = {
-                x: -(rnd() * vec.y * 5 + diceobj.inertia * vec.y),
-                y: rnd() * vec.x * 5 + diceobj.inertia * vec.x,
-                z: 0
-            };
-            var axis = { x: rnd(), y: rnd(), z: rnd(), a: rnd() };
-            vectors.push({ set: notation.set[i], pos: pos, velocity: velocity, angle: angle, axis: axis });
+            let diceobj = that.DiceFactory.get(notation.set[i].type);
+            let numdice = notation.set[i].num;
+
+            for(let k = 0; k < numdice; k++){
+                var angle = {
+                    x: -(rnd() * vec.y * 5 + diceobj.inertia * vec.y),
+                    y: rnd() * vec.x * 5 + diceobj.inertia * vec.x,
+                    z: 0
+                };
+                var axis = { x: rnd(), y: rnd(), z: rnd(), a: rnd() };
+                vectors.push({ set: diceobj.type, pos: pos, velocity: velocity, angle: angle, axis: axis });
+            }            
         }
+        console.log('vectors', vectors);
         return vectors;
     }
 
@@ -419,7 +411,13 @@
         console.log('dicemesh', dicemesh);
         let diceobj = that.DiceFactory.get(dicemesh.dice_type);
         console.log('diceobj', diceobj);
-        let val = diceobj.values[((matindex-1) % diceobj.values.length)];
+
+        let val;
+        if (diceobj.display == 'values') {
+            val = diceobj.values[((matindex-1) % diceobj.values.length)];
+        } else if (diceobj.display == 'labels') {
+            val = diceobj.labels[(((matindex-1) % (diceobj.labels.length-2))+2)];
+        }
         console.log('val', val);
 
         if (dicemesh.dice_type == 'd10' && val == 0) return 10;
