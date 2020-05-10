@@ -48,7 +48,7 @@ function preload_and_init() {
         var colorselect = $t.id('color');
         var textureselect = $t.id('texture');
 
-        $t.favorites = new DiceFavorites();
+        $t.DiceFavorites = new DiceFavorites();
 
         for(let i = 0, l = COLORCATEGORIES.length; i < l; i++){
 
@@ -69,6 +69,8 @@ function preload_and_init() {
         }
 
         var params = $t.get_url_params();
+        params.colorset = $t.DiceFavorites.colorset || params.colorset;
+        params.texture = $t.DiceFavorites.texture || params.texture;
 
         if (params.colorset || params.texture) {
             applyColorSet((params.colorset || 'random'), (params.texture || null));
@@ -109,12 +111,6 @@ function login_initialize(container) {
     show_waitform(false);
 
     var params = $t.get_url_params();
-
-    if (params.colorset || params.texture) {
-        applyColorSet(params.colorset, params.texture);
-    } else {
-        applyColorSet('random', null);
-    }
 
     if (params.name) {
         $t.id('input_user').value = params.name;
@@ -227,6 +223,12 @@ function login_initialize(container) {
         action_pool['login']({user: 'Yourself'});
     });
 
+    $('#checkbox_allowdiceoverride').prop('checked', $t.DiceFavorites.allowDiceOverride);
+    $('#checkbox_allowdiceoverride').change(function(event) {
+        $t.DiceFavorites.allowDiceOverride = $('#checkbox_allowdiceoverride').prop('checked');
+        $t.DiceFavorites.store();
+    });
+
     function connect_socket(reopen, callback) {
         if (reopen && $t.socket && $t.socket.readyState <= WebSocket.OPEN) {
             $t.socket.close();
@@ -332,8 +334,8 @@ function login_initialize(container) {
         resize();
         on_set_change();
 
-        $t.favorites.retrieve();
-        $t.favorites.ensureOnScreen();
+        $t.DiceFavorites.retrieve();
+        $t.DiceFavorites.ensureOnScreen();
 
         $t.bind($t.id('clear'), ['mouseup', 'touchend'], function(ev) {
             ev.stopPropagation();
@@ -372,8 +374,8 @@ function login_initialize(container) {
 
             let name = prompt('Set Name for Favorite', names[Math.floor(Math.random() * names.length)]);
 
-            teal.favorites.create(name, set.value, color_select.value, texture_select.value, ev.pageX, ev.pageY);
-            teal.favorites.store();
+            teal.DiceFavorites.create(name, set.value, color_select.value, texture_select.value, ev.pageX, ev.pageY);
+            teal.DiceFavorites.store();
 
             setSaveButtonText();
         });
@@ -435,12 +437,6 @@ function login_initialize(container) {
             }
         });
 
-        if (params.colorset || params.texture) {
-            applyColorSet(params.colorset, params.texture);
-        } else {
-            applyColorSet('random', null);
-        }
-
         if (params.notation) {
             set.value = params.notation;
         }
@@ -451,7 +447,7 @@ function login_initialize(container) {
         $t.bind(window, 'resize', function() {
             resize();
             box.reinit(canvas, { w: 500, h: 300 });
-            teal.favorites.ensureOnScreen();
+            teal.DiceFavorites.ensureOnScreen();
         });
 
         function close() {
@@ -478,7 +474,6 @@ function login_initialize(container) {
             $t.id('sethelp').style.display = 'block';
             deskrolling = false;
             applyColorSet(color_select.value, (texture_select.value || null));
-            $t.dice.DiceFactory.setRandomMaterialInfo();
             box.alldice = params.alldice;
             box.draw_selector((params.alldice && params.alldice == '1'));
         }

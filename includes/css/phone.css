@@ -21,6 +21,10 @@ input, select, button {
     font-family: Trebuchet MS;
 }
 
+input[type="checkbox"] {
+    width: 1em; 
+}
+
 input:hover, select:hover, button:hover {
     border-color: #9794ff;
 }

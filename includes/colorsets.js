@@ -416,6 +416,71 @@ var COLORSETS = {
         outline: '#FFFFFF',
         texture: 'none',
         description: 'White'
+    },
+
+
+    'eote_abi': {
+        name: 'Ability',
+        category: 'Star Wars EotE',
+        foreground: '#000000',
+        background: ['#3D9238','#52B848','#5EAC56','#9ECB9A'],
+        outline: 'none',
+        texture: 'clouds',
+        description: 'Star Wars Ability Dice'
+    },
+    'eote_pro': {
+        name: 'Proficiency',
+        category: 'Star Wars EotE',
+        foreground: '#000000',
+        background: ['#CABB1C','#F9E33B','#FFE900','#F0E49D'],
+        outline: 'none',
+        texture: 'paper',
+        description: 'Star Wars Proficiency Dice'
+    },
+    'eote_dif': {
+        name: 'Difficulty',
+        category: 'Star Wars EotE',
+        foreground: '#ffffff',
+        background: ['#39165F','#664B84','#50247E','#745F88'],
+        outline: 'none',
+        texture: 'speckles',
+        description: 'Star Wars Difficulty Dice'
+    },
+    'eote_cha': {
+        name: 'Challenge',
+        category: 'Star Wars EotE',
+        foreground: '#ffffff',
+        background: ['#A91F32','#EB4254','#E51836','#BA3645'],
+        outline: 'none',
+        texture: 'stainedglass',
+        description: 'Star Wars Challenge Dice'
+    },
+    'eote_boo': {
+        name: 'Boost',
+        category: 'Star Wars EotE',
+        foreground: '#000000',
+        background: ['#4B9DC6','#689FC4','#85CFF2','#8FC0D8'],
+        outline: 'none',
+        texture: 'stars',
+        description: 'Star Wars Boost Dice'
+    },
+    'eote_set': {
+        name: 'Setback',
+        category: 'Star Wars EotE',
+        foreground: '#ffffff',
+        background: ['#252223','#241F21','#282828','#111111'],
+        outline: 'none',
+        texture: 'glitter',
+        description: 'Star Wars Setback Dice'
+    },
+    'eote_for': {
+        name: 'Force',
+        category: 'Star Wars EotE',
+        foreground: '#000000',
+        background: ['#F3F3F3','#D3D3D3','#BABABA','#FFFFFF'],
+        outline: 'none',
+        texture: 'stars',
+        description: 'Star Wars Force Dice'
     }
 };
 
@@ -424,6 +489,7 @@ const COLORCATEGORIES = [
     'Damage Types',
     'Colors',
     'Other',
+    'Star Wars EotE',
 ];
 
 function randomColor() {
@@ -446,6 +512,7 @@ function initColorSets() {
 
     let sets = Object.entries(COLORSETS);
     for (const [name, data] of sets) {
+        COLORSETS[name].id = name;
         COLORSETS[name].texture = getTexture(data.texture);
     }
 
@@ -479,19 +546,14 @@ function applyColorSet(colorset, texture = null, update = true) {
     var colordata = getColorSet(colorset);
 
     if (colorset && colorset.length > 0) {
-    	$t.dice.DiceFactory.materials_cache = {};
-    	$t.dice.DiceFactory.cache_hits = 0;
-    	$t.dice.DiceFactory.cache_misses = 0;
 
-        $t.dice.DiceFactory.label_color = colordata.foreground;
-        $t.dice.DiceFactory.dice_color = colordata.background;
-        $t.dice.DiceFactory.label_outline = colordata.outline;
-        $t.dice.DiceFactory.dice_texture = colordata.texture;
+        $t.dice.DiceFactory.applyColorSet(colordata);
 
         urlargs.push('colorset='+colorset);
 
 	    if (update) {
 		    $t.selectByValue($t.id('color'), colorset);
+            $t.DiceFavorites.colorset = colorset;
 	    }
     }
 
@@ -502,22 +564,25 @@ function applyColorSet(colorset, texture = null, update = true) {
         let tex = Array.isArray(texturedata) ? '' : texturedata;
 
         if (texturedata.name) {
-            $t.dice.DiceFactory.dice_texture = texturedata;
+            $t.dice.DiceFactory.applyTexture(texturedata);
         }
 
         urlargs.push('texture='+tex.name);
 
         if (update) {
             $t.selectByValue($t.id('texture'), tex.name);
+            $t.DiceFavorites.texture = tex.name;
         }
     } else {
         if (update) {
             $t.selectByValue($t.id('texture'), '');
+            $t.DiceFavorites.texture = '';
         }
     }
 
     if (update && urlargs.length > 0) {
         $t.empty($t.id('colorname'));
         $t.id('colorname').innerHTML = 'Dice Theme: '+colordata.description+' - <a href="?'+urlargs.join('&')+'">🔗</a>';
+        $t.DiceFavorites.store();
     }
 }

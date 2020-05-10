@@ -115,6 +115,7 @@ class DiceFactory {
 		diceobj.setValues(1,8);
         diceobj.font = 'EOTE Symbol';
         diceobj.color = '#00FF00';
+        diceobj.colorset = 'eote_abi';
         diceobj.display = 'labels';
 		this.dice[diceobj.type] = diceobj;
 
@@ -124,6 +125,7 @@ class DiceFactory {
         diceobj.setValues(1,8);
         diceobj.font = 'EOTE Symbol';
         diceobj.color = '#8000FC';
+        diceobj.colorset = 'eote_dif';
         diceobj.display = 'labels';
         this.dice[diceobj.type] = diceobj;
 
@@ -136,6 +138,7 @@ class DiceFactory {
         diceobj.scale = 0.9;
         diceobj.font = 'EOTE Symbol';
         diceobj.color = '#FFFF00';
+        diceobj.colorset = 'eote_pro';
         diceobj.display = 'labels';
         this.dice[diceobj.type] = diceobj;
 
@@ -148,6 +151,7 @@ class DiceFactory {
         diceobj.scale = 0.9;
         diceobj.font = 'EOTE Symbol';
         diceobj.color = '#FF0000';
+        diceobj.colorset = 'eote_cha';
         diceobj.display = 'labels';
         this.dice[diceobj.type] = diceobj;
 
@@ -160,6 +164,7 @@ class DiceFactory {
         diceobj.scale = 0.9;
         diceobj.font = 'EOTE Symbol';
         diceobj.color = '#FFFFFF';
+        diceobj.colorset = 'eote_for';
         diceobj.display = 'labels';
         this.dice[diceobj.type] = diceobj;
 
@@ -170,6 +175,7 @@ class DiceFactory {
         diceobj.scale = 0.9;
         diceobj.font = 'EOTE Symbol';
         diceobj.color = '#00FFFF';
+        diceobj.colorset = 'eote_boo';
         diceobj.display = 'labels';
         this.dice[diceobj.type] = diceobj;
 
@@ -179,10 +185,13 @@ class DiceFactory {
         diceobj.setValues(1,3);
         diceobj.scale = 0.9;
         diceobj.font = 'EOTE Symbol';
+        diceobj.color = '#000000';
+        diceobj.colorset = 'eote_set';
         diceobj.display = 'labels';
         this.dice[diceobj.type] = diceobj;
 	}
 
+    // returns a dicemesh (THREE.Mesh) object
 	create(type) {
 		let diceobj = this.dice[type];
 		if (!diceobj) return null;
@@ -194,7 +203,13 @@ class DiceFactory {
 		}
 		if (!geom) return null;
 
-		this.setRandomMaterialInfo();
+        if (diceobj.colorset && $t.DiceFavorites.allowDiceOverride) {
+            this.setMaterialInfo(diceobj.colorset);
+        } else {
+            this.setMaterialInfo();
+        }
+
+
         let mesh = new THREE.Mesh(geom, this.createMaterials(diceobj, this.baseScale / 2, 1.0));
 
         if (diceobj.color) {
@@ -354,7 +369,30 @@ class DiceFactory {
         return compositetexture;
     }
 
-    setRandomMaterialInfo() {
+    applyColorSet(colordata) {
+        this.colordata = colordata;
+        this.label_color = colordata.foreground;
+        this.dice_color = colordata.background;
+        this.label_outline = colordata.outline;
+        this.dice_texture = colordata.texture;
+    }
+
+    applyTexture(texture) {
+        this.dice_texture = texture;
+    }
+
+    setMaterialInfo(colorset = '') {
+
+        let prevcolordata = this.colordata;
+
+        if (colorset) {
+            let colordata = getColorSet(colorset);
+
+            if (this.colordata.id != colordata.id) {
+                this.applyColorSet(colordata);
+            }
+        }
+
         //reset random choices
         this.dice_color_rand = '';
         this.label_color_rand = '';
@@ -415,6 +453,10 @@ class DiceFactory {
             this.dice_texture_rand = this.dice_texture[Math.floor(Math.random() * this.dice_texture.length)];
         } else if (this.dice_texture_rand == '') {
             this.dice_texture_rand = this.dice_texture;
+        }
+
+        if (this.colordata.id != prevcolordata.id) {
+            this.applyColorSet(prevcolordata);
         }
     }
 
