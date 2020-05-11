@@ -108,7 +108,7 @@ p {
     line-height: 1em;
     font-size: 1em;
     margin-bottom: 5px;
-    max-width: 16em;
+    max-width: 25em;
 }
 
 #clear, #save, #throw, #rage {
@@ -337,6 +337,11 @@ legend {
     width: 100%;
     position: relative;
     bottom: 2em;
+    background-color: rgb(30, 44, 77);
+    z-index: 10;
+    border-top: 2px dashed white;
+    border-bottom: 2px dashed white;
+    word-wrap: anywhere;
 }
 
 #canvas {

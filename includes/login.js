@@ -592,29 +592,119 @@ function login_initialize(container) {
 
                 console.log('result', result);
 
-                var r = '['+result.join(', ')+']';
+                let numberdicevalues = [];
+                let swrpgdice = [];
 
-                if (res.notation.constant != '') {
-                        r += ' ' + res.notation.op + Math.abs(res.notation.constant);
-                    if(res.notation.op == '-') {
-                        r += ' = ' + (result.reduce(function(s, a) { return s + a; }) - res.notation.constant);
-                    } else if (res.notation.op == '*') {
-                        r += ' = ' + (result.reduce(function(s, a) { return s + a; }) * res.notation.constant);
-                    } else if (res.notation.op == '/') {
-                        r += ' = ' + (result.reduce(function(s, a) { return s + a; }) / res.notation.constant);
-                    } else {
-                        r += ' = ' + (result.reduce(function(s, a) { return s + a; }) + res.notation.constant);
+                // split up results between nubmer and symbol dice
+                for(let i = 0; i < result.dice.length; i++){
+
+                    let dicemesh = result.dice[i];
+                    let diceobj =  $t.dice.DiceFactory.get(dicemesh.dice_type);
+
+                    if (diceobj.system == 'swrpg') {
+                        swrpgdice.push(result.labels[i]);
+                    } else if (diceobj.system == 'd20') {
+                        numberdicevalues.push(result.values[i]);
                     }
-                } else {
-                    r += ' = ' + result.reduce(function(s, a) { return s + a; });
                 }
-                label.innerHTML = r;
+
+                console.log('numberdicevalues', numberdicevalues);
+                console.log('swrpgdice', swrpgdice);
+
+                let output = '';
+
+                // swrpg dice, custom logic
+                if(swrpgdice.length > 0) {
+
+                    let success = 0;
+                    let failure = 0;
+                    let advantage = 0;
+                    let threat = 0;
+                    let triumph = 0;
+                    let despair = 0;
+                    let dark = 0;
+                    let light = 0;
+
+                    output += '[<span style="font-family: \'EOTE Symbol\'">';
+
+                    for(let i = 0; i < swrpgdice.length; i++){
+
+                        let currentlabel = swrpgdice[i];
+
+                        success += (currentlabel.split('s').length - 1);
+                        failure += (currentlabel.split('f').length - 1);
+                        advantage += (currentlabel.split('a').length - 1);
+                        threat += (currentlabel.split('t').length - 1);
+                        triumph += (currentlabel.split('x').length - 1);
+                        despair += (currentlabel.split('y').length - 1);
+                        dark += (currentlabel.split('z').length - 1);
+                        light += (currentlabel.split('Z').length - 1);
+                    }
+
+                    let rolls = '';
+
+                    rolls += 's'.repeat(success);
+                    rolls += 'f'.repeat(failure);
+                    rolls += 'a'.repeat(advantage);
+                    rolls += 't'.repeat(threat);
+                    rolls += 'x'.repeat(triumph);
+                    rolls += 'y'.repeat(despair);
+                    rolls += 'z'.repeat(dark);
+                    rolls += 'Z'.repeat(light);
+
+                    rolls = rolls.trim();
+
+                    output += rolls+'</span>] = <span style="font-family: \'EOTE Symbol\'">';
+
+                    let totals = ''
+
+                    if (success > failure) totals += 's'.repeat(success-failure);
+                    if (failure > success) totals += 'f'.repeat(failure-success);
+                    if (advantage > threat) totals += 'a'.repeat(advantage-threat);
+                    if (threat > advantage) totals += 't'.repeat(threat-advantage);
+                    if (triumph > 0) totals += 'x'.repeat(triumph);
+                    if (despair > 0) totals += 'y'.repeat(despair);
+                    if (dark > 0) totals += 'z'.repeat(dark);
+                    if (light > 0) totals += 'Z'.repeat(light);
+
+                    totals = totals.trim();
+
+                    output += totals+'</span>';
+
+                }
+
+                // d20 systme dice, just add numbers
+                if (numberdicevalues.length > 0) {
+
+                    output += '['+numberdicevalues.join(',')+']';
+
+                    let total = numberdicevalues.reduce(function(s, a) { return s + a; });
+
+                    if (res.notation.constant != '') {
+                            output += ' ' + res.notation.op + Math.abs(res.notation.constant);
+                        if(res.notation.op == '-') {
+                            output += ' = ' + (total - res.notation.constant);
+                        } else if (res.notation.op == '*') {
+                            output += ' = ' + (total * res.notation.constant);
+                        } else if (res.notation.op == '/') {
+                            output += ' = ' + (total / res.notation.constant);
+                        } else {
+                            output += ' = ' + (total + res.notation.constant);
+                        }
+                    } else {
+                        output += ' = ' + total;
+                    }
+                }
+
+                label.innerHTML = output;
+
+
                 info_div.style.display = 'block';
                 $t.id('labelhelp').style.display = 'block';
                 deskrolling = false;
                 box.rolling = false;
                 if (log.roll_uuid) {
-                    log.confirm_message(log.roll_uuid, make_notation_for_log(res.notation, r));
+                    log.confirm_message(log.roll_uuid, make_notation_for_log(res.notation, output));
                     delete log.roll_uuid;
                 }
             });

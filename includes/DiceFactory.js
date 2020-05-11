@@ -1,6 +1,72 @@
 "use strict"
 
 
+
+class DicePreset {
+
+    constructor(type, shape = '') {
+
+        shape = shape || type;
+
+        this.type = type;
+        this.shape = shape || type;
+        this.scale = 1;
+        this.font = 'Arial';
+        this.color = '';
+        this.labels = [];
+        this.valueMap = [];
+        this.values = [];
+        this.mass = 300;
+        this.inertia = 13;
+        this.geometry = null;
+        this.display = 'values';
+        this.system = 'd20';
+    }
+
+    setValues(min = 1, max = 20, step = 1) {
+        this.values = this.range(min, max, step);
+    }
+
+    setValueMap(map) {
+
+        for(let i = 0; i < this.values.length; i++){
+            let key = this.values[i];
+            if (map[key] != null) this.valueMap[key] = map[key];
+        }
+    }
+
+    setLabels(labels) {
+
+        this.labels.push('');
+        if(this.shape != 'd10') this.labels.push('');
+
+        if (this.shape == 'd4') {
+
+            let a = labels[0];
+            let b = labels[1];
+            let c = labels[2];
+            let d = labels[3];
+
+            this.labels = [
+                [[], [0, 0, 0], [b, d, c], [a, c, d], [b, a, d], [a, b, c]],
+                [[], [0, 0, 0], [b, c, d], [c, a, d], [b, d, a], [c, b, a]],
+                [[], [0, 0, 0], [d, c, b], [c, d, a], [d, b, a], [c, a, b]],
+                [[], [0, 0, 0], [d, b, c], [a, d, c], [d, a, b], [a, c, b]]
+            ];
+        } else {
+            Array.prototype.push.apply(this.labels, labels)
+        }
+    }
+
+    range(start, stop, step = 1) {
+        var a = [start], b = start;
+        while (b < stop) {
+            a.push(b += step || 1);
+        }
+        return a;
+    }
+}
+
 class DiceFactory {
 
 	constructor() {
@@ -110,13 +176,15 @@ class DiceFactory {
 		//star wars dice
 
 		// Ability
-		diceobj = new DicePreset('ddab', 'd8');
+		diceobj = new DicePreset('dabi', 'd8');
 		diceobj.setLabels(['s','a',"s\na","s\ns",'a','s',"a\na",'']);
 		diceobj.setValues(1,8);
+        diceobj.setValueMap([]);
         diceobj.font = 'EOTE Symbol';
         diceobj.color = '#00FF00';
         diceobj.colorset = 'eote_abi';
         diceobj.display = 'labels';
+        diceobj.system = 'swrpg';
 		this.dice[diceobj.type] = diceobj;
 
         // Difficulty
@@ -127,6 +195,7 @@ class DiceFactory {
         diceobj.color = '#8000FC';
         diceobj.colorset = 'eote_dif';
         diceobj.display = 'labels';
+        diceobj.system = 'swrpg';
         this.dice[diceobj.type] = diceobj;
 
         // Proficiency
@@ -140,6 +209,7 @@ class DiceFactory {
         diceobj.color = '#FFFF00';
         diceobj.colorset = 'eote_pro';
         diceobj.display = 'labels';
+        diceobj.system = 'swrpg';
         this.dice[diceobj.type] = diceobj;
 
         // Challenge
@@ -153,6 +223,7 @@ class DiceFactory {
         diceobj.color = '#FF0000';
         diceobj.colorset = 'eote_cha';
         diceobj.display = 'labels';
+        diceobj.system = 'swrpg';
         this.dice[diceobj.type] = diceobj;
 
         // Force
@@ -166,6 +237,7 @@ class DiceFactory {
         diceobj.color = '#FFFFFF';
         diceobj.colorset = 'eote_for';
         diceobj.display = 'labels';
+        diceobj.system = 'swrpg';
         this.dice[diceobj.type] = diceobj;
 
         // Boost
@@ -177,6 +249,7 @@ class DiceFactory {
         diceobj.color = '#00FFFF';
         diceobj.colorset = 'eote_boo';
         diceobj.display = 'labels';
+        diceobj.system = 'swrpg';
         this.dice[diceobj.type] = diceobj;
 
         // Setback
@@ -188,6 +261,7 @@ class DiceFactory {
         diceobj.color = '#000000';
         diceobj.colorset = 'eote_set';
         diceobj.display = 'labels';
+        diceobj.system = 'swrpg';
         this.dice[diceobj.type] = diceobj;
 	}
 
@@ -669,61 +743,6 @@ class DiceFactory {
     }
 }
 
-class DicePreset {
-
-	constructor(type, shape = '') {
-
-		shape = shape || type;
-
-		this.type = type;
-		this.shape = shape || type;
-		this.scale = 1;
-        this.font = 'Arial';
-        this.color = '';
-		this.labels = [];
-		this.values = [];
-		this.mass = 300;
-		this.inertia = 13;
-        this.geometry = null;
-        this.display = 'values';
-	}
-
-	setValues(min = 1, max = 20, step = 1) {
-		this.values = this.range(min, max, step);
-	}
-
-	setLabels(labels) {
-
-		this.labels.push('');
-		if(this.shape != 'd10') this.labels.push('');
-
-		if (this.shape == 'd4') {
-
-			let a = labels[0];
-			let b = labels[1];
-			let c = labels[2];
-			let d = labels[3];
-
-			this.labels = [
-		        [[], [0, 0, 0], [b, d, c], [a, c, d], [b, a, d], [a, b, c]],
-		        [[], [0, 0, 0], [b, c, d], [c, a, d], [b, d, a], [c, b, a]],
-		        [[], [0, 0, 0], [d, c, b], [c, d, a], [d, b, a], [c, a, b]],
-		        [[], [0, 0, 0], [d, b, c], [a, d, c], [d, a, b], [a, c, b]]
-		    ];
-		} else {
-			Array.prototype.push.apply(this.labels, labels)
-		}
-	}
-
-    range(start, stop, step = 1) {
-        var a = [start], b = start;
-        while (b < stop) {
-            a.push(b += step || 1);
-        }
-        return a;
-    }
-}
-
 class DiceNotation {
 
     constructor(notation, dicefactory) {
@@ -749,7 +768,7 @@ class DiceNotation {
         notation = notation.split(' ').join(''); // remove spaces
 
         let no = notation.split('@');// 0: dice notations, 1: forced results
-        let rollregex = new RegExp(/^(\d*|)([a-z]{1}(?:[a-z]{1,3}|\d+)|)(?:([a-z]{1,2})(\d+)|)(?:(\+|\-|\*|\/)(\d+)|){0,1}(\+|\-|\*|\/|$)/, 'i');
+        let rollregex = new RegExp(/(\d+|)([a-z]{1}(?:[a-z]{1,3}|\d+)|)(?:([a-z]{1,2})(\d+)|)(?:(\+|\-|\*|\/)(\d+)|){0,1}(\+|\-|\*|\/|$)/, 'i');
         let resultsregex = new RegExp(/(\b)*(\d+)(\b)*/, 'gi'); // forced results: '1, 2, 3' or '1 2 3'
         let res;
 
@@ -760,8 +779,8 @@ class DiceNotation {
         let notationstring = no[0];
         while (notationstring.length > 0 && (res = rollregex.exec(notationstring)) !== null && runs < breaklimit) {
             runs++;
-            //console.log('notationstring', notationstring);
-            //console.log(res);
+            console.log('notationstring', notationstring);
+            console.log(res);
 
             //remove this notation so we can move on
             notationstring = notationstring.substring(res[0].length);
@@ -819,12 +838,12 @@ class DiceNotation {
 
     addSet(amount, type, funcname = '', funcargs = '', nextoperator = '') {
 
-        if (type == null) type = 'd20'; //enforce default of d20 is type is null only
+        type = type || 'd20'; //enforce default of d20 is type is null only
 
         let diceobj = this.dicefactory.get(type);
         if (diceobj == null) { this.error = true; return; }
 
-        amount = parseInt(amount || 1);
+        amount = Math.abs(parseInt(amount || 1));
 
         // update a previous set if these match
         // has the added bonus of combining duplicate
@@ -854,6 +873,7 @@ class DiceNotation {
                 this.set[(this.setkeys[setkey]-1)] = setentry;
             }
         }
+        console.log('setentry', setentry);
     }
 
 }

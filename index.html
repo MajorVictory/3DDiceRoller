@@ -145,18 +145,13 @@
 
         function receiveMessage(event) {
         	console.log(event);
-            if (event.origin !== "https://www.improved-initiative.com" &&
-            	event.origin !== "https://files.majorsplace.com" &&
-            	event.origin !== "https://rand.majorsplace.com" &&
-            	event.origin !== "https://dnd.majorsplace.com") return;
+            //if (event.origin !== "https://www.improved-initiative.com" &&
+            //	event.origin !== "https://files.majorsplace.com" &&
+            //	event.origin !== "https://rand.majorsplace.com" &&
+            //	event.origin !== "https://dnd.majorsplace.com") return;
 
-            parent_notation = $t.id('parent_notation');
-            parent_roll = $t.id('parent_roll');
-
-            parent_notation.value = event.data;
-            parent_roll.value = "1";
-            $t.raise(parent_notation, 'change');
-            $t.raise(parent_roll, 'change');
+            $('#set').val(event.data);
+            $t.raise_event($t.id('throw'), 'mouseup');
         }
     </script>
 

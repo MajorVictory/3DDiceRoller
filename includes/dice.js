@@ -317,7 +317,7 @@
             var velvec = make_random_vector(vector);
             var velocity = { x: velvec.x * (boost * notation.boost), y: velvec.y * (boost * notation.boost), z: -10 };
 
-            let diceobj = that.DiceFactory.get(notation.set[i].type);
+            const diceobj = that.DiceFactory.get(notation.set[i].type);
             let numdice = notation.set[i].num;
 
             for(let k = 0; k < numdice; k++){
@@ -340,7 +340,7 @@
         //$t.dice.cache_misses = 0;
         //$t.dice.cache_hits = 0;
 
-        let diceobj = that.DiceFactory.get(type);
+        const diceobj = that.DiceFactory.get(type);
         if(!diceobj) return;
 
         let dicemesh = that.DiceFactory.create(diceobj.type);
@@ -407,51 +407,54 @@
         if (dicemesh.dice_type == 'd4') return matindex;
         if (dicemesh.dice_type == 'd10' || dicemesh.dice_type == 'd100') matindex += 1;
 
+        const diceobj = that.DiceFactory.get(dicemesh.dice_type);
+        let value = diceobj.values[((matindex-1) % diceobj.values.length)];
+        let label = diceobj.labels[(((matindex-1) % (diceobj.labels.length-2))+2)];
 
-        console.log('dicemesh', dicemesh);
-        let diceobj = that.DiceFactory.get(dicemesh.dice_type);
-        console.log('diceobj', diceobj);
-
-        let val;
-        if (diceobj.display == 'values') {
-            val = diceobj.values[((matindex-1) % diceobj.values.length)];
-        } else if (diceobj.display == 'labels') {
-            val = diceobj.labels[(((matindex-1) % (diceobj.labels.length-2))+2)];
-        }
-        console.log('val', val);
-
-        if (dicemesh.dice_type == 'd10' && val == 0) return 10;
-        if (dicemesh.dice_type == 'd100' && val == 0) return 100;
-        return val;
+        if (dicemesh.dice_type == 'd10' && value == 0) value = 10;
+        if (dicemesh.dice_type == 'd100' && value == 0) value = 100;
+        return {value: value, label: label, mesh: dicemesh};
     }
 
     function get_dice_values(dices) {
 
-        var d100list = [];
-        var values = [];
+        let d100list = [];
+        let results = {
+            values: [],
+            labels: [],
+            dice: [],
+        };
 
-        for (var i = 0, l = dices.length; i < l; ++i) {
+        for (let i = 0; i < dices.length; ++i) {
 
-            let dice = dices[i];
-            let value = get_dice_value(dice)
+            let dicemesh = dices[i];
+
+
+            const diceobj = that.DiceFactory.get(dicemesh.dice_type);
+            if(diceobj == null) continue;
+
+            let value = get_dice_value(dicemesh);
 
             // check for d100+d10 pairs, correct the values if needed
-            if (dice.dice_type == 'd100') {
+            if (dicemesh.dice_type == 'd100') {
                 d100list.push(i);
             }
-            if (dice.dice_type == 'd10' && d100list.length > 0) {
+            if (dicemesh.dice_type == 'd10' && d100list.length > 0) {
 
                 let lastd100 = d100list.pop();
-                if (value == 10) {
-                    value = 0;
-                } else if (values[lastd100] == 100 && value != 10) {
-                    values[lastd100] = 0;
+                if (value.value == 10) {
+                    value.value = 0;
+                } else if (values[lastd100].value == 100 && value.value != 10) {
+                    values[lastd100].value = 0;
                 }
             }
 
-            values.push(value);
+            results.values.push(value.value);
+            results.labels.push(value.label);
+            results.dice.push(dicemesh);
         }
-        return values;
+
+        return results;
     }
 
     this.dice_box.prototype.emulate_throw = function() {
@@ -459,7 +462,7 @@
             ++this.iteration;
             this.world.step(that.frame_rate);
         }
-        return get_dice_values(this.dices);
+        return get_dice_values(this.dices).values;
     }
 
     this.dice_box.prototype.__animate = function(threadid) {
@@ -493,8 +496,7 @@
         if (this.running == threadid) {
             (function(t, tid, uat) {
                 if (!uat && time_diff < that.frame_rate) {
-                    setTimeout(function() { requestAnimationFrame(function() { t.__animate(tid); }); },
-                        (that.frame_rate - time_diff) * 1000);
+                    setTimeout(function() { requestAnimationFrame(function() { t.__animate(tid); }); }, (that.frame_rate - time_diff) * 1000);
                 }
                 else requestAnimationFrame(function() { t.__animate(tid); });
             })(this, threadid, this.use_adaptive_timestep);
@@ -518,8 +520,7 @@
         this.clear();
         this.iteration = 0;
         for (var i in vectors) {
-            this.create_dice(vectors[i].set, vectors[i].pos, vectors[i].velocity,
-                    vectors[i].angle, vectors[i].axis);
+            this.create_dice(vectors[i].set, vectors[i].pos, vectors[i].velocity, vectors[i].angle, vectors[i].axis);
         }
     }
 
@@ -529,8 +530,9 @@
             return;
         }
 
-        let diceobj = this.DiceFactory.get(dice.dice_type);
-        let values = diceobj.values[((matindex-1) % diceobj.values.length)];
+        const diceobj = $t.dice.DiceFactory.get(dice.dice_type);
+        let values = diceobj.values;
+        let largestvalue = diceobj.values[diceobj.values.length-1];
 
         if (dice.dice_type == 'd10' && value == 10) value = 0;
         if (dice.dice_type == 'd100' && value == 100) value = 0;
@@ -551,8 +553,8 @@
         }
 
         if (dice.dice_type != 'd100' && dice.dice_type != 'd10') {
-            modvalue = (modvalue == 0) ? valuerange[1] : modvalue;
-            modresult = (modresult == 0) ? valuerange[1] : modresult;
+            modvalue = (modvalue == 0) ? largestvalue : modvalue;
+            modresult = (modresult == 0) ? largestvalue : modresult;
         }
 
         let valueindex = values.indexOf(modvalue);
@@ -620,9 +622,9 @@
         if (dice.dice_type == 'd4' && num != 0) {
             if (num < 0) num += 4;
 
-            let diceobj = this.DiceFactory.get(dice.dice_type);
+            const diceobj = $t.dice.DiceFactory.get(dice.dice_type);
 
-            dice.material = this.DiceFactory.createTextMeterial(diceobj, diceobj.labels[num]);
+            dice.material = $t.DiceFactory.createTextMeterial(diceobj, diceobj.labels[num]);
         }
         dice.geometry = geom;
     }
@@ -664,13 +666,13 @@
         var intersects = this.raycaster.intersectObjects(this.dices);
         if ( intersects.length > 0 ) {
 
-            let diceobj = that.DiceFactory.get(intersects[0].object.userData);
+            const diceobj = that.DiceFactory.get(intersects[0].object.userData);
 
             if ( this.INTERSECTED != intersects[0].object ) {
                 
                 if ( this.INTERSECTED ) {
                     for(let i = 0, l = this.INTERSECTED.material.length; i < l; i++){
-                        if (diceobj.color && i == 0) continue;
+                        if (diceobj && diceobj.color && i == 0) continue;
                         this.INTERSECTED.material[i].emissive.setHex( diceobj.color || this.INTERSECTED.currentHex );
                         this.INTERSECTED.material[i].emissiveIntensity = this.INTERSECTED.currentintensity;
                     }
@@ -681,8 +683,8 @@
                 this.INTERSECTED.currentintensity = this.INTERSECTED.material[1].emissiveIntensity;
 
                 for(let i = 0, l = this.INTERSECTED.material.length; i < l; i++){
-                    if (diceobj.color && i == 0) continue;
-                    if (diceobj.color) {
+                    if (diceobj && diceobj.color && i == 0) continue;
+                    if (diceobj && diceobj.color) {
                         this.INTERSECTED.material[i].emissive = new THREE.Color(diceobj.color);
                     } else {
                         this.INTERSECTED.material[i].emissive.setHex( 0xffffff );
@@ -693,10 +695,10 @@
         } else {
                 if ( this.INTERSECTED ) {
 
-                    let diceobj = that.DiceFactory.get(this.INTERSECTED.userData);
+                    const diceobj = that.DiceFactory.get(this.INTERSECTED.userData);
 
                     for(let i = 0, l = this.INTERSECTED.material.length; i < l; i++){
-                        if (diceobj.color && i == 0) continue;
+                        if (diceobj && diceobj.color && i == 0) continue;
                         this.INTERSECTED.material[i].emissive.setHex( this.INTERSECTED.currentHex );
                         this.INTERSECTED.material[i].emissiveIntensity = this.INTERSECTED.currentintensity;
                     }
