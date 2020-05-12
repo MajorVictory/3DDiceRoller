@@ -6,6 +6,43 @@ class DiceFavorites {
 	constructor() {
 		this.favtemplate = $('.fav_draggable');
 		this.savetimeout = null;
+
+		let storage = this.getStorage();
+		if (storage == null) return;
+
+		this.settings = {
+			allowDiceOverride: '1',
+			system: 'd20',
+			colorset: 'random',
+			texture: ''
+		};
+
+		if (storage.getItem('DiceFavorites') != '1') {
+			storage.setItem('DiceFavorites', '1');
+			this.store();
+		}
+
+		this.retrieveSettings();
+	}
+
+	storeSettings() {
+		let storage = this.getStorage();
+		if (storage == null) return;
+
+		const properties = Object.entries(this.settings);
+		for (const [key, value] of properties) {
+			storage.setItem('DiceFavorites.settings.'+key, value);
+		}
+	}
+
+	retrieveSettings() {
+		let storage = this.getStorage();
+		if (storage == null) return;
+
+		const properties = Object.entries(this.settings);
+		for (const [key, value] of properties) {
+			this.settings[key] = storage.getItem('DiceFavorites.settings.'+key);
+		}
 	}
 
 	storageAvailable(type) {
@@ -33,12 +70,18 @@ class DiceFavorites {
 	    }
 	}
 
-	// schedules a save in 5 seconds, resets timer if called sooner
-	saveSoon(time = 5000) {
-		if (this.savetimeout) {
-			clearTimeout(this.savetimeout);
+	getStorage() {
+		let storage = null;
+		
+		if (this.storageAvailable('localStorage')) storage = localStorage;
+		if (storage == null && this.storageAvailable('sessionStorage')){
+			console.log('Local Storage is not available');
+			storage = sessionStorage;
+		} 
+		if (storage == null) {
+			console.log('Local Storage and Session Storage are not available');
 		}
-		this.savetimeout = setTimeout(this.store, 3000);
+		return storage;
 	}
 
 	create(name, notation = '', colorset = '', texture = '', x = 0, y = 0) {
@@ -54,7 +97,7 @@ class DiceFavorites {
         	let textwidth = Math.min(Math.max(($(this).val().length+1), 4), 20);
 
         	$(this).css({width: textwidth+'ex'});
-        	teal.favorites.saveSoon();
+        	teal.DiceFavorites.store();
         });
 
         draggable.find('.fav_colorset').val(colorset);
@@ -62,13 +105,13 @@ class DiceFavorites {
 
         draggable.find('.fav_delete').click(function() {
         	$(this).parent().remove();
-        	teal.favorites.saveSoon();
+        	teal.DiceFavorites.store();
         });
 
         draggable.find('.fav_edit').click(function() {
         	let newname = prompt('Enter a Title', $(this).parent().find('.fav_name').text());
         	$(this).parent().find('.fav_name').empty().text(newname);
-        	teal.favorites.saveSoon();
+        	teal.DiceFavorites.store();
         });
 
         draggable.find('.fav_throw').click(function() {
@@ -83,8 +126,8 @@ class DiceFavorites {
         	containment: 'window',
         	snapTolerance: 10,
         	stop: function() {
-        		teal.favorites.ensureOnScreen();
-        		teal.favorites.saveSoon();
+        		teal.DiceFavorites.ensureOnScreen();
+        		teal.DiceFavorites.store();
         	}
         });
         draggable.css({position: 'absolute', left: x, top: y, display: 'block'});
@@ -121,16 +164,10 @@ class DiceFavorites {
 			this.savetimeout = null;
 		}
 
-		let storage = null;
-		
-		if (teal.favorites.storageAvailable('localStorage')) storage = localStorage;
-		if (storage == null && teal.favorites.storageAvailable('sessionStorage')){
-			console.log('Local Storage is not available');
-			storage = sessionStorage;
-		} 
-		if (storage == null) {
-			console.log('Local Storage and Session Storage are not available');
-		}
+		this.storeSettings();
+
+		let storage = this.getStorage();
+		if (storage == null) return;
 
 		let entries = [];
 		$('.fav_draggable').each(function(i,e) {
@@ -153,16 +190,11 @@ class DiceFavorites {
 	}
 
 	retrieve() {
-		let storage = null;
-		
-		if (teal.favorites.storageAvailable('localStorage')) storage = localStorage;
-		if (storage == null && teal.favorites.storageAvailable('sessionStorage')){
-			console.log('Local Storage is not available');
-			storage = sessionStorage;
-		} 
-		if (storage == null) {
-			console.log('Local Storage and Session Storage are not available');
-		}
+
+		this.retrieveSettings();
+
+		let storage = this.getStorage();
+		if (storage == null) return;
 
 		let savedata = JSON.parse(storage.getItem('DiceFavorites.favorites'));
 

@@ -50,6 +50,10 @@
                         <div class="smalllabel">Source code available at <a href="https://github.com/MajorVictory/3DDiceRoller">github.com</a></div>
                         <div class="smalllabel">Created using <a href="http://threejs.org">three.js</a> and <a href="http://cannonjs.org">cannon.js</a></div>
                         <div class="smalllabel">Original source code and idea from<br><a href="http://www.teall.info/2014/07/multiplayer-3d-dice-roller.html">Tealyatina's Dice roller</a></div>
+                        <div class="smalllabel"><span style="font-family: 'SWRPG-Symbol-Regular';">Zatsfxyz</span> Star Wars™ RPG font from <a href="http://thealexandrian.net/wordpress/37660/roleplaying-games/star-wars-force-and-destiny-system-cheat-sheet">The Alexandrian</a></div>
+                        <div class="smalllabel"><span style="font-family: 'Armada-Symbol-Regular';">EFG</span> Star Wars™ Armada font from <a href="https://boardgamegeek.com/filepage/116568/armada-icon-fonts">err404</a></div>
+                        <div class="smalllabel"><span style="font-family: 'XWing-Symbol-Regular';">cdfe</span> Star Wars™ X-Wing font from <a href="https://github.com/geordanr/xwing-miniatures-font">geordanr</a></div>
+                        <div class="smalllabel"><span style="font-family: 'Legion-Symbol-Regular';">hcosd</span> Star Wars™ Legion font from <a href="https://github.com/lyerelian/Legion-font">lyerelian</a></div>
                     </fieldset>
                 </div>
             </div>
@@ -77,7 +81,7 @@
         <div id="canvas"></div>
         <div id="info_div" style="display: none">
             <div class="center_field">
-                <span id="label"></span>
+                <div id="label"></div>
             </div>
         </div>
         <div class="info-field">
@@ -94,16 +98,16 @@
         <legend>Settings</legend>
         <div id="control_panel_hide" class="control_label" title="Hide Settings">⚙️</div>
         <div class="connection_message control_label" style="color:orange">Loading Textures...</div>
-        <div id="colorname" class="control_label">Dice Theme: </div>
+        <label for="system" title="Select which type of dice to display">Dice Set:</label>
+        <select id="system" name="system">
+        </select>
+        <label id="colorname" class="control_label" for="color">Dice Theme: </label>
         <select id="color" name="color">
         </select>
         <select id="texture" name="texture">
         </select>
-        <br/>
-        <br/>
+        <label for="checkbox_allowdiceoverride" title="Allow dice to override your color settings"><input type="checkbox" value='' id="checkbox_allowdiceoverride"> Allow Dice Override</label>
         <button id="toggle_selector" title="Show/Hide Throw Buttons">Toggle Selector</button>
-        <br/>
-        <br/>
         <!-- <button id="reconnect">Reconnect</button>-->
         <button id="logout" title="Leave Room and Refresh">Logout</button>
     </fieldset>
@@ -126,10 +130,11 @@
 
     <script type="text/javascript" src="https://code.jquery.com/jquery-3.5.0.min.js"></script>
     <script type="text/javascript" src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
+    <script type="text/javascript" src="./includes/DiceFavorites.js"></script>
+    <script type="text/javascript" src="./includes/DiceFactory.js"></script>
     <script type="text/javascript" src="./includes/teal.js"></script>
     <script type="text/javascript" src="./includes/teal.chat.js"></script>
     <script type="text/javascript" src="./includes/colorsets.js"></script>
-    <script type="text/javascript" src="./includes/DiceFavorites.js"></script>
     <script type="text/javascript" src="./includes/dice.js"></script>
     <script type="text/javascript" src="./includes/login.js"></script>
     <script type="text/javascript" defer="defer">
@@ -140,18 +145,13 @@
 
         function receiveMessage(event) {
         	console.log(event);
-            if (event.origin !== "https://www.improved-initiative.com" &&
-            	event.origin !== "https://files.majorsplace.com" &&
-            	event.origin !== "https://rand.majorsplace.com" &&
-            	event.origin !== "https://dnd.majorsplace.com") return;
+            //if (event.origin !== "https://www.improved-initiative.com" &&
+            //	event.origin !== "https://files.majorsplace.com" &&
+            //	event.origin !== "https://rand.majorsplace.com" &&
+            //	event.origin !== "https://dnd.majorsplace.com") return;
 
-            parent_notation = $t.id('parent_notation');
-            parent_roll = $t.id('parent_roll');
-
-            parent_notation.value = event.data;
-            parent_roll.value = "1";
-            $t.raise(parent_notation, 'change');
-            $t.raise(parent_roll, 'change');
+            $('#set').val(event.data);
+            $t.raise_event($t.id('throw'), 'mouseup');
         }
     </script>
 
