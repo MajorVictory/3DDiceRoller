@@ -165,16 +165,16 @@ class DiceFactory {
         this.register(diceobj);
 
 		diceobj = new DicePreset('d10');
-		diceobj.setLabels(['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']);
-		diceobj.setValues(1,8);
+		diceobj.setLabels(['1', '2', '3', '4', '5', '6', '7', '8', '9', '0']);
+		diceobj.setValues(1,10);
         diceobj.mass = 350;
         diceobj.inertia = 9;
 		diceobj.scale = 0.9;
         this.register(diceobj);
 
 		diceobj = new DicePreset('d100', 'd10');
-		diceobj.setLabels(['00', '10', '20', '30', '40', '50', '60', '70', '80', '90']);
-		diceobj.setValues(0, 90, 10);
+		diceobj.setLabels(['10', '20', '30', '40', '50', '60', '70', '80', '90', '00']);
+		diceobj.setValues(10, 100, 10);
         diceobj.mass = 350;
         diceobj.inertia = 9;
 		diceobj.scale = 0.9;
@@ -422,12 +422,9 @@ class DiceFactory {
         let text = labels[index];
 
         // an attempt at materials caching
-        let cachestring = diceobj.type + text + texture.name + forecolor + outlinecolor + backcolor;
+        let cachestring = diceobj.type + text + index + texture.name + forecolor + outlinecolor + backcolor;
         if (diceobj.shape == 'd4') {
             cachestring = diceobj.type + text.join() + texture.name + forecolor + outlinecolor + backcolor;
-        }
-        if (diceobj.shape == 'd8') {
-            cachestring = diceobj.type + text + index + texture.name + forecolor + outlinecolor + backcolor;
         }
         if (this.materials_cache[cachestring] != null) {
             this.cache_hits++;
@@ -884,7 +881,7 @@ class DiceNotation {
 
         let no = notationdata.split('@');// 0: dice notations, 1: forced results
         let rollregex = new RegExp(/(?:(\+|\-|\*|\/|){0,1})(\d+|)([a-z]{1}(?:[a-z]{1,4}|\d+)|)(?:([a-z]{1,4})(\d*)|)/, 'i');
-        let resultsregex = new RegExp(/(\b)*(\d+)(\b)*/, 'gi'); // forced results: '1, 2, 3' or '1 2 3'
+        let resultsregex = new RegExp(/(\b)*(\-\d+|\d+)(\b)*/, 'gi'); // forced results: '1, 2, 3' or '1 2 3'
         let res;
 
         let runs = 0;

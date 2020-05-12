@@ -399,13 +399,9 @@
         if (dicemesh.dice_type == 'd4') return {value: matindex, label: '', mesh: dicemesh};
         if (dicemesh.dice_type == 'd10' || dicemesh.dice_type == 'd100') matindex += 1;
 
-
-
-
         let value = diceobj.values[((matindex-1) % diceobj.values.length)];
         let label = diceobj.labels[(((matindex-1) % (diceobj.labels.length-2))+2)];
-        if (dicemesh.dice_type == 'd10' && value == 0) value = 10;
-        if (dicemesh.dice_type == 'd100' && value == 0) value = 100;
+
         return {value: value, label: label, mesh: dicemesh};
     }
 
@@ -422,27 +418,30 @@
 
             let dicemesh = dices[i];
 
-
             const diceobj = $t.DiceFactory.get(dicemesh.dice_type);
             if(diceobj == null) continue;
 
             let value = get_dice_value(dicemesh);
 
             // check for d100+d10 pairs, correct the values if needed
-            if (dicemesh.dice_type == 'd100') {
-                d100list.push(i);
-            }
             if (dicemesh.dice_type == 'd10' && d100list.length > 0) {
 
                 let lastd100 = d100list.pop();
+
+                if (results.values[lastd100] == 100 && value.value != 10) {
+                    results.values[lastd100] = 0;
+                }
                 if (value.value == 10) {
                     value.value = 0;
-                } else if (values[lastd100].value == 100 && value.value != 10) {
-                    values[lastd100].value = 0;
                 }
             }
 
-            results.values.push(value.value);
+            let newindex = results.values.push(value.value);
+
+            if (dicemesh.dice_type == 'd100') {
+                d100list.push((newindex-1));
+            }
+
             results.labels.push(value.label);
             results.dice.push(dicemesh);
         }
@@ -523,35 +522,18 @@
             return;
         }
 
+
         const diceobj = $t.DiceFactory.get(dice.dice_type);
         let values = diceobj.values;
-        let largestvalue = diceobj.values[diceobj.values.length-1];
 
-        if (dice.dice_type == 'd10' && value == 10) value = 0;
-        if (dice.dice_type == 'd100' && value == 100) value = 0;
-
-        let modvalue = (value % values.length);
-        let modresult = (result % values.length);
+        value = parseInt(value);
         
-        if (dice.dice_type == 'd100') {
+        if (dice.dice_type == 'd10' && value == 0) value = 10;
+        if (dice.dice_type == 'd100' && value == 0) value = 100;
+        if (dice.dice_type == 'd100' && (value > 0 && value < 10)) value *= 10;
 
-            if (modvalue > 0 && modvalue < 10) {
-                modvalue *= 10; 
-            } else {
-                modvalue = ((value/10) % values.length) * 10;
-            }
-
-            modresult = ((result/10) % values.length) * 10;
-
-        }
-
-        if (dice.dice_type != 'd100' && dice.dice_type != 'd10') {
-            modvalue = (modvalue == 0) ? largestvalue : modvalue;
-            modresult = (modresult == 0) ? largestvalue : modresult;
-        }
-
-        let valueindex = values.indexOf(modvalue);
-        let resultindex = values.indexOf(modresult);
+        let valueindex = values.indexOf(value);
+        let resultindex = values.indexOf(result);
 
         if (valueindex < 0 || resultindex < 0) return;
         if (valueindex == resultindex) return;
