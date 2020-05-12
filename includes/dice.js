@@ -710,9 +710,9 @@
 
         let dicelist = alldice ? Object.keys($t.DiceFactory.dice) : that.selector_dice;
         this.camera.position.z = dicelist.length > 9 ? this.cameraheight_selector_all : this.cameraheight_selector;
-        let posxstart = dicelist.length > 9 ? -3 : (dicelist.length < 3 ? -0.5 : -1);
+        let posxstart = dicelist.length > 9 ? -4 : (dicelist.length < 3 ? -0.5 : -1);
         let posystart = dicelist.length > 9 ? 1.5 : (dicelist.length < 4 ? 0 : 1);
-        let poswrap = dicelist.length > 9 ? 3 : (dicelist.length < 4 ? 2 : 1);
+        let poswrap = dicelist.length > 9 ? 4 : (dicelist.length < 4 ? 2 : 1);
 
         for (var i = 0, posx = posxstart, posy = posystart; i < dicelist.length; ++i, ++posx) {
 

@@ -107,6 +107,7 @@ class DiceFactory {
             'swrpg': {id: 'swrpg', name: 'Star Wars™ RPG', dice:[]},
             'swarmada': {id: 'swarmada', name: 'Star Wars™ Armada', dice:[]},
             'xwing': {id: 'xwing', name: 'Star Wars™ X-Wing', dice:[]},
+            'legion': {id: 'legion', name: 'Star Wars™ Legion', dice:[]},
             'all': {id: 'alldice', name: 'ALL THE DICE', dice:[]},
         };
 
@@ -341,6 +342,65 @@ class DiceFactory {
         diceobj.colorset = 'xwing_green';
         diceobj.display = 'labels';
         diceobj.system = 'xwing';
+        this.register(diceobj);
+
+
+        // star wars legion
+        // Attack Red
+        diceobj = new DicePreset('swlar', 'd8');
+        diceobj.setLabels(['h','h','h','h','h','c','o','']);
+        diceobj.setValues(1,8);
+        diceobj.font = 'Legion-Symbol-Regular';
+        diceobj.color = '#FF0000';
+        diceobj.colorset = 'swl_atkred';
+        diceobj.display = 'labels';
+        diceobj.system = 'legion';
+        this.register(diceobj);
+
+        // Attack Black
+        diceobj = new DicePreset('swlab', 'd8');
+        diceobj.setLabels(['h','h','h','','','c','o','']);
+        diceobj.setValues(1,8);
+        diceobj.font = 'Legion-Symbol-Regular';
+        diceobj.color = '#111111';
+        diceobj.colorset = 'swl_atkblack';
+        diceobj.display = 'labels';
+        diceobj.system = 'legion';
+        this.register(diceobj);
+
+        // Attack White
+        diceobj = new DicePreset('swlaw', 'd8');
+        diceobj.setLabels(['h','','','','','c','o','']);
+        diceobj.setValues(1,8);
+        diceobj.font = 'Legion-Symbol-Regular';
+        diceobj.color = '#FFFFFF';
+        diceobj.colorset = 'swl_atkwhite';
+        diceobj.display = 'labels';
+        diceobj.system = 'legion';
+        this.register(diceobj);
+
+        // Defense Red
+        diceobj = new DicePreset('swldr', 'd6');
+        diceobj.setLabels(['s','s','s','d','','']);
+        diceobj.setValues(1,6);
+        diceobj.scale = 0.9;
+        diceobj.font = 'Legion-Symbol-Regular';
+        diceobj.color = '#FF0000';
+        diceobj.colorset = 'swl_defred';
+        diceobj.display = 'labels';
+        diceobj.system = 'legion';
+        this.register(diceobj);
+
+        // Defense White
+        diceobj = new DicePreset('swldw', 'd6');
+        diceobj.setLabels(['s','','','d','','']);
+        diceobj.setValues(1,6);
+        diceobj.scale = 0.9;
+        diceobj.font = 'Legion-Symbol-Regular';
+        diceobj.color = '#FFFFFF';
+        diceobj.colorset = 'swl_defwhite';
+        diceobj.display = 'labels';
+        diceobj.system = 'legion';
         this.register(diceobj);
 
 	}

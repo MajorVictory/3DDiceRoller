@@ -420,7 +420,7 @@ var COLORSETS = {
 
 
     'swrpg_abi': {
-        name: 'Ability',
+        name: 'Star Wars RPG - Ability',
         category: 'Star Wars™ RPG',
         foreground: '#000000',
         background: ['#3D9238','#52B848','#5EAC56','#9ECB9A'],
@@ -429,7 +429,7 @@ var COLORSETS = {
         description: 'Star Wars™ RPG Ability Dice'
     },
     'swrpg_pro': {
-        name: 'Proficiency',
+        name: 'Star Wars RPG - Proficiency',
         category: 'Star Wars™ RPG',
         foreground: '#000000',
         background: ['#CABB1C','#F9E33B','#FFE900','#F0E49D'],
@@ -438,7 +438,7 @@ var COLORSETS = {
         description: 'Star Wars™ RPG Proficiency Dice'
     },
     'swrpg_dif': {
-        name: 'Difficulty',
+        name: 'Star Wars RPG - Difficulty',
         category: 'Star Wars™ RPG',
         foreground: '#ffffff',
         background: ['#39165F','#664B84','#50247E','#745F88'],
@@ -447,7 +447,7 @@ var COLORSETS = {
         description: 'Star Wars™ RPG Difficulty Dice'
     },
     'swrpg_cha': {
-        name: 'Challenge',
+        name: 'Star Wars RPG - Challenge',
         category: 'Star Wars™ RPG',
         foreground: '#ffffff',
         background: ['#A91F32','#EB4254','#E51836','#BA3645'],
@@ -456,7 +456,7 @@ var COLORSETS = {
         description: 'Star Wars™ RPG Challenge Dice'
     },
     'swrpg_boo': {
-        name: 'Boost',
+        name: 'Star Wars RPG - Boost',
         category: 'Star Wars™ RPG',
         foreground: '#000000',
         background: ['#4B9DC6','#689FC4','#85CFF2','#8FC0D8'],
@@ -465,7 +465,7 @@ var COLORSETS = {
         description: 'Star Wars™ RPG Boost Dice'
     },
     'swrpg_set': {
-        name: 'Setback',
+        name: 'Star Wars RPG - Setback',
         category: 'Star Wars™ RPG',
         foreground: '#ffffff',
         background: ['#252223','#241F21','#282828','#111111'],
@@ -474,7 +474,7 @@ var COLORSETS = {
         description: 'Star Wars™ RPG Setback Dice'
     },
     'swrpg_for': {
-        name: 'Force',
+        name: 'Star Wars RPG - Force',
         category: 'Star Wars™ RPG',
         foreground: '#000000',
         background: ['#F3F3F3','#D3D3D3','#BABABA','#FFFFFF'],
@@ -485,7 +485,7 @@ var COLORSETS = {
 
 
     'swa_red': {
-        name: 'Attack - Red',
+        name: 'Armada Attack - Red',
         category: 'Star Wars™ Armada',
         foreground: '#ffffff',
         background: ['#440D19','#8A1425','#C72336','#C04551'],
@@ -494,7 +494,7 @@ var COLORSETS = {
         description: 'Star Wars™ Armada Red Attack Dice'
     },
     'swa_blue': {
-        name: 'Attack - Blue',
+        name: 'Armada Attack - Blue',
         category: 'Star Wars™ Armada',
         foreground: '#ffffff',
         background: ['#212642','#28286E','#2B348C','#3D4BB5','#5D64AB'],
@@ -503,7 +503,7 @@ var COLORSETS = {
         description: 'Star Wars™ Armada Blue Attack Dice'
     },
     'swa_black': {
-        name: 'Attack - Black',
+        name: 'Armada Attack - Black',
         category: 'Star Wars™ Armada',
         foreground: '#ffffff',
         background: ['#252223','#241F21','#282828','#111111'],
@@ -530,7 +530,55 @@ var COLORSETS = {
         outline: 'none',
         texture: 'stars',
         description: 'Star Wars™ X-Wing Green Attack Dice'
+    },
+
+
+    'swl_atkred': {
+        name: 'Legion Attack - Red',
+        category: 'Star Wars™ Legion',
+        foreground: '#ffffff',
+        background: ['#440D19','#8A1425','#C72336','#C04551'],
+        outline: 'none',
+        texture: 'fire',
+        description: 'Star Wars™ Legion Red Attack Dice'
+    },
+    'swl_atkblack': {
+        name: 'Legion Attack - Black',
+        category: 'Star Wars™ Legion',
+        foreground: '#ffffff',
+        background: ['#252223','#241F21','#282828','#111111'],
+        outline: 'none',
+        texture: 'fire',
+        description: 'Star Wars™ Legion Black Attack Dice'
+    },
+    'swl_atkwhite': {
+        name: 'Legion Attack - White',
+        category: 'Star Wars™ Legion',
+        foreground: '#000000',
+        background: ['#ffffff','#DFF4FA','#BCBCBC','#F1EDE2','#F2ECE0'],
+        outline: 'none',
+        texture: 'fire',
+        description: 'Star Wars™ Legion White Attack Dice'
+    },
+    'swl_defred': {
+        name: 'Legion Defense - Red',
+        category: 'Star Wars™ Legion',
+        foreground: '#ffffff',
+        background: ['#440D19','#8A1425','#C72336','#C04551'],
+        outline: 'none',
+        texture: 'fire',
+        description: 'Star Wars™ Legion Red Defense Dice'
+    },
+    'swl_defwhite': {
+        name: 'Legion Defense - White',
+        category: 'Star Wars™ Legion',
+        foreground: '#000000',
+        background: ['#ffffff','#DFF4FA','#BCBCBC','#F1EDE2','#F2ECE0'],
+        outline: 'none',
+        texture: 'fire',
+        description: 'Star Wars™ Legion White Defense Dice'
     }
+
 };
 
 const COLORCATEGORIES = [
@@ -541,6 +589,7 @@ const COLORCATEGORIES = [
     'Star Wars™ RPG',
     'Star Wars™ Armada',
     'Star Wars™ X-Wing',
+    'Star Wars™ Legion',
 ];
 
 function randomColor() {

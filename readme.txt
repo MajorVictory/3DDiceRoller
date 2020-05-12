@@ -19,5 +19,7 @@ https://boardgamegeek.com/filepage/116568/armada-icon-fonts
 Star Wars™ X-Wing font from geordanr
 https://github.com/geordanr/xwing-miniatures-font
 
-autodice.php contins an example of using the JavaScript PostMessage API from another tab to trigger dice throws.
+Star Wars™ Legion font from lyerelian
+https://github.com/lyerelian/Legion-font
 
+autodice.php contins an example of using the JavaScript PostMessage API from another tab to trigger dice throws.

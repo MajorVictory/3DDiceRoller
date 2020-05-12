@@ -643,6 +643,7 @@ function login_initialize(container) {
                 let swrpgdice = [];
                 let swarmadadice = [];
                 let xwingdice = [];
+                let legiondice = [];
 
                 // split up results between nubmer and symbol dice
                 for(let i = 0; i < result.dice.length; i++){
@@ -657,6 +658,8 @@ function login_initialize(container) {
                         swarmadadice.push(result.labels[i]);
                     } else if (diceobj.system == 'xwing') {
                         xwingdice.push(result.labels[i]);
+                    } else if (diceobj.system == 'legion') {
+                        legiondice.push(result.labels[i]);
                     } else if (diceobj.system == 'd20') {
                         numberdiceoperators.push(operator);
                         numberdicevalues.push(result.values[i]);
@@ -822,6 +825,77 @@ function login_initialize(container) {
                     if (critical > 0) totals += 'c'.repeat(Math.max(critical,0));
                     if (focus > 0) totals += 'f'.repeat(Math.max(focus,0));
                     if (evade > 0) totals += 'e'.repeat(Math.max(evade,0));
+
+                    totals = totals.trim() + '</span>';
+
+                }
+
+                // legion dice, custom logic
+                if(legiondice.length > 0) {
+
+                    let atk_hit = 0;
+                    let atk_crit = 0;
+                    let atk_surge = 0;
+
+                    let def_block = 0;
+                    let def_surge = 0;
+
+                    rolls += '[<span style="font-family: \'Legion-Symbol-Regular\'">';
+
+                    for(let i = 0; i < legiondice.length; i++){
+
+                        let currentlabel = legiondice[i];
+
+                        atk_hit += (currentlabel.split('h').length - 1);
+                        atk_crit += (currentlabel.split('c').length - 1);
+                        atk_surge += (currentlabel.split('o').length - 1);
+
+                        def_block += (currentlabel.split('s').length - 1);
+                        def_surge += (currentlabel.split('d').length - 1);
+                    }
+
+                    rolls += 'h'.repeat(atk_hit);
+                    rolls += 'c'.repeat(atk_crit);
+                    rolls += 'o'.repeat(atk_surge);
+
+                    rolls += 's'.repeat(def_block);
+                    rolls += 'd'.repeat(def_surge);
+
+                    rolls = rolls.trim();
+
+                    rolls += '</span>]';
+
+                    totals += '<span style="font-family: \'Legion-Symbol-Regular\'">';
+
+                    /*
+                    if (hit == evade) {
+                        hit = 0;
+                        evade = 0;
+                    } else if (hit > evade)  {
+                        hit -= evade;
+                        evade = 0;
+                    } else if (evade > hit) {
+                        evade -= hit;
+                        hit = 0;
+                    }
+
+                    if (critical == evade) {
+                        evade = 0;
+                        critical = 0;
+                    } else if (critical > evade) {
+                        critical -= evade;
+                        evade = 0;
+                    } else if (evade > critical) {
+                        evade -= critical;
+                        critical = 0;
+                    }
+                    */
+                    
+                    if (atk_hit > 0) totals += 'h'.repeat(Math.max(atk_hit,0));
+                    if (atk_crit > 0) totals += 'c'.repeat(Math.max(atk_crit,0));
+                    if (atk_surge > 0) totals += 'o'.repeat(Math.max(atk_surge,0));
+                    if (def_block > 0) totals += 's'.repeat(Math.max(def_block,0));
+                    if (def_surge > 0) totals += 'd'.repeat(Math.max(def_surge,0));
 
                     totals = totals.trim() + '</span>';
 
