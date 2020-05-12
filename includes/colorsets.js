@@ -419,68 +419,117 @@ var COLORSETS = {
     },
 
 
-    'eote_abi': {
+    'swrpg_abi': {
         name: 'Ability',
-        category: 'Star Wars EotE',
+        category: 'Star Wars™ RPG',
         foreground: '#000000',
         background: ['#3D9238','#52B848','#5EAC56','#9ECB9A'],
         outline: 'none',
-        texture: 'clouds',
-        description: 'Star Wars Ability Dice'
+        texture: 'cloudy',
+        description: 'Star Wars™ RPG Ability Dice'
     },
-    'eote_pro': {
+    'swrpg_pro': {
         name: 'Proficiency',
-        category: 'Star Wars EotE',
+        category: 'Star Wars™ RPG',
         foreground: '#000000',
         background: ['#CABB1C','#F9E33B','#FFE900','#F0E49D'],
         outline: 'none',
         texture: 'paper',
-        description: 'Star Wars Proficiency Dice'
+        description: 'Star Wars™ RPG Proficiency Dice'
     },
-    'eote_dif': {
+    'swrpg_dif': {
         name: 'Difficulty',
-        category: 'Star Wars EotE',
+        category: 'Star Wars™ RPG',
         foreground: '#ffffff',
         background: ['#39165F','#664B84','#50247E','#745F88'],
         outline: 'none',
         texture: 'speckles',
-        description: 'Star Wars Difficulty Dice'
+        description: 'Star Wars™ RPG Difficulty Dice'
     },
-    'eote_cha': {
+    'swrpg_cha': {
         name: 'Challenge',
-        category: 'Star Wars EotE',
+        category: 'Star Wars™ RPG',
         foreground: '#ffffff',
         background: ['#A91F32','#EB4254','#E51836','#BA3645'],
         outline: 'none',
         texture: 'stainedglass',
-        description: 'Star Wars Challenge Dice'
+        description: 'Star Wars™ RPG Challenge Dice'
     },
-    'eote_boo': {
+    'swrpg_boo': {
         name: 'Boost',
-        category: 'Star Wars EotE',
+        category: 'Star Wars™ RPG',
         foreground: '#000000',
         background: ['#4B9DC6','#689FC4','#85CFF2','#8FC0D8'],
         outline: 'none',
         texture: 'stars',
-        description: 'Star Wars Boost Dice'
+        description: 'Star Wars™ RPG Boost Dice'
     },
-    'eote_set': {
+    'swrpg_set': {
         name: 'Setback',
-        category: 'Star Wars EotE',
+        category: 'Star Wars™ RPG',
         foreground: '#ffffff',
         background: ['#252223','#241F21','#282828','#111111'],
         outline: 'none',
         texture: 'glitter',
-        description: 'Star Wars Setback Dice'
+        description: 'Star Wars™ RPG Setback Dice'
     },
-    'eote_for': {
+    'swrpg_for': {
         name: 'Force',
-        category: 'Star Wars EotE',
+        category: 'Star Wars™ RPG',
         foreground: '#000000',
         background: ['#F3F3F3','#D3D3D3','#BABABA','#FFFFFF'],
         outline: 'none',
         texture: 'stars',
-        description: 'Star Wars Force Dice'
+        description: 'Star Wars™ RPG Force Dice'
+    },
+
+
+    'swa_red': {
+        name: 'Attack - Red',
+        category: 'Star Wars™ Armada',
+        foreground: '#ffffff',
+        background: ['#440D19','#8A1425','#C72336','#C04551'],
+        outline: 'none',
+        texture: 'stainedglass',
+        description: 'Star Wars™ Armada Red Attack Dice'
+    },
+    'swa_blue': {
+        name: 'Attack - Blue',
+        category: 'Star Wars™ Armada',
+        foreground: '#ffffff',
+        background: ['#212642','#28286E','#2B348C','#3D4BB5','#5D64AB'],
+        outline: 'none',
+        texture: 'stainedglass',
+        description: 'Star Wars™ Armada Blue Attack Dice'
+    },
+    'swa_black': {
+        name: 'Attack - Black',
+        category: 'Star Wars™ Armada',
+        foreground: '#ffffff',
+        background: ['#252223','#241F21','#282828','#111111'],
+        outline: 'none',
+        texture: 'stainedglass',
+        description: 'Star Wars™ Armada Black Attack Dice'
+    },
+
+
+    'xwing_red': {
+        name: 'X-Wing Attack - Red',
+        category: 'Star Wars™ X-Wing',
+        foreground: '#ffffff',
+        background: ['#440D19','#8A1425','#C72336','#C04551'],
+        outline: 'none',
+        texture: 'stars',
+        description: 'Star Wars™ X-Wing Red Attack Dice'
+    },
+    'xwing_green': {
+        name: 'X-Wing Attack - Green',
+        category: 'Star Wars™ X-Wing',
+        foreground: '#ffffff',
+        background: ['#3D9238','#52B848','#5EAC56','#9ECB9A'],
+        outline: 'none',
+        texture: 'stars',
+        description: 'Star Wars™ X-Wing Green Attack Dice'
     }
 };
 
@@ -489,7 +538,9 @@ const COLORCATEGORIES = [
     'Damage Types',
     'Colors',
     'Other',
-    'Star Wars EotE',
+    'Star Wars™ RPG',
+    'Star Wars™ Armada',
+    'Star Wars™ X-Wing',
 ];
 
 function randomColor() {
@@ -547,13 +598,13 @@ function applyColorSet(colorset, texture = null, update = true) {
 
     if (colorset && colorset.length > 0) {
 
-        $t.dice.DiceFactory.applyColorSet(colordata);
+        $t.DiceFactory.applyColorSet(colordata);
 
         urlargs.push('colorset='+colorset);
 
 	    if (update) {
 		    $t.selectByValue($t.id('color'), colorset);
-            $t.DiceFavorites.colorset = colorset;
+            $t.DiceFavorites.settings['colorset'] = colorset;
 	    }
     }
 
@@ -564,25 +615,25 @@ function applyColorSet(colorset, texture = null, update = true) {
         let tex = Array.isArray(texturedata) ? '' : texturedata;
 
         if (texturedata.name) {
-            $t.dice.DiceFactory.applyTexture(texturedata);
+            $t.DiceFactory.applyTexture(texturedata);
         }
 
         urlargs.push('texture='+tex.name);
 
         if (update) {
             $t.selectByValue($t.id('texture'), tex.name);
-            $t.DiceFavorites.texture = tex.name;
+            $t.DiceFavorites.settings['texture'] = tex.name;
         }
     } else {
         if (update) {
             $t.selectByValue($t.id('texture'), '');
-            $t.DiceFavorites.texture = '';
+            $t.DiceFavorites.settings['texture'] = '';
         }
     }
 
     if (update && urlargs.length > 0) {
         $t.empty($t.id('colorname'));
         $t.id('colorname').innerHTML = 'Dice Theme: '+colordata.description+' - <a href="?'+urlargs.join('&')+'">🔗</a>';
-        $t.DiceFavorites.store();
+        $t.DiceFavorites.storeSettings();
     }
 }

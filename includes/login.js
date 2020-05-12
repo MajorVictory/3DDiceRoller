@@ -45,10 +45,17 @@ function preload_and_init() {
         // init colorset textures
         initColorSets();
 
+        var systemselect = $t.id('system');
         var colorselect = $t.id('color');
         var textureselect = $t.id('texture');
 
-        $t.DiceFavorites = new DiceFavorites();
+        const systemprops = Object.entries($t.DiceFactory.systems);
+        for (const [key, value] of systemprops) {
+
+            let attributes = {value: key};
+            if(key == $t.DiceFavorites.settings['system']) attributes['selected'] = 'selected';
+            $t.element('option', attributes, systemselect, value.name);
+        }
 
         for(let i = 0, l = COLORCATEGORIES.length; i < l; i++){
 
@@ -58,19 +65,24 @@ function preload_and_init() {
             for (const [key, value] of itemprops) {
 
                 if (value.category == COLORCATEGORIES[i]) {
-                    $t.element('option', {value: key}, category, value.name);
+                    let attributes = {value: key};
+                    if(key == $t.DiceFavorites.settings['colorset']) attributes['selected'] = 'selected';
+                    $t.element('option', attributes, category, value.name);
                 }
             }
         }
 
         const itemprops = Object.entries(TEXTURELIST);
         for (const [key, value] of itemprops) {
-            $t.element('option', {value: key}, textureselect, value.name);
+
+            let attributes = {value: key};
+            if(key == $t.DiceFavorites.settings['texture']) attributes['selected'] = 'selected';
+            $t.element('option', attributes, textureselect, value.name);
         }
 
         var params = $t.get_url_params();
-        params.colorset = $t.DiceFavorites.colorset || params.colorset;
-        params.texture = $t.DiceFavorites.texture || params.texture;
+        params.colorset = $t.DiceFavorites.settings['colorset'] || params.colorset;
+        params.texture = $t.DiceFavorites.settings['texture'] || params.texture;
 
         if (params.colorset || params.texture) {
             applyColorSet((params.colorset || 'random'), (params.texture || null));
@@ -99,6 +111,7 @@ function login_initialize(container) {
     var label = $t.id('label');
     var set = $t.id('set');
     var selector_div = $t.id('selector_div');
+    var system_select = $t.id('system');
     var color_select = $t.id('color');
     var texture_select = $t.id('texture');
     var socket_button = $t.id('reconnect');
@@ -126,6 +139,27 @@ function login_initialize(container) {
     $t.bind(socket_button, ['mousedown', 'mouseup'], function(ev) { ev.stopPropagation(); });
     $t.bind(socket_button, 'focus', function(ev) { $t.set(container, { class: '' }); });
     $t.bind(socket_button, 'blur', function(ev) { $t.set(container, { class: 'noselect' }); });
+
+    function on_system_select_change(ev) {
+
+        let systemid = system_select.value;
+        let alldice = (systemid == 'all');
+
+        if (!alldice) {
+            $t.dice.selector_dice = $t.DiceFactory.systems[systemid].dice;
+        } else {
+            $t.dice.selector_dice = Object.keys($t.DiceFactory.dice);
+        }
+
+        $t.DiceFavorites.settings['system'] = systemid;
+        $t.DiceFavorites.storeSettings();
+
+        if($t.show_selector) $t.show_selector(alldice);
+    }
+    $t.bind(system_select, ['keyup','change','touchend'], on_system_select_change);
+    $t.bind(system_select, 'focus', function(ev) { $t.set(container, { class: '' }); });
+    $t.bind(system_select, 'blur', function(ev) { $t.set(container, { class: 'noselect' }); });
+    on_system_select_change();
 
     function on_color_select_change(ev) {
         $t.selectByValue(texture_select, '');
@@ -223,10 +257,11 @@ function login_initialize(container) {
         action_pool['login']({user: 'Yourself'});
     });
 
-    $('#checkbox_allowdiceoverride').prop('checked', $t.DiceFavorites.allowDiceOverride);
+    $('#checkbox_allowdiceoverride').prop('checked', $t.DiceFavorites.settings['allowDiceOverride'] == '1');
     $('#checkbox_allowdiceoverride').change(function(event) {
-        $t.DiceFavorites.allowDiceOverride = $('#checkbox_allowdiceoverride').prop('checked');
-        $t.DiceFavorites.store();
+        $t.DiceFavorites.settings['allowDiceOverride'] = $('#checkbox_allowdiceoverride').prop('checked') ? '1' : '0';
+        $t.DiceFavorites.storeSettings();
+        if($t.show_selector) $t.show_selector();
     });
 
     function connect_socket(reopen, callback) {
@@ -311,10 +346,11 @@ function login_initialize(container) {
 
     function make_notation_for_log(notation, result) {
         var res = $t.element('span');
-        $t.inner($t.dice.stringify_notation(notation) + (notation.result.length ? ' (preset result)' : ''),
-                $t.element('span', { 'class': 'chat-notation' }, res));
-        $t.inner(result ? ' → ' + result : ' ...',
-                $t.element('span', { 'class': 'chat-notation-result' }, res));
+
+        res.innerHTML = (notation.result.length ? ' (preset result)' : '');
+        res.innerHTML += '<span class="chat-notation">'+$t.dice.stringify_notation(notation) + (notation.result.length ? ' (preset result)' : '')+'</span>';
+        res.innerHTML += '<span class="chat-notation-result">'+(result ? ' → ' + result : ' ...')+'</span>';
+
         return res;
     }
 
@@ -593,25 +629,36 @@ function login_initialize(container) {
                 console.log('result', result);
 
                 let numberdicevalues = [];
+                let labeldicevalues = [];
                 let swrpgdice = [];
+                let swarmadadice = [];
+                let xwingdice = [];
 
                 // split up results between nubmer and symbol dice
                 for(let i = 0; i < result.dice.length; i++){
 
                     let dicemesh = result.dice[i];
-                    let diceobj =  $t.dice.DiceFactory.get(dicemesh.dice_type);
+                    let diceobj =  $t.DiceFactory.get(dicemesh.dice_type);
 
                     if (diceobj.system == 'swrpg') {
                         swrpgdice.push(result.labels[i]);
+                    } else if (diceobj.system == 'swarmada') {
+                        swarmadadice.push(result.labels[i]);
+                    } else if (diceobj.system == 'xwing') {
+                        xwingdice.push(result.labels[i]);
                     } else if (diceobj.system == 'd20') {
                         numberdicevalues.push(result.values[i]);
+                    } else {
+                        if (diceobj.display == 'labels') {
+                            labeldicevalues.push(result.labels[i]);
+                        } else if (diceobj.display == 'values') {
+                            numberdicevalues.push(result.values[i]);
+                        }
                     }
                 }
 
-                console.log('numberdicevalues', numberdicevalues);
-                console.log('swrpgdice', swrpgdice);
-
-                let output = '';
+                let rolls = '';
+                let totals = '';
 
                 // swrpg dice, custom logic
                 if(swrpgdice.length > 0) {
@@ -625,7 +672,7 @@ function login_initialize(container) {
                     let dark = 0;
                     let light = 0;
 
-                    output += '[<span style="font-family: \'EOTE Symbol\'">';
+                    rolls += '[<span style="font-family: \'SWRPG-Symbol-Regular\'">';
 
                     for(let i = 0; i < swrpgdice.length; i++){
 
@@ -641,8 +688,6 @@ function login_initialize(container) {
                         light += (currentlabel.split('Z').length - 1);
                     }
 
-                    let rolls = '';
-
                     rolls += 's'.repeat(success);
                     rolls += 'f'.repeat(failure);
                     rolls += 'a'.repeat(advantage);
@@ -654,9 +699,9 @@ function login_initialize(container) {
 
                     rolls = rolls.trim();
 
-                    output += rolls+'</span>] = <span style="font-family: \'EOTE Symbol\'">';
+                    rolls += '</span>]';
 
-                    let totals = ''
+                    totals += '<span style="font-family: \'SWRPG-Symbol-Regular\'">';
 
                     if (success > failure) totals += 's'.repeat(success-failure);
                     if (failure > success) totals += 'f'.repeat(failure-success);
@@ -667,36 +712,138 @@ function login_initialize(container) {
                     if (dark > 0) totals += 'z'.repeat(dark);
                     if (light > 0) totals += 'Z'.repeat(light);
 
-                    totals = totals.trim();
-
-                    output += totals+'</span>';
+                    totals = totals.trim() + '</span>';
 
                 }
 
-                // d20 systme dice, just add numbers
+                // swarmada dice, custom logic
+                if(swarmadadice.length > 0) {
+
+                    let hit = 0;
+                    let critical = 0;
+                    let accuracy = 0;
+
+                    rolls += '[<span style="font-family: \'Armada-Symbol-Regular\'">';
+
+                    for(let i = 0; i < swarmadadice.length; i++){
+
+                        let currentlabel = swarmadadice[i];
+
+                        hit += (currentlabel.split('F').length - 1);
+                        critical += (currentlabel.split('E').length - 1);
+                        accuracy += (currentlabel.split('G').length - 1);
+                    }
+
+                    rolls += 'F'.repeat(hit);
+                    rolls += 'E'.repeat(critical);
+                    rolls += 'G'.repeat(accuracy);
+
+                    rolls = rolls.trim();
+
+                    rolls += '</span>]';
+
+                    totals += '<span style="font-family: \'Armada-Symbol-Regular\'">';
+                    
+                    if (hit > 0) totals += 'F'.repeat(hit);
+                    if (critical > 0) totals += 'E'.repeat(critical);
+                    if (accuracy > 0) totals += 'G'.repeat(accuracy);
+
+                    totals = totals.trim() + '</span>';
+
+                }
+
+                // xwing dice, custom logic
+                if(xwingdice.length > 0) {
+
+                    let hit = 0;
+                    let critical = 0;
+                    let focus = 0;
+                    let evade = 0;
+
+                    rolls += '[<span style="font-family: \'XWing-Symbol-Regular\'">';
+
+                    for(let i = 0; i < xwingdice.length; i++){
+
+                        let currentlabel = xwingdice[i];
+
+                        hit += (currentlabel.split('d').length - 1);
+                        critical += (currentlabel.split('c').length - 1);
+                        focus += (currentlabel.split('f').length - 1);
+                        evade += (currentlabel.split('e').length - 1);
+                    }
+
+                    rolls += 'd'.repeat(hit);
+                    rolls += 'c'.repeat(critical);
+                    rolls += 'f'.repeat(focus);
+                    rolls += 'e'.repeat(evade);
+
+                    rolls = rolls.trim();
+
+                    rolls += '</span>]';
+
+                    totals += '<span style="font-family: \'XWing-Symbol-Regular\'">';
+
+                    if (hit == evade) {
+                        hit = 0;
+                        evade = 0;
+                    } else if (hit > evade)  {
+                        hit -= evade;
+                        evade = 0;
+                    } else if (evade > hit) {
+                        evade -= hit;
+                        hit = 0;
+                    }
+
+                    if (critical == evade) {
+                        evade = 0;
+                        critical = 0;
+                    } else if (critical > evade) {
+                        critical -= evade;
+                        evade = 0;
+                    } else if (evade > critical) {
+                        evade -= critical;
+                        critical = 0;
+                    }
+                    
+                    if (hit > 0) totals += 'd'.repeat(Math.max(hit,0));
+                    if (critical > 0) totals += 'c'.repeat(Math.max(critical,0));
+                    if (focus > 0) totals += 'f'.repeat(Math.max(focus,0));
+                    if (evade > 0) totals += 'e'.repeat(Math.max(evade,0));
+
+                    totals = totals.trim() + '</span>';
+
+                }
+
+                // labels only
+                if (labeldicevalues.length > 0) {
+                    rolls += labeldicevalues.join('');
+                    totals += labeldicevalues.join('');
+                }
+
+                // numbers only
                 if (numberdicevalues.length > 0) {
 
-                    output += '['+numberdicevalues.join(',')+']';
+                    rolls += '['+numberdicevalues.join(',')+']';
 
                     let total = numberdicevalues.reduce(function(s, a) { return s + a; });
 
                     if (res.notation.constant != '') {
-                            output += ' ' + res.notation.op + Math.abs(res.notation.constant);
+                            totals += res.notation.op + Math.abs(res.notation.constant);
                         if(res.notation.op == '-') {
-                            output += ' = ' + (total - res.notation.constant);
+                            totals += (total - res.notation.constant);
                         } else if (res.notation.op == '*') {
-                            output += ' = ' + (total * res.notation.constant);
+                            totals += (total * res.notation.constant);
                         } else if (res.notation.op == '/') {
-                            output += ' = ' + (total / res.notation.constant);
+                            totals += (total / res.notation.constant);
                         } else {
-                            output += ' = ' + (total + res.notation.constant);
+                            totals += (total + res.notation.constant);
                         }
                     } else {
-                        output += ' = ' + total;
+                        totals += total;
                     }
                 }
 
-                label.innerHTML = output;
+                label.innerHTML = (rolls+'<h2>'+totals+'</h2>');
 
 
                 info_div.style.display = 'block';
@@ -704,7 +851,7 @@ function login_initialize(container) {
                 deskrolling = false;
                 box.rolling = false;
                 if (log.roll_uuid) {
-                    log.confirm_message(log.roll_uuid, make_notation_for_log(res.notation, output));
+                    log.confirm_message(log.roll_uuid, make_notation_for_log(res.notation, (rolls+' = '+totals)));
                     delete log.roll_uuid;
                 }
             });

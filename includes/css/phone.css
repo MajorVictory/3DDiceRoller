@@ -53,10 +53,6 @@ p {
     margin-bottom: 0px;
 }
 
-.eote {
-    font-family: 'EOTE Symbol' !important;
-}
-
 #svg *, .svg * {
     -moz-user-select: none;
     -webkit-user-select: none;
@@ -80,7 +76,6 @@ p {
 
 .center_field * {
     font-family: Trebuchet MS;
-    padding: 5px 15px;
 }
 
 .center_field button {
@@ -99,7 +94,10 @@ p {
 #label {
     font-size: 18pt;
     word-spacing: 0.5em;
-    padding: 5px 15px;
+}
+
+#label > h2 {
+    margin: 0px auto;
 }
 
 #set {
@@ -168,7 +166,7 @@ p {
     line-height: 1.25em;
 }
 
-#sethelp, #labelhelp, #colorname {
+#sethelp, #labelhelp {
     font-size: .8em;
     background: none;
 }
@@ -336,7 +334,7 @@ legend {
 #info_div {
     width: 100%;
     position: relative;
-    bottom: 2em;
+    bottom: 5em;
     background-color: rgb(30, 44, 77);
     z-index: 10;
     border-top: 2px dashed white;
@@ -352,6 +350,21 @@ legend {
     position: absolute;
     margin: 10px;
     background-color: #1e2c4d;
+}
+
+.control_panel label, .control_panel button, #system {
+    display: block;
+    margin-bottom: 5px;
+}
+
+#system {
+    width: 15em;
+}
+
+#color, #texture {
+    display: inline;
+    margin-right: 5px;
+    margin-bottom: 5px;
 }
 
 #control_panel_hidden {

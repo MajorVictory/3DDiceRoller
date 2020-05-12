@@ -93,54 +93,76 @@ class DiceFactory {
 
 	    this.canvas;
 
+        // fixes texture rotations on specific dice
+        this.rotate = {
+            d8: {even: -7.5, odd: -127.5},
+            d10: {all: -6},
+            d12: {all: 5},
+            d20: {all: -7.5},
+        };
+
+        this.systems = {
+            'd20': {id: 'd20', name: 'D20', dice:[]},
+            'dweird': {id: 'dweird', name: 'D-Weird', dice:[]},
+            'swrpg': {id: 'swrpg', name: 'Star Wars™ RPG', dice:[]},
+            'swarmada': {id: 'swarmada', name: 'Star Wars™ Armada', dice:[]},
+            'xwing': {id: 'xwing', name: 'Star Wars™ X-Wing', dice:[]},
+            'all': {id: 'alldice', name: 'ALL THE DICE', dice:[]},
+        };
+
 		let diceobj = new DicePreset('d1', 'd6');
 		diceobj.setLabels(['1']);
 		diceobj.setValues(1,1);
 		diceobj.scale = 0.9;
-		this.dice[diceobj.type] = diceobj;
+        diceobj.system = 'dweird';
+		this.register(diceobj);
 
 		diceobj = new DicePreset('d2', 'd6');
 		diceobj.setLabels(['1', '2']);
 		diceobj.setValues(1,2);
 		diceobj.scale = 0.9;
-		this.dice[diceobj.type] = diceobj;
+        diceobj.system = 'dweird';
+        this.register(diceobj);
 
 		diceobj = new DicePreset('d3', 'd6');
 		diceobj.setLabels(['1', '2', '3']);
 		diceobj.setValues(1,3);
 		diceobj.scale = 0.9;
-		this.dice[diceobj.type] = diceobj;
+        diceobj.system = 'dweird';
+        this.register(diceobj);
 
 		diceobj = new DicePreset('df', 'd6');
 		diceobj.setLabels(['-', '0', '+']);
 		diceobj.setValues(-1,1);
 		diceobj.scale = 0.9;
-		this.dice[diceobj.type] = diceobj;
+        diceobj.system = 'dweird';
+        this.register(diceobj);
 
 		diceobj = new DicePreset('d4');
 		diceobj.setLabels(['1', '2', '3', '4']);
 		diceobj.setValues(1,4);
         diceobj.inertia = 5;
 		diceobj.scale = 1.2;
-		this.dice[diceobj.type] = diceobj;
+        this.register(diceobj);
 
 		diceobj = new DicePreset('d6');
 		diceobj.setLabels(['1', '2', '3', '4', '5', '6']);
 		diceobj.setValues(1,6);
 		diceobj.scale = 0.9;
-		this.dice[diceobj.type] = diceobj;
+        this.register(diceobj);
 
 		diceobj = new DicePreset('dsex', 'd6');
 		diceobj.setLabels(['🍆', '🍑', '👌', '💦', '🙏', '💥']);
 		diceobj.setValues(1,6);
         diceobj.scale = 0.9;
         diceobj.display = 'labels';
-		this.dice[diceobj.type] = diceobj;
+        diceobj.system = 'dweird';
+        this.register(diceobj);
 
 		diceobj = new DicePreset('d8');
 		diceobj.setLabels(['1', '2', '3', '4', '5', '6', '7', '8']);
 		diceobj.setValues(1,8);
-		this.dice[diceobj.type] = diceobj;
+        this.register(diceobj);
 
 		diceobj = new DicePreset('d10');
 		diceobj.setLabels(['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']);
@@ -148,7 +170,7 @@ class DiceFactory {
         diceobj.mass = 350;
         diceobj.inertia = 9;
 		diceobj.scale = 0.9;
-		this.dice[diceobj.type] = diceobj;
+        this.register(diceobj);
 
 		diceobj = new DicePreset('d100', 'd10');
 		diceobj.setLabels(['00', '10', '20', '30', '40', '50', '60', '70', '80', '90']);
@@ -156,7 +178,7 @@ class DiceFactory {
         diceobj.mass = 350;
         diceobj.inertia = 9;
 		diceobj.scale = 0.9;
-		this.dice[diceobj.type] = diceobj;
+        this.register(diceobj);
 
 		diceobj = new DicePreset('d12');
 		diceobj.setLabels(['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12']);
@@ -164,39 +186,38 @@ class DiceFactory {
         diceobj.mass = 350;
         diceobj.inertia = 8;
 		diceobj.scale = 0.9;
-		this.dice[diceobj.type] = diceobj;
+        this.register(diceobj);
 
 		diceobj = new DicePreset('d20');
 		diceobj.setLabels(['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15', '16', '17', '18', '19', '20']);
 		diceobj.setValues(1,20);
         diceobj.mass = 400;
         diceobj.inertia = 6;
-		this.dice[diceobj.type] = diceobj;
+        this.register(diceobj);
 
-		//star wars dice
-
+		//star wars rpg dice
 		// Ability
 		diceobj = new DicePreset('dabi', 'd8');
 		diceobj.setLabels(['s','a',"s\na","s\ns",'a','s',"a\na",'']);
 		diceobj.setValues(1,8);
         diceobj.setValueMap([]);
-        diceobj.font = 'EOTE Symbol';
+        diceobj.font = 'SWRPG-Symbol-Regular';
         diceobj.color = '#00FF00';
-        diceobj.colorset = 'eote_abi';
+        diceobj.colorset = 'swrpg_abi';
         diceobj.display = 'labels';
         diceobj.system = 'swrpg';
-		this.dice[diceobj.type] = diceobj;
+        this.register(diceobj);
 
         // Difficulty
         diceobj = new DicePreset('ddif', 'd8');
         diceobj.setLabels(['t','f',"f\nt",'t','',"t\nt", "f\nf", 't']);
         diceobj.setValues(1,8);
-        diceobj.font = 'EOTE Symbol';
+        diceobj.font = 'SWRPG-Symbol-Regular';
         diceobj.color = '#8000FC';
-        diceobj.colorset = 'eote_dif';
+        diceobj.colorset = 'swrpg_dif';
         diceobj.display = 'labels';
         diceobj.system = 'swrpg';
-        this.dice[diceobj.type] = diceobj;
+        this.register(diceobj);
 
         // Proficiency
         diceobj = new DicePreset('dpro', 'd12');
@@ -205,12 +226,12 @@ class DiceFactory {
         diceobj.mass = 350;
         diceobj.inertia = 8;
         diceobj.scale = 0.9;
-        diceobj.font = 'EOTE Symbol';
+        diceobj.font = 'SWRPG-Symbol-Regular';
         diceobj.color = '#FFFF00';
-        diceobj.colorset = 'eote_pro';
+        diceobj.colorset = 'swrpg_pro';
         diceobj.display = 'labels';
         diceobj.system = 'swrpg';
-        this.dice[diceobj.type] = diceobj;
+        this.register(diceobj);
 
         // Challenge
         diceobj = new DicePreset('dcha', 'd12');
@@ -219,12 +240,12 @@ class DiceFactory {
         diceobj.mass = 350;
         diceobj.inertia = 8;
         diceobj.scale = 0.9;
-        diceobj.font = 'EOTE Symbol';
+        diceobj.font = 'SWRPG-Symbol-Regular';
         diceobj.color = '#FF0000';
-        diceobj.colorset = 'eote_cha';
+        diceobj.colorset = 'swrpg_cha';
         diceobj.display = 'labels';
         diceobj.system = 'swrpg';
-        this.dice[diceobj.type] = diceobj;
+        this.register(diceobj);
 
         // Force
         diceobj = new DicePreset('dfor', 'd12');
@@ -233,37 +254,101 @@ class DiceFactory {
         diceobj.mass = 350;
         diceobj.inertia = 8;
         diceobj.scale = 0.9;
-        diceobj.font = 'EOTE Symbol';
+        diceobj.font = 'SWRPG-Symbol-Regular';
         diceobj.color = '#FFFFFF';
-        diceobj.colorset = 'eote_for';
+        diceobj.colorset = 'swrpg_for';
         diceobj.display = 'labels';
         diceobj.system = 'swrpg';
-        this.dice[diceobj.type] = diceobj;
+        this.register(diceobj);
 
         // Boost
         diceobj = new DicePreset('dboo', 'd6');
         diceobj.setLabels(["s  \n  a","a  \n  a",'s','a','','']);
         diceobj.setValues(1,6);
         diceobj.scale = 0.9;
-        diceobj.font = 'EOTE Symbol';
+        diceobj.font = 'SWRPG-Symbol-Regular';
         diceobj.color = '#00FFFF';
-        diceobj.colorset = 'eote_boo';
+        diceobj.colorset = 'swrpg_boo';
         diceobj.display = 'labels';
         diceobj.system = 'swrpg';
-        this.dice[diceobj.type] = diceobj;
+        this.register(diceobj);
 
         // Setback
         diceobj = new DicePreset('dset', 'd6');
         diceobj.setLabels(['','t','f']);
         diceobj.setValues(1,3);
         diceobj.scale = 0.9;
-        diceobj.font = 'EOTE Symbol';
-        diceobj.color = '#000000';
-        diceobj.colorset = 'eote_set';
+        diceobj.font = 'SWRPG-Symbol-Regular';
+        diceobj.color = '#111111';
+        diceobj.colorset = 'swrpg_set';
         diceobj.display = 'labels';
         diceobj.system = 'swrpg';
-        this.dice[diceobj.type] = diceobj;
+        this.register(diceobj);
+
+        // star wars armada dice
+        // Attack Red
+        diceobj = new DicePreset('swar', 'd8');
+        diceobj.setLabels(['F','F','F\nF','E','E','G','','']);
+        diceobj.setValues(1,8);
+        diceobj.font = 'Armada-Symbol-Regular';
+        diceobj.color = '#FF0000';
+        diceobj.colorset = 'swa_red';
+        diceobj.display = 'labels';
+        diceobj.system = 'swarmada';
+        this.register(diceobj);
+
+        // Attack Blue
+        diceobj = new DicePreset('swab', 'd8');
+        diceobj.setLabels(['F','F','F','F','E','E','G','G']);
+        diceobj.setValues(1,8);
+        diceobj.font = 'Armada-Symbol-Regular';
+        diceobj.color = '#0000FF';
+        diceobj.colorset = 'swa_blue';
+        diceobj.display = 'labels';
+        diceobj.system = 'swarmada';
+        this.register(diceobj);
+
+        // Attack Black
+        diceobj = new DicePreset('swak', 'd8');
+        diceobj.setLabels(['F','F','F','F','F\nE','F\nE','','']);
+        diceobj.setValues(1,8);
+        diceobj.font = 'Armada-Symbol-Regular';
+        diceobj.color = '#111111';
+        diceobj.colorset = 'swa_black';
+        diceobj.display = 'labels';
+        diceobj.system = 'swarmada';
+        this.register(diceobj);
+
+
+        // star wars x-wing
+        // Attack - Red
+        diceobj = new DicePreset('xwatk', 'd8');
+        diceobj.setLabels(['c','d','d','d','f','f','','']);
+        diceobj.setValues(1,8);
+        diceobj.font = 'XWing-Symbol-Regular';
+        diceobj.color = '#FF0000';
+        diceobj.colorset = 'xwing_red';
+        diceobj.display = 'labels';
+        diceobj.system = 'xwing';
+        this.register(diceobj);
+
+        // Defense - Green
+        diceobj = new DicePreset('xwdef', 'd8');
+        diceobj.setLabels(['e','e','e','f','f','','','']);
+        diceobj.setValues(1,8);
+        diceobj.font = 'XWing-Symbol-Regular';
+        diceobj.color = '#00FF00';
+        diceobj.colorset = 'xwing_green';
+        diceobj.display = 'labels';
+        diceobj.system = 'xwing';
+        this.register(diceobj);
+
 	}
+
+    register(diceobj) {
+        this.dice[diceobj.type] = diceobj;
+        this.systems[diceobj.system].dice.push(diceobj.type);
+    }
 
     // returns a dicemesh (THREE.Mesh) object
 	create(type) {
@@ -277,7 +362,7 @@ class DiceFactory {
 		}
 		if (!geom) return null;
 
-        if (diceobj.colorset && $t.DiceFavorites.allowDiceOverride) {
+        if (diceobj.colorset && $t.DiceFavorites.settings['allowDiceOverride'] == '1') {
             this.setMaterialInfo(diceobj.colorset);
         } else {
             this.setMaterialInfo();
@@ -325,19 +410,24 @@ class DiceFactory {
 
         for (var i = 0; i < labels.length; ++i) {
             var mat = new THREE.MeshPhongMaterial(this.material_options);
-            mat.map = this.createTextMaterial(diceobj, labels[i], size, margin, this.dice_texture_rand, this.label_color_rand, this.label_outline_rand, this.dice_color_rand)
+            mat.map = this.createTextMaterial(diceobj, labels, i, size, margin, this.dice_texture_rand, this.label_color_rand, this.label_outline_rand, this.dice_color_rand)
             materials.push(mat);
         }
         return materials;
     }
 
-    createTextMaterial(diceobj, text, size, margin, texture, forecolor, outlinecolor, backcolor) {
-        if (text === undefined) return null;
+    createTextMaterial(diceobj, labels, index, size, margin, texture, forecolor, outlinecolor, backcolor) {
+        if (labels[index] === undefined) return null;
+
+        let text = labels[index];
 
         // an attempt at materials caching
         let cachestring = diceobj.type + text + texture.name + forecolor + outlinecolor + backcolor;
         if (diceobj.shape == 'd4') {
-        	cachestring = diceobj.type + text.join() + texture.name + forecolor + outlinecolor + backcolor;
+            cachestring = diceobj.type + text.join() + texture.name + forecolor + outlinecolor + backcolor;
+        }
+        if (diceobj.shape == 'd8') {
+            cachestring = diceobj.type + text + index + texture.name + forecolor + outlinecolor + backcolor;
         }
         if (this.materials_cache[cachestring] != null) {
             this.cache_hits++;
@@ -376,40 +466,58 @@ class DiceFactory {
 
         if (diceobj.shape != 'd4') {
 
-        	let fontsize = ts / (1 + 2 * margin);
-       		context.font =  fontsize+ 'pt '+diceobj.font;
+            // fix for some faces being weirdly rotated
+            let rotateface = this.rotate[diceobj.shape];
+            if(rotateface) {
+                let degrees = rotateface.all || (index > 0 && (index % 2) != 0) ? rotateface.odd : rotateface.even;
 
-	        var lineHeight = context.measureText("M").width * 1.4;
-	        let textlines = text.split("\n");
-	        let textstarty = (canvas.height / 2);
+                if (degrees && degrees != 0) {
 
-	        if (textlines.length > 1) {
-	            fontsize = fontsize / textlines.length;
-	            context.font =  fontsize+ 'pt '+diceobj.font;
-	            lineHeight = context.measureText("M").width * 1.2;
-	            textstarty -= (lineHeight * textlines.length) / 3;
-	        }
+                    var hw = (canvas.width / 2);
+                    var hh = (canvas.height / 2);
+
+                    context.translate(hw, hh);
+                    context.rotate(degrees * (Math.PI / 180));
+                    context.translate(-hw, -hh);
+                }
+            }
+
+            let fontsize = ts / (1 + 2 * margin);
+            context.font =  fontsize+ 'pt '+diceobj.font;
+
+            var lineHeight = context.measureText("M").width * 1.4;
+            let textlines = text.split("\n");
+            let textstarty = (canvas.height / 2);
+
+            if (textlines.length > 1) {
+                fontsize = fontsize / textlines.length;
+                context.font =  fontsize+ 'pt '+diceobj.font;
+                lineHeight = context.measureText("M").width * 1.2;
+                textstarty -= (lineHeight * textlines.length) / 2;
+            }
 
 	        for(let i = 0, l = textlines.length; i < l; i++){
-	            let text = textlines[i].trim();
+	            let textline = textlines[i].trim();
 
 	            // attempt to outline the text with a meaningful color
 	            if (outlinecolor != 'none') {
 	                context.strokeStyle = outlinecolor;
 	                context.lineWidth = 5;
 	                context.strokeText(textlines[i], canvas.width / 2, textstarty);
-	                if (textlines[i] == '6' || textlines[i] == '9') {
+	                if (textline == '6' || textline == '9') {
 	                    context.strokeText('  .', canvas.width / 2, textstarty);
 	                }
 	            }
 
 	            context.fillStyle = forecolor;
 	            context.fillText(textlines[i], canvas.width / 2, textstarty);
-	            if (textlines[i] == '6' || textlines[i] == '9') {
+	            if (textline == '6' || textline == '9') {
 	                context.fillText('  .', canvas.width / 2, textstarty);
 	            }
 	            textstarty += (lineHeight * 1.5);
+
 	        }
+
 	    } else {
 
 	    	var hw = (canvas.width / 2);
@@ -427,8 +535,11 @@ class DiceFactory {
                     context.strokeText(text[i], hw, hh - ts * 0.3);
                 }
 
+                //draw label in top middle section
                 context.fillStyle = forecolor;
                 context.fillText(text[i], hw, hh - ts * 0.3);
+
+                //rotate 1/3 for next label
                 context.translate(hw, hh);
                 context.rotate(Math.PI * 2 / 3);
                 context.translate(-hw, -hh);
@@ -745,9 +856,7 @@ class DiceFactory {
 
 class DiceNotation {
 
-    constructor(notation, dicefactory) {
-
-        this.dicefactory = dicefactory;
+    constructor(notation) {
 
         this.set = [];
         this.setkeys = [];
@@ -768,7 +877,7 @@ class DiceNotation {
         notation = notation.split(' ').join(''); // remove spaces
 
         let no = notation.split('@');// 0: dice notations, 1: forced results
-        let rollregex = new RegExp(/(\d+|)([a-z]{1}(?:[a-z]{1,3}|\d+)|)(?:([a-z]{1,2})(\d+)|)(?:(\+|\-|\*|\/)(\d+)|){0,1}(\+|\-|\*|\/|$)/, 'i');
+        let rollregex = new RegExp(/(\d+|)([a-z]{1}(?:[a-z]{1,4}|\d+)|)(?:([a-z]{1,2})(\d+)|)(?:(\+|\-|\*|\/)(\d+)|){0,1}(\+|\-|\*|\/|$)/, 'i');
         let resultsregex = new RegExp(/(\b)*(\d+)(\b)*/, 'gi'); // forced results: '1, 2, 3' or '1 2 3'
         let res;
 
@@ -840,7 +949,7 @@ class DiceNotation {
 
         type = type || 'd20'; //enforce default of d20 is type is null only
 
-        let diceobj = this.dicefactory.get(type);
+        let diceobj = teal.DiceFactory.get(type);
         if (diceobj == null) { this.error = true; return; }
 
         amount = Math.abs(parseInt(amount || 1));

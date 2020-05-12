@@ -44,10 +44,8 @@
     this.desk_color = '#1e2c4d';//0xdfdfdf;
     this.use_shadows = true;
 
-    this.DiceFactory = new DiceFactory();
-
     this.parse_notation = function(notation) {
-        return new DiceNotation(notation, this.DiceFactory);
+        return new DiceNotation(notation);
     }
 
     this.stringify_notation = function(notation) {
@@ -112,6 +110,7 @@
     this.dice_box = function(container, dimentions) {
         this.use_adaptive_timestep = false;
         this.animate_selector = true;
+        this.selector_rotate = true;
 
         this.dices = [];
         this.scene = new THREE.Scene();
@@ -317,7 +316,7 @@
             var velvec = make_random_vector(vector);
             var velocity = { x: velvec.x * (boost * notation.boost), y: velvec.y * (boost * notation.boost), z: -10 };
 
-            const diceobj = that.DiceFactory.get(notation.set[i].type);
+            const diceobj = $t.DiceFactory.get(notation.set[i].type);
             let numdice = notation.set[i].num;
 
             for(let k = 0; k < numdice; k++){
@@ -340,10 +339,10 @@
         //$t.dice.cache_misses = 0;
         //$t.dice.cache_hits = 0;
 
-        const diceobj = that.DiceFactory.get(type);
+        const diceobj = $t.DiceFactory.get(type);
         if(!diceobj) return;
 
-        let dicemesh = that.DiceFactory.create(diceobj.type);
+        let dicemesh = $t.DiceFactory.create(diceobj.type);
         if(!dicemesh) return;
 
         dicemesh.castShadow = true;
@@ -404,13 +403,16 @@
             }
         }
         var matindex = closest_face.materialIndex - 1;
-        if (dicemesh.dice_type == 'd4') return matindex;
+        const diceobj = $t.DiceFactory.get(dicemesh.dice_type);
+
+        if (dicemesh.dice_type == 'd4') return {value: matindex, label: '', mesh: dicemesh};
         if (dicemesh.dice_type == 'd10' || dicemesh.dice_type == 'd100') matindex += 1;
 
-        const diceobj = that.DiceFactory.get(dicemesh.dice_type);
+
+
+
         let value = diceobj.values[((matindex-1) % diceobj.values.length)];
         let label = diceobj.labels[(((matindex-1) % (diceobj.labels.length-2))+2)];
-
         if (dicemesh.dice_type == 'd10' && value == 0) value = 10;
         if (dicemesh.dice_type == 'd100' && value == 0) value = 100;
         return {value: value, label: label, mesh: dicemesh};
@@ -430,7 +432,7 @@
             let dicemesh = dices[i];
 
 
-            const diceobj = that.DiceFactory.get(dicemesh.dice_type);
+            const diceobj = $t.DiceFactory.get(dicemesh.dice_type);
             if(diceobj == null) continue;
 
             let value = get_dice_value(dicemesh);
@@ -530,7 +532,7 @@
             return;
         }
 
-        const diceobj = $t.dice.DiceFactory.get(dice.dice_type);
+        const diceobj = $t.DiceFactory.get(dice.dice_type);
         let values = diceobj.values;
         let largestvalue = diceobj.values[diceobj.values.length-1];
 
@@ -622,7 +624,7 @@
         if (dice.dice_type == 'd4' && num != 0) {
             if (num < 0) num += 4;
 
-            const diceobj = $t.dice.DiceFactory.get(dice.dice_type);
+            const diceobj = $t.DiceFactory.get(dice.dice_type);
 
             dice.material = $t.DiceFactory.createTextMeterial(diceobj, diceobj.labels[num]);
         }
@@ -652,13 +654,16 @@
         var time = (new Date()).getTime();
         var time_diff = (time - this.last_time) / 1000;
         if (time_diff > 3) time_diff = that.frame_rate;
-        //var angle_change = 0.3 * time_diff * Math.PI * Math.min(24000 + threadid - time, 6000) / 6000;
-        var angle_change = 0.005 * Math.PI;
-        if (angle_change < 0) this.running = false;
-        for (var i in this.dices) {
-            this.dices[i].rotation.y += angle_change;
-            this.dices[i].rotation.x += angle_change / 4;
-            this.dices[i].rotation.z += angle_change / 10;
+
+        if (this.selector_rotate) {
+            //var angle_change = 0.3 * time_diff * Math.PI * Math.min(24000 + threadid - time, 6000) / 6000;
+            var angle_change = 0.005 * Math.PI;
+            if (angle_change < 0) this.running = false;
+            for (var i in this.dices) {
+                this.dices[i].rotation.y += angle_change;
+                this.dices[i].rotation.x += angle_change / 4;
+                this.dices[i].rotation.z += angle_change / 10;
+            }
         }
 
         this.raycaster.setFromCamera( this.mouse, this.camera );
@@ -666,14 +671,12 @@
         var intersects = this.raycaster.intersectObjects(this.dices);
         if ( intersects.length > 0 ) {
 
-            const diceobj = that.DiceFactory.get(intersects[0].object.userData);
-
             if ( this.INTERSECTED != intersects[0].object ) {
                 
                 if ( this.INTERSECTED ) {
                     for(let i = 0, l = this.INTERSECTED.material.length; i < l; i++){
-                        if (diceobj && diceobj.color && i == 0) continue;
-                        this.INTERSECTED.material[i].emissive.setHex( diceobj.color || this.INTERSECTED.currentHex );
+                        if (i == 0) continue;
+                        this.INTERSECTED.material[i].emissive.setHex( this.INTERSECTED.currentHex );
                         this.INTERSECTED.material[i].emissiveIntensity = this.INTERSECTED.currentintensity;
                     }
                 }
@@ -683,22 +686,15 @@
                 this.INTERSECTED.currentintensity = this.INTERSECTED.material[1].emissiveIntensity;
 
                 for(let i = 0, l = this.INTERSECTED.material.length; i < l; i++){
-                    if (diceobj && diceobj.color && i == 0) continue;
-                    if (diceobj && diceobj.color) {
-                        this.INTERSECTED.material[i].emissive = new THREE.Color(diceobj.color);
-                    } else {
-                        this.INTERSECTED.material[i].emissive.setHex( 0xffffff );
-                    }
+                    if (i == 0) continue;
+                    this.INTERSECTED.material[i].emissive.setHex( 0xffffff );
                     this.INTERSECTED.material[i].emissiveIntensity = 0.5;
                 }
             }
         } else {
                 if ( this.INTERSECTED ) {
-
-                    const diceobj = that.DiceFactory.get(this.INTERSECTED.userData);
-
                     for(let i = 0, l = this.INTERSECTED.material.length; i < l; i++){
-                        if (diceobj && diceobj.color && i == 0) continue;
+                        if (i == 0) continue;
                         this.INTERSECTED.material[i].emissive.setHex( this.INTERSECTED.currentHex );
                         this.INTERSECTED.material[i].emissiveIntensity = this.INTERSECTED.currentintensity;
                     }
@@ -733,25 +729,26 @@
         this.clear();
         var step = this.w / 4.5;
 
-        this.camera.position.z = alldice ? this.cameraheight_selector_all : this.cameraheight_selector;
         this.pane = new THREE.Mesh(new THREE.PlaneGeometry(this.w * 6, this.h * 6, 1, 1), 
                 new THREE.MeshPhongMaterial(that.selector_back_colors));
         this.pane.receiveShadow = true;
         this.pane.position.set(0, 0, 1);
         this.scene.add(this.pane);
 
-        let dicelist = alldice ? Object.keys(that.DiceFactory.dice) : that.selector_dice;
-        let posxstart = alldice ? -2 : -1;
-        let poswrap = alldice ? 2 : 1;
+        let dicelist = alldice ? Object.keys($t.DiceFactory.dice) : that.selector_dice;
+        this.camera.position.z = dicelist.length > 9 ? this.cameraheight_selector_all : this.cameraheight_selector;
+        let posxstart = dicelist.length > 9 ? -3 : (dicelist.length < 3 ? -0.5 : -1);
+        let posystart = dicelist.length > 9 ? 1.5 : (dicelist.length < 4 ? 0 : 1);
+        let poswrap = dicelist.length > 9 ? 3 : (dicelist.length < 4 ? 2 : 1);
 
-        for (var i = 0, posx = posxstart, posy = 1; i < dicelist.length; ++i, ++posx) {
+        for (var i = 0, posx = posxstart, posy = posystart; i < dicelist.length; ++i, ++posx) {
 
             if (posx > poswrap) {
                 posx = posxstart;
                 posy--;
             }
 
-            var dicemesh = $t.dice.DiceFactory.create(dicelist[i]);
+            var dicemesh = $t.DiceFactory.create(dicelist[i]);
             dicemesh.position.set(posx * step, posy * step, step * 0.5);
             dicemesh.castShadow = true;
             dicemesh.userData = dicelist[i];

@@ -8,4 +8,4 @@
 @import "./desktop.css" (min-width: 992px) and (max-width: 1200px);
 @import "./desktopbig.css" (min-width: 1200px);*/
 
-@import "./swfont.css" ;
+@import "./swfonts.css" ;

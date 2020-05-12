@@ -7,19 +7,42 @@ class DiceFavorites {
 		this.favtemplate = $('.fav_draggable');
 		this.savetimeout = null;
 
-		this.allowDiceOverride = true;
-
 		let storage = this.getStorage();
 		if (storage == null) return;
+
+		this.settings = {
+			allowDiceOverride: '1',
+			system: 'd20',
+			colorset: 'random',
+			texture: ''
+		};
 
 		if (storage.getItem('DiceFavorites') != '1') {
 			storage.setItem('DiceFavorites', '1');
 			this.store();
 		}
 
-		this.allowDiceOverride = storage.getItem('DiceFavorites.settings.allowDiceOverride') == '1';
-		this.colorset = storage.getItem('DiceFavorites.settings.colorset');
-		this.texture = storage.getItem('DiceFavorites.settings.texture');
+		this.retrieveSettings();
+	}
+
+	storeSettings() {
+		let storage = this.getStorage();
+		if (storage == null) return;
+
+		const properties = Object.entries(this.settings);
+		for (const [key, value] of properties) {
+			storage.setItem('DiceFavorites.settings.'+key, value);
+		}
+	}
+
+	retrieveSettings() {
+		let storage = this.getStorage();
+		if (storage == null) return;
+
+		const properties = Object.entries(this.settings);
+		for (const [key, value] of properties) {
+			this.settings[key] = storage.getItem('DiceFavorites.settings.'+key);
+		}
 	}
 
 	storageAvailable(type) {
@@ -61,12 +84,12 @@ class DiceFavorites {
 		return storage;
 	}
 
-	// schedules a save in 5 seconds, resets timer if called sooner
-	saveSoon(time = 5000) {
+	// schedules a save in 2.5 seconds, resets timer if called sooner
+	saveSoon(time = 2500) {
 		if (this.savetimeout) {
 			clearTimeout(this.savetimeout);
 		}
-		this.savetimeout = setTimeout(this.store, 3000);
+		this.savetimeout = setTimeout(this.store, time);
 	}
 
 	create(name, notation = '', colorset = '', texture = '', x = 0, y = 0) {
@@ -149,6 +172,8 @@ class DiceFavorites {
 			this.savetimeout = null;
 		}
 
+		this.storeSettings();
+
 		let storage = this.getStorage();
 		if (storage == null) return;
 
@@ -170,12 +195,11 @@ class DiceFavorites {
 		});
 
 		storage.setItem('DiceFavorites.favorites', JSON.stringify(entries));
-		storage.setItem('DiceFavorites.settings.allowDiceOverride', this.allowDiceOverride ? '1': '0');
-		storage.setItem('DiceFavorites.settings.colorset', this.colorset);
-		storage.setItem('DiceFavorites.settings.texture', this.texture);
 	}
 
 	retrieve() {
+
+		this.retrieveSettings();
 
 		let storage = this.getStorage();
 		if (storage == null) return;
@@ -189,9 +213,5 @@ class DiceFavorites {
 
 			this.create(entry.name, entry.notation, entry.colorset, entry.texture, entry.x, entry.y);
 		}
-
-		this.allowDiceOverride = storage.getItem('DiceFavorites.settings.allowDiceOverride') == '1';
-		this.colorset = storage.getItem('DiceFavorites.settings.colorset');
-		this.texture = storage.getItem('DiceFavorites.settings.texture');
 	}
 }

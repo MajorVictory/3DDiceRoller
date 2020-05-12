@@ -8,6 +8,10 @@ teal.socket = null;
 teal.socketAddress = 'dnd.majorsplace.com:32400';
 teal.socketSecure = false;
 
+
+teal.DiceFavorites = new DiceFavorites();
+teal.DiceFactory = new DiceFactory();
+
 teal.copyto = function(obj, res) {
     if (obj == null || typeof obj !== 'object') return obj;
     if (obj instanceof Array) {
