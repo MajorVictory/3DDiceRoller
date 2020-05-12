@@ -702,10 +702,10 @@ function login_initialize(container) {
                         despair += (currentlabel.split('y').length - 1);
                         dark += (currentlabel.split('z').length - 1);
                         light += (currentlabel.split('Z').length - 1);
-
-                        success += triumph;
-                        failure += despair;
                     }
+
+                    success += triumph;
+                    failure += despair;
 
                     rolls += 's'.repeat(success);
                     rolls += 'f'.repeat(failure);
