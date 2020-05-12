@@ -918,6 +918,7 @@ class DiceNotation {
         if (typeof notation == 'object') {
             notation = notation.notation;
         }
+        if (!notation || notation =='0') notation = '';
 
         this.set = [];
         this.setkeys = [];
@@ -965,8 +966,12 @@ class DiceNotation {
             // if this is true, we have a single operator and constant as the whole notation string
             // e.g. '+7', '*4', '-2'
             // in this case, assume a d20 is to be rolled
-            if ((runs == 1 && notationstring.length == 0) && !type) {
+            if ((runs == 1 && notationstring.length == 0) && !type && operator && amount) {
+                
                 type = 'd20';
+                this.op = operator;
+                this.constant = parseInt(amount);
+                amount = 1;
 
             // in this case, we've got other sets and this is just an ending operator+constant
             } else if ((runs > 1 && notationstring.length == 0) && !type) {

@@ -1,11 +1,9 @@
 
 body {
-    /*background-color: #790000;*/
     background-color: #0b1a3e;
     color: #9794ff;
     font-family: Georgia;
     margin: 0px;
-    overflow: hidden
 }
 
 optgroup {
