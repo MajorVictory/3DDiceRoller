@@ -1,0 +1,63 @@
+/* 
+	Game: Star Wars RPG (Age of Rebellion, Edge of the Empire, Force and Destiny)
+	Source: The Alexandrian
+	URL: http://thealexandrian.net/wordpress/37660/roleplaying-games/star-wars-force-and-destiny-system-cheat-sheet
+*/
+@font-face {
+    font-family: 'SWRPG-Symbol-Regular';
+    src: url('fonts/swrpg_symbol-regular_v1-webfont.eot');
+    src: url('fonts/swrpg_symbol-regular_v1-webfont.eot?#iefix') format('embedded-opentype'),
+         url('fonts/swrpg_symbol-regular_v1-webfont.woff2') format('woff2'),
+         url('fonts/swrpg_symbol-regular_v1-webfont.woff') format('woff'),
+         url('fonts/swrpg_symbol-regular_v1-webfont.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+}
+
+/* 
+	Game: Star Wars Armada
+	Source: err404
+	URL: https://boardgamegeek.com/filepage/116568/armada-icon-fonts
+*/
+@font-face {
+    font-family: 'Armada-Symbol-Regular';
+    src: url('fonts/armadaiconsv4-webfont.eot');
+    src: url('fonts/armadaiconsv4-webfont.eot?#iefix') format('embedded-opentype'),
+         url('fonts/armadaiconsv4-webfont.woff2') format('woff2'),
+         url('fonts/armadaiconsv4-webfont.woff') format('woff'),
+         url('fonts/armadaiconsv4-webfont.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+}
+
+/* 
+	Game: Star Wars X-Wing
+	Source: geordanr
+	URL: https://github.com/geordanr/xwing-miniatures-font
+*/
+@font-face {
+    font-family: 'XWing-Symbol-Regular';
+    src: url('fonts/xwing-miniatures-webfont.eot');
+    src: url('fonts/xwing-miniatures-webfont.eot?#iefix') format('embedded-opentype'),
+         url('fonts/xwing-miniatures-webfont.woff2') format('woff2'),
+         url('fonts/xwing-miniatures-webfont.woff') format('woff'),
+         url('fonts/xwing-miniatures-webfont.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+}
+
+/* 
+	Game: Star Wars Legion
+	Source: lyerelian
+	URL: https://github.com/lyerelian/Legion-font
+*/
+@font-face {
+    font-family: 'Legion-Symbol-Regular';
+    src: url('fonts/legionfont0.1.3-webfont.eot');
+    src: url('fonts/legionfont0.1.3-webfont.eot?#iefix') format('embedded-opentype'),
+         url('fonts/legionfont0.1.3-webfont.woff2') format('woff2'),
+         url('fonts/legionfont0.1.3-webfont.woff') format('woff'),
+         url('fonts/legionfont0.1.3-webfont.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+}

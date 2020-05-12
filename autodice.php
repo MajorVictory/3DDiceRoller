@@ -3,23 +3,19 @@
     <head>
         <title>AutoDicer</title>
         <script type='text/javascript'>
-            var m_ChildWindow = null; // 
-            var parent_notation = null;
-            var parent_roll = null;
+            var m_ChildWindow = null;
+
 
             function OpenChildWIndow() {
-                m_ChildWindow = window.open("index.php");
+                m_ChildWindow = window.open("http://dnd.majorsplace.com/dicex");
             }
 
-            function RollDice(notation) {
+            function RollDice() {
                 if (m_ChildWindow) {
-                    parent_notation = m_ChildWindow.document.getElementById('parent_notation');
-                    parent_roll = m_ChildWindow.document.getElementById('parent_roll');
 
-                    parent_notation.value = $t.id('notation').value;
-                    parent_roll.value = "1";
-                    $t.raise(parent_notation, 'change');
-                    $t.raise(parent_roll, 'change');
+                    let notation = $t.id('notation').value;
+
+                    m_ChildWindow.postMessage(notation);
                 }
             }
         </script>

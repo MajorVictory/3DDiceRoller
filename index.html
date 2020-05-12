@@ -19,22 +19,42 @@
         <div style="display: table-cell; vertical-align: middle">
             <div style="margin-left: auto; margin-right: auto; width: 100%">
                 <div class="loginform">
-                    <h1>Major's 3D Dice Roller</h1>
-                    <div class="lform">
-                        <div>Player Name</div>
-                        <input id="input_user" type="text" maxlength="35" value=""></input>
-                        <div>Room Name</div>
-                        <input id="input_room" type="text" maxlength="35" value=""></input>
-                        <div id="login_message"></div>
-                    </div>
-                    <br/>
-                    <button id="button_join">Join</button>
+                    <fieldset>
+                        <h1>Major's 3D Dice Roller</h1>
+                    </fieldset>
+                    <fieldset>
+                        <legend>Join / Create a Room</legend>
+                        <div class="connection_message control_label" style="color:orange">Loading Textures...</div>
+                        <div class="lform">
+                            <div>Player Name</div>
+                            <input id="input_user" type="text" maxlength="35" value=""></input>
+                            <div>Room Name</div>
+                            <input id="input_room" type="text" maxlength="35" value=""></input>
+                            <div>Room Password (optional)</div>
+                            <input id="input_pass" type="password" maxlength="100" value=""></input>
+                            <div id="login_message"></div>
+                        </div>
+                        <br/>
+                        <button id="button_join" title="Join Friends">Join Friends</button>
+                    </fieldset>
 
-                    <div class="smalllabel">
-                        Created using <a href="http://threejs.org">three.js</a> and <a href="http://cannonjs.org">cannon.js</a>
-                        <br>
-                        Original source code and idea from <a href="http://www.teall.info/2014/07/multiplayer-3d-dice-roller.html">Tealyatina's Dice roller</a>
-                    </div>
+                    <fieldset>
+                        <legend>Offline Dice</legend>
+                        <div class="lform">
+                            <button id="button_single" title="Roll for Myself">Roll for Myself</button>
+                        </div>
+                    </fieldset>
+                    
+                    <fieldset>
+                        <legend>The Help</legend>
+                        <div class="smalllabel">Source code available at <a href="https://github.com/MajorVictory/3DDiceRoller">github.com</a></div>
+                        <div class="smalllabel">Created using <a href="http://threejs.org">three.js</a> and <a href="http://cannonjs.org">cannon.js</a></div>
+                        <div class="smalllabel">Original source code and idea from<br><a href="http://www.teall.info/2014/07/multiplayer-3d-dice-roller.html">Tealyatina's Dice roller</a></div>
+                        <div class="smalllabel"><span style="font-family: 'SWRPG-Symbol-Regular';">Zatsfxyz</span> Star Wars™ RPG font from <a href="http://thealexandrian.net/wordpress/37660/roleplaying-games/star-wars-force-and-destiny-system-cheat-sheet">The Alexandrian</a></div>
+                        <div class="smalllabel"><span style="font-family: 'Armada-Symbol-Regular';">EFG</span> Star Wars™ Armada font from <a href="https://boardgamegeek.com/filepage/116568/armada-icon-fonts">err404</a></div>
+                        <div class="smalllabel"><span style="font-family: 'XWing-Symbol-Regular';">cdfe</span> Star Wars™ X-Wing font from <a href="https://github.com/geordanr/xwing-miniatures-font">geordanr</a></div>
+                        <div class="smalllabel"><span style="font-family: 'Legion-Symbol-Regular';">hcosd</span> Star Wars™ Legion font from <a href="https://github.com/lyerelian/Legion-font">lyerelian</a></div>
+                    </fieldset>
                 </div>
             </div>
         </div>
@@ -44,9 +64,11 @@
         <div id="selector_div" style="display: none">
             <div class="center_field">
                 <div>
-                    <button id="clear">Reset</button>
+                    <button id="clear" title="Reset Dice">❌</button>
+                    <button id="save" title="Save Favorite"></button>
                     <input type="text" id="set" name="set" value="2d20"></input>
-                    <button id="throw">Throw</button>
+                    <button id="rage" title="Add Rage">💢</button>
+                    <button id="throw" title="Throw Dice">🎲</button>
                 </div>
                 <div id="sethelp">
                     Click to Add, Drag to Throw
@@ -59,7 +81,7 @@
         <div id="canvas"></div>
         <div id="info_div" style="display: none">
             <div class="center_field">
-                <span id="label"></span>
+                <div id="label"></div>
             </div>
         </div>
         <div class="info-field">
@@ -69,31 +91,47 @@
         </div>
     </div>
 
-    <div id="control_panel_hidden" class="control_panel noselect" style="display:none;visibility:hidden;">
-        <div id="control_panel_show" class="control_label">⚙️</div>
-    </div>
-    <div id="control_panel_shown" class="control_panel noselect">
-        <div id="control_panel_hide" class="control_label">⚙️</div>
-        <div id="connection_message" class="control_label" style="color:orange">Loading...</div>
-        <div id="colorname" class="control_label">Dice Theme: </div>
+    <fieldset id="control_panel_hidden" class="control_panel noselect">
+        <div id="control_panel_show" class="control_label" title="Show Settings">⚙️</div>
+    </fieldset>
+    <fieldset id="control_panel_shown" class="control_panel noselect" style="display:none;visibility:hidden;">
+        <legend>Settings</legend>
+        <div id="control_panel_hide" class="control_label" title="Hide Settings">⚙️</div>
+        <div class="connection_message control_label" style="color:orange">Loading Textures...</div>
+        <label for="system" title="Select which type of dice to display">Dice Set:</label>
+        <select id="system" name="system">
+        </select>
+        <label id="colorname" class="control_label" for="color">Dice Theme: </label>
         <select id="color" name="color">
         </select>
         <select id="texture" name="texture">
         </select>
-        <br/>
-        <br/>
-        <button id="toggle_selector">Toggle Selector</button>
-        <br/>
-        <br/>
-        <button id="reconnect">Reconnect</button>
-        <button id="logout">logout</button>
-    </div>
+        <label for="checkbox_allowdiceoverride" title="Allow dice to override your color settings"><input type="checkbox" value='' id="checkbox_allowdiceoverride"> Allow Dice Override</label>
+        <button id="toggle_selector" title="Show/Hide Throw Buttons">Toggle Selector</button>
+        <!-- <button id="reconnect">Reconnect</button>-->
+        <button id="logout" title="Leave Room and Refresh">Logout</button>
+    </fieldset>
 
     <div id="log" class="teal-chat" style="display: none"></div>
 
-    <script src="./libs/three.min.js"></script>
-    <script src="./libs/cannon.min.js"></script>
+    <div id="fav_container">
+        <fieldset class="fav_draggable">
+            <legend class="fav_name">Attack</legend>
+            <button class="fav_edit" title="Edit Favorite Name">✏️</button><button class="fav_delete" title="Delete Favorite">❌</button><input type="text" class="fav_notation" value="2d20"></input>
+            <button class="fav_throw" title="Throw Dice">🎲</button>
+            <input type="hidden" class="fav_colorset" value=""></input>
+            <input type="hidden" class="fav_texture" value=""></input>
+        </fieldset>
+    </div>
 
+    <script src="./libs/three.min.js"></script>
+    <!-- <script src="./libs/cannon.min.js"></script> -->
+    <script src="./libs/cannon.js"></script>
+
+    <script type="text/javascript" src="https://code.jquery.com/jquery-3.5.0.min.js"></script>
+    <script type="text/javascript" src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
+    <script type="text/javascript" src="./includes/DiceFavorites.js"></script>
+    <script type="text/javascript" src="./includes/DiceFactory.js"></script>
     <script type="text/javascript" src="./includes/teal.js"></script>
     <script type="text/javascript" src="./includes/teal.chat.js"></script>
     <script type="text/javascript" src="./includes/colorsets.js"></script>
@@ -107,18 +145,13 @@
 
         function receiveMessage(event) {
         	console.log(event);
-            if (event.origin !== "https://www.improved-initiative.com" &&
-            	event.origin !== "https://files.majorsplace.com" &&
-            	event.origin !== "https://rand.majorsplace.com" &&
-            	event.origin !== "https://dnd.majorsplace.com") return;
+            //if (event.origin !== "https://www.improved-initiative.com" &&
+            //	event.origin !== "https://files.majorsplace.com" &&
+            //	event.origin !== "https://rand.majorsplace.com" &&
+            //	event.origin !== "https://dnd.majorsplace.com") return;
 
-            parent_notation = $t.id('parent_notation');
-            parent_roll = $t.id('parent_roll');
-
-            parent_notation.value = event.data;
-            parent_roll.value = "1";
-            $t.raise(parent_notation, 'change');
-            $t.raise(parent_roll, 'change');
+            $('#set').val(event.data);
+            $t.raise_event($t.id('throw'), 'mouseup');
         }
     </script>
 

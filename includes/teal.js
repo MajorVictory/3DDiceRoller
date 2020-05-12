@@ -3,7 +3,14 @@
 window.teal = {};
 window.$t = window.teal;
 
+teal.offline = true;
 teal.socket = null;
+teal.socketAddress = 'dnd.majorsplace.com:32400';
+teal.socketSecure = false;
+
+
+teal.DiceFavorites = new DiceFavorites();
+teal.DiceFactory = new DiceFactory();
 
 teal.copyto = function(obj, res) {
     if (obj == null || typeof obj !== 'object') return obj;
@@ -157,9 +164,9 @@ else {
     }
 }
 
-teal.openSocket = function(address = 'dnd.majorsplace.com:32400', secure = false) {
+teal.openSocket = function(address, secure) {
 
-    address = secure ? 'wss://'+address : 'ws://'+address;
+    address = (secure || this.socketSecure) ? 'wss://'+(address || this.socketAddress) : 'ws://'+(address || this.socketAddress);
 
     this.socket = (this.socket == null || this.socket.readyState > WebSocket.OPEN) ? new WebSocket(address) : this.socket;
 
@@ -171,6 +178,13 @@ teal.openSocket = function(address = 'dnd.majorsplace.com:32400', secure = false
 // should emulate an ajax send-receive loop
 // send a message, wait for one-time response
 teal.rpc = function(params, callback, noparse) {
+
+    if(this.offline) {
+        if (callback != null) {
+            callback.call(this.socket, params);
+        }
+        return;
+    }
 
     // check if socket already open, 
     if (this.socket.readyState == WebSocket.OPEN) {
