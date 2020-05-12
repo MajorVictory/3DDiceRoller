@@ -858,6 +858,10 @@ class DiceNotation {
 
     constructor(notation) {
 
+        if (typeof notation == 'object') {
+            notation = notation.notation;
+        }
+
         this.set = [];
         this.setkeys = [];
         this.op = '';
@@ -865,18 +869,20 @@ class DiceNotation {
         this.result = [];
         this.error = false;
         this.boost = 1;
+        this.notation = notation;
 
-        if (notation) {
-            let rage = (notation.split('!').length-1) || 0;
+        let notationdata =  this.notation;
+        if (notationdata) {
+            let rage = (notationdata.split('!').length-1) || 0;
             if (rage > 0) {
                 this.boost = Math.min(Math.max(rage, 0), 3) * 4;
             }
-            notation = notation.split('!').join(''); //remove and continue
+            notationdata = notationdata.split('!').join(''); //remove and continue
         }
 
-        notation = notation.split(' ').join(''); // remove spaces
+        notationdata = notationdata.split(' ').join(''); // remove spaces
 
-        let no = notation.split('@');// 0: dice notations, 1: forced results
+        let no = notationdata.split('@');// 0: dice notations, 1: forced results
         let rollregex = new RegExp(/(\d+|)([a-z]{1}(?:[a-z]{1,4}|\d+)|)(?:([a-z]{1,2})(\d+)|)(?:(\+|\-|\*|\/)(\d+)|){0,1}(\+|\-|\*|\/|$)/, 'i');
         let resultsregex = new RegExp(/(\b)*(\d+)(\b)*/, 'gi'); // forced results: '1, 2, 3' or '1 2 3'
         let res;
@@ -929,11 +935,10 @@ class DiceNotation {
             output += set.num + set.type;
             output += (set.func) ? set.func : '';
             output += (set.arg) ? set.arg : '';
-            output += (set.nextop) ? set.nextop : '';
+            output += (i < l && set.nextop) ? set.nextop : '';
         }
 
         output += (this.constant) ? this.op+''+Math.abs(this.constant) : '';
-        output += (set.nextop) ? set.nextop : '';
 
         if(this.result && this.result.length > 0) {
             output += '@'+this.result.join(',');

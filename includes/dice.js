@@ -49,6 +49,7 @@
     }
 
     this.stringify_notation = function(notation) {
+        console.log('stringify_notation', notation);
         return notation.stringify();
     }
 
@@ -302,24 +303,23 @@
         console.log('notation', notation);
         for (var i in notation.set) {
 
-            console.log('i', i);
-            console.log('i', notation.set[i]);
-
-            var vec = make_random_vector(vector);
-            var pos = {
-                x: this.w * (vec.x > 0 ? -1 : 1) * 0.9,
-                y: this.h * (vec.y > 0 ? -1 : 1) * 0.9,
-                z: rnd() * 200 + 200
-            };
-            var projector = Math.abs(vec.x / vec.y);
-            if (projector > 1.0) pos.y /= projector; else pos.x *= projector;
-            var velvec = make_random_vector(vector);
-            var velocity = { x: velvec.x * (boost * notation.boost), y: velvec.y * (boost * notation.boost), z: -10 };
-
+            console.log('i', i, notation.set[i]);
             const diceobj = $t.DiceFactory.get(notation.set[i].type);
             let numdice = notation.set[i].num;
 
             for(let k = 0; k < numdice; k++){
+
+                var vec = make_random_vector(vector);
+                var pos = {
+                    x: this.w * (vec.x > 0 ? -1 : 1) * 0.9,
+                    y: this.h * (vec.y > 0 ? -1 : 1) * 0.9,
+                    z: rnd() * 200 + 200
+                };
+                var projector = Math.abs(vec.x / vec.y);
+                if (projector > 1.0) pos.y /= projector; else pos.x *= projector;
+                var velvec = make_random_vector(vector);
+                var velocity = { x: velvec.x * (boost * notation.boost), y: velvec.y * (boost * notation.boost), z: -10 };
+
                 var angle = {
                     x: -(rnd() * vec.y * 5 + diceobj.inertia * vec.y),
                     y: rnd() * vec.x * 5 + diceobj.inertia * vec.x,

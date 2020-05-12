@@ -84,14 +84,6 @@ class DiceFavorites {
 		return storage;
 	}
 
-	// schedules a save in 2.5 seconds, resets timer if called sooner
-	saveSoon(time = 2500) {
-		if (this.savetimeout) {
-			clearTimeout(this.savetimeout);
-		}
-		this.savetimeout = setTimeout(this.store, time);
-	}
-
 	create(name, notation = '', colorset = '', texture = '', x = 0, y = 0) {
 
 		let draggable = this.favtemplate.clone(true);
@@ -105,7 +97,7 @@ class DiceFavorites {
         	let textwidth = Math.min(Math.max(($(this).val().length+1), 4), 20);
 
         	$(this).css({width: textwidth+'ex'});
-        	teal.DiceFavorites.saveSoon();
+        	teal.DiceFavorites.store();
         });
 
         draggable.find('.fav_colorset').val(colorset);
@@ -113,13 +105,13 @@ class DiceFavorites {
 
         draggable.find('.fav_delete').click(function() {
         	$(this).parent().remove();
-        	teal.DiceFavorites.saveSoon();
+        	teal.DiceFavorites.store();
         });
 
         draggable.find('.fav_edit').click(function() {
         	let newname = prompt('Enter a Title', $(this).parent().find('.fav_name').text());
         	$(this).parent().find('.fav_name').empty().text(newname);
-        	teal.DiceFavorites.saveSoon();
+        	teal.DiceFavorites.store();
         });
 
         draggable.find('.fav_throw').click(function() {
@@ -135,7 +127,7 @@ class DiceFavorites {
         	snapTolerance: 10,
         	stop: function() {
         		teal.DiceFavorites.ensureOnScreen();
-        		teal.DiceFavorites.saveSoon();
+        		teal.DiceFavorites.store();
         	}
         });
         draggable.css({position: 'absolute', left: x, top: y, display: 'block'});

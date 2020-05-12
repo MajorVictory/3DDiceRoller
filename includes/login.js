@@ -345,6 +345,8 @@ function login_initialize(container) {
     }
 
     function make_notation_for_log(notation, result) {
+
+        notation = new DiceNotation(notation); //reinit notation class, if sent from server has no methods attached.
         var res = $t.element('span');
 
         res.innerHTML = (notation.result.length ? ' (preset result)' : '');
@@ -828,19 +830,22 @@ function login_initialize(container) {
                     let total = numberdicevalues.reduce(function(s, a) { return s + a; });
 
                     if (res.notation.constant != '') {
-                            totals += res.notation.op + Math.abs(res.notation.constant);
+                        let constant = parseInt(res.notation.constant);
+
+                        rolls += res.notation.op + Math.abs(constant);
+
                         if(res.notation.op == '-') {
-                            totals += (total - res.notation.constant);
+                            total += (total - constant);
                         } else if (res.notation.op == '*') {
-                            totals += (total * res.notation.constant);
+                            total += (total * constant);
                         } else if (res.notation.op == '/') {
-                            totals += (total / res.notation.constant);
+                            total += (total / constant);
                         } else {
-                            totals += (total + res.notation.constant);
+                            total += (total + constant);
                         }
-                    } else {
-                        totals += total;
                     }
+                    
+                    totals += ''+total;
                 }
 
                 label.innerHTML = (rolls+'<h2>'+totals+'</h2>');
@@ -851,6 +856,7 @@ function login_initialize(container) {
                 deskrolling = false;
                 box.rolling = false;
                 if (log.roll_uuid) {
+                    console.log('res.notation', res.notation);
                     log.confirm_message(log.roll_uuid, make_notation_for_log(res.notation, (rolls+' = '+totals)));
                     delete log.roll_uuid;
                 }
