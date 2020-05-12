@@ -49,7 +49,6 @@
     }
 
     this.stringify_notation = function(notation) {
-        console.log('stringify_notation', notation);
         return notation.stringify();
     }
 
@@ -300,10 +299,8 @@
 
     this.dice_box.prototype.generate_vectors = function(notation, vector, boost) {
         var vectors = [];
-        console.log('notation', notation);
         for (var i in notation.set) {
 
-            console.log('i', i, notation.set[i]);
             const diceobj = $t.DiceFactory.get(notation.set[i].type);
             let numdice = notation.set[i].num;
             let operator = notation.set[i].op;
@@ -330,15 +327,10 @@
                 vectors.push({ set: diceobj.type, op: operator, pos: pos, velocity: velocity, angle: angle, axis: axis });
             }            
         }
-        console.log('vectors', vectors);
         return vectors;
     }
 
     this.dice_box.prototype.create_dice = function(type, operator, pos, velocity, angle, axis) {
-
-        //cache data
-        //$t.dice.cache_misses = 0;
-        //$t.dice.cache_hits = 0;
 
         const diceobj = $t.DiceFactory.get(type);
         if(!diceobj) return;
@@ -359,9 +351,6 @@
         this.scene.add(dicemesh);
         this.dices.push(dicemesh);
         this.world.add(dicemesh.body);
-
-        //console.log('cache hits: '+$t.dice.cache_hits);
-        //console.log('cache misses: '+$t.dice.cache_misses);
     }
 
     this.dice_box.prototype.check_if_throw_finished = function() {

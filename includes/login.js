@@ -468,8 +468,6 @@ function login_initialize(container) {
             if (name) {
                 let notation = $t.dice.parse_notation(set.value);
 
-                console.log(ev);
-
                 let shift = (ev && ev.shiftKey);
                 let ctrl = (ev && ev.ctrlKey);
                 let leftclick = (ev && ev.button == 0);
@@ -638,8 +636,6 @@ function login_initialize(container) {
             box.rolling = true;
             if (!$t.offline) unpack_vectors(res.vectors);
             box.roll(res.vectors, res.notation.result, function(result) {
-
-                console.log('result', result);
 
                 let numberdicevalues = [];
                 let numberdiceoperators = [];
@@ -850,12 +846,6 @@ function login_initialize(container) {
                         let value = parseInt(numberdicevalues[i]);
                         let op = numberdiceoperators[i];
 
-                        console.log('numberdicevalues', i, value, op, numberdicevalues);
-                        console.log('op', op);
-                        console.log('lastoperator', lastoperator);
-                        console.log('valuesofar', valuesofar);
-                        console.log('i != numberdicevalues.length-1', (i != numberdicevalues.length-1));
-
                         if(op != lastoperator) {
                             lastoperator = op;
                             if (i != numberdicevalues.length-1) {
@@ -904,7 +894,6 @@ function login_initialize(container) {
                 deskrolling = false;
                 box.rolling = false;
                 if (log.roll_uuid) {
-                    console.log('res.notation', res.notation);
                     log.confirm_message(log.roll_uuid, make_notation_for_log(res.notation, (rolls+' = '+totals)));
                     delete log.roll_uuid;
                 }

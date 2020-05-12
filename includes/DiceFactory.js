@@ -894,8 +894,6 @@ class DiceNotation {
         let notationstring = no[0];
         while (notationstring.length > 0 && (res = rollregex.exec(notationstring)) !== null && runs < breaklimit) {
             runs++;
-            console.log('notationstring', notationstring);
-            console.log(res);
 
             //remove this notation so we can move on next iteration
             notationstring = notationstring.substring(res[0].length);
@@ -925,8 +923,6 @@ class DiceNotation {
 
         // forced results
         if (!this.error && no[1] && (res = no[1].match(resultsregex)) !== null) {
-            //console.log('forceresult', no[1]);
-            //console.log(res);
             this.result.push(...res);
         }
     }
@@ -952,7 +948,7 @@ class DiceNotation {
         }
 
         if (this.boost > 1) {
-            output += ('!'.repeat(this.boost-1));
+            output += ('!'.repeat((this.boost/4)));
         }
         return output;
     }
@@ -992,7 +988,6 @@ class DiceNotation {
                 this.set[(this.setkeys[setkey]-1)] = setentry;
             }
         }
-        console.log('setentry', setentry);
     }
 
 }
