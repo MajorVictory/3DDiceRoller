@@ -468,7 +468,18 @@ function login_initialize(container) {
             if (name) {
                 let notation = $t.dice.parse_notation(set.value);
 
-                notation.addSet(1, name, '', '', '+');
+                console.log(ev);
+
+                let shift = (ev && ev.shiftKey);
+                let ctrl = (ev && ev.ctrlKey);
+                let leftclick = (ev && ev.button == 0);
+
+                let op = '+';
+                if (ctrl && leftclick) op = '*';
+                if (shift && leftclick) op = '/';
+                if (ctrl && shift && leftclick) op = '-';
+
+                notation.addSet(1, name, '', '', op);
 
                 set.value = $t.dice.stringify_notation(notation);
                 on_set_change();
@@ -631,6 +642,7 @@ function login_initialize(container) {
                 console.log('result', result);
 
                 let numberdicevalues = [];
+                let numberdiceoperators = [];
                 let labeldicevalues = [];
                 let swrpgdice = [];
                 let swarmadadice = [];
@@ -641,6 +653,7 @@ function login_initialize(container) {
 
                     let dicemesh = result.dice[i];
                     let diceobj =  $t.DiceFactory.get(dicemesh.dice_type);
+                    let operator = dicemesh.dice_operator;
 
                     if (diceobj.system == 'swrpg') {
                         swrpgdice.push(result.labels[i]);
@@ -649,11 +662,13 @@ function login_initialize(container) {
                     } else if (diceobj.system == 'xwing') {
                         xwingdice.push(result.labels[i]);
                     } else if (diceobj.system == 'd20') {
+                        numberdiceoperators.push(operator);
                         numberdicevalues.push(result.values[i]);
                     } else {
                         if (diceobj.display == 'labels') {
                             labeldicevalues.push(result.labels[i]);
                         } else if (diceobj.display == 'values') {
+                            numberdiceoperators.push(operator);
                             numberdicevalues.push(result.values[i]);
                         }
                     }
@@ -825,27 +840,60 @@ function login_initialize(container) {
                 // numbers only
                 if (numberdicevalues.length > 0) {
 
-                    rolls += '['+numberdicevalues.join(',')+']';
+                    rolls += '[';
 
-                    let total = numberdicevalues.reduce(function(s, a) { return s + a; });
+                    let total = 0;
+                    let lastoperator = numberdiceoperators[0];
+                    let valuesofar = [];
+
+                    for(let i = 0; i < numberdicevalues.length; i++){                        
+                        let value = parseInt(numberdicevalues[i]);
+                        let op = numberdiceoperators[i];
+
+                        console.log('numberdicevalues', i, value, op, numberdicevalues);
+                        console.log('op', op);
+                        console.log('lastoperator', lastoperator);
+                        console.log('valuesofar', valuesofar);
+                        console.log('i != numberdicevalues.length-1', (i != numberdicevalues.length-1));
+
+                        if(op != lastoperator) {
+                            lastoperator = op;
+                            if (i != numberdicevalues.length-1) {
+                                rolls += valuesofar.join(',')+']'+op+'[';
+                                valuesofar = [];
+                            }
+                        }
+
+                        valuesofar.push(value);
+
+                        if (i == numberdicevalues.length-1) {
+                            rolls += valuesofar.join(',');
+                        }
+
+                        switch (op) {
+                            case '*': total *= value; break;
+                            case '/': total = total / value; break;
+                            case '-': total -= value; break;
+                            case '+': default: total += value; break;
+                        }
+                    }
+
+                    rolls += ']';
 
                     if (res.notation.constant != '') {
                         let constant = parseInt(res.notation.constant);
 
                         rolls += res.notation.op + Math.abs(constant);
 
-                        if(res.notation.op == '-') {
-                            total += (total - constant);
-                        } else if (res.notation.op == '*') {
-                            total += (total * constant);
-                        } else if (res.notation.op == '/') {
-                            total += (total / constant);
-                        } else {
-                            total += (total + constant);
+                        switch (res.notation.op) {
+                            case '*': total *= constant; break;
+                            case '/': total = total / constant; break;
+                            case '-': total -= constant; break;
+                            case '+': default: total += constant; break;
                         }
                     }
                     
-                    totals += ''+total;
+                    totals += ' '+total;
                 }
 
                 label.innerHTML = (rolls+'<h2>'+totals+'</h2>');

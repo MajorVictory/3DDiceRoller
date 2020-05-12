@@ -883,7 +883,7 @@ class DiceNotation {
         notationdata = notationdata.split(' ').join(''); // remove spaces
 
         let no = notationdata.split('@');// 0: dice notations, 1: forced results
-        let rollregex = new RegExp(/(\d+|)([a-z]{1}(?:[a-z]{1,4}|\d+)|)(?:([a-z]{1,2})(\d+)|)(?:(\+|\-|\*|\/)(\d+)|){0,1}(\+|\-|\*|\/|$)/, 'i');
+        let rollregex = new RegExp(/(?:(\+|\-|\*|\/|){0,1})(\d+|)([a-z]{1}(?:[a-z]{1,4}|\d+)|)(?:([a-z]{1,4})(\d*)|)/, 'i');
         let resultsregex = new RegExp(/(\b)*(\d+)(\b)*/, 'gi'); // forced results: '1, 2, 3' or '1 2 3'
         let res;
 
@@ -897,23 +897,30 @@ class DiceNotation {
             console.log('notationstring', notationstring);
             console.log(res);
 
-            //remove this notation so we can move on
+            //remove this notation so we can move on next iteration
             notationstring = notationstring.substring(res[0].length);
 
-            let amount = res[1];
-            let type = res[2];
-            let funcname = res[3];
-            let funcargs = res[4];
-            let operator = res[5];
-            let constant = res[6];
-            let nextoperator = res[7];
+            let operator = res[1];
+            let amount = res[2];
+            let type = res[3];
+            let funcname = res[4];
+            let funcargs = res[5];
+            let addset = true;
 
-            this.addSet(amount, type, funcname, funcargs, nextoperator);
+            // if this is true, we have a single operator and constant as the whole notation string
+            // e.g. '+7', '*4', '-2'
+            // in this case, assume a d20 is to be rolled
+            if ((runs == 1 && notationstring.length == 0) && !type) {
+                type = 'd20';
 
-            if (operator && constant) {
+            // in this case, we've got other sets and this is just an ending operator+constant
+            } else if ((runs > 1 && notationstring.length == 0) && !type) {
                 this.op = operator;
-                this.constant = parseInt(constant);
+                this.constant = parseInt(amount);
+                addset = false;
             }
+
+            if (addset) this.addSet(amount, type, funcname, funcargs, operator);
         }
 
         // forced results
@@ -929,13 +936,13 @@ class DiceNotation {
 
         if (this.set.length < 1) return output;
 
-        for(let i = 0, l = this.set.length; i < l; i++){
+        for(let i = 0; i < this.set.length; i++){
             let set = this.set[i];
 
+            output += (i > 0 && set.op) ? set.op : '';
             output += set.num + set.type;
             output += (set.func) ? set.func : '';
             output += (set.arg) ? set.arg : '';
-            output += (i < l && set.nextop) ? set.nextop : '';
         }
 
         output += (this.constant) ? this.op+''+Math.abs(this.constant) : '';
@@ -950,9 +957,7 @@ class DiceNotation {
         return output;
     }
 
-    addSet(amount, type, funcname = '', funcargs = '', nextoperator = '') {
-
-        type = type || 'd20'; //enforce default of d20 is type is null only
+    addSet(amount, type, funcname = '', funcargs = '', operator = '+') {
 
         let diceobj = teal.DiceFactory.get(type);
         if (diceobj == null) { this.error = true; return; }
@@ -961,7 +966,7 @@ class DiceNotation {
 
         // update a previous set if these match
         // has the added bonus of combining duplicate
-        let setkey = type+''+funcname+''+funcargs+''+nextoperator;
+        let setkey = operator+''+type+''+funcname+''+funcargs;
         let update = (this.setkeys[setkey] != null);
 
         let setentry = {};
@@ -971,7 +976,7 @@ class DiceNotation {
             type: '',
             func: '',
             arg: 0,
-            nextop: '',
+            op: '',
         } */
         if (amount > 0) {
 
@@ -979,7 +984,7 @@ class DiceNotation {
             setentry.type = diceobj.type;
             if (funcname) setentry.func = funcname;
             if (funcargs) setentry.arg = funcargs;
-            if (nextoperator) setentry.nextop = nextoperator;
+            if (operator) setentry.op = operator;
 
             if (!update)  {
                 this.setkeys[setkey] = this.set.push(setentry);

@@ -306,6 +306,7 @@
             console.log('i', i, notation.set[i]);
             const diceobj = $t.DiceFactory.get(notation.set[i].type);
             let numdice = notation.set[i].num;
+            let operator = notation.set[i].op;
 
             for(let k = 0; k < numdice; k++){
 
@@ -326,14 +327,14 @@
                     z: 0
                 };
                 var axis = { x: rnd(), y: rnd(), z: rnd(), a: rnd() };
-                vectors.push({ set: diceobj.type, pos: pos, velocity: velocity, angle: angle, axis: axis });
+                vectors.push({ set: diceobj.type, op: operator, pos: pos, velocity: velocity, angle: angle, axis: axis });
             }            
         }
         console.log('vectors', vectors);
         return vectors;
     }
 
-    this.dice_box.prototype.create_dice = function(type, pos, velocity, angle, axis) {
+    this.dice_box.prototype.create_dice = function(type, operator, pos, velocity, angle, axis) {
 
         //cache data
         //$t.dice.cache_misses = 0;
@@ -347,6 +348,7 @@
 
         dicemesh.castShadow = true;
         dicemesh.dice_type = type;
+        dicemesh.dice_operator = operator;
         dicemesh.body = new CANNON.Body({mass: diceobj.mass, shape: dicemesh.geometry.cannon_shape, material: this.dice_body_material});
         dicemesh.body.position.set(pos.x, pos.y, pos.z);
         dicemesh.body.quaternion.setFromAxisAngle(new CANNON.Vec3(axis.x, axis.y, axis.z), axis.a * Math.PI * 2);
@@ -522,7 +524,7 @@
         this.clear();
         this.iteration = 0;
         for (var i in vectors) {
-            this.create_dice(vectors[i].set, vectors[i].pos, vectors[i].velocity, vectors[i].angle, vectors[i].axis);
+            this.create_dice(vectors[i].set, vectors[i].op, vectors[i].pos, vectors[i].velocity, vectors[i].angle, vectors[i].axis);
         }
     }
 
