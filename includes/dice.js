@@ -121,12 +121,12 @@
         this.mouse = new THREE.Vector2();
 
         this.renderer = window.WebGLRenderingContext
-            ? new THREE.WebGLRenderer({ antialias: true })
-            : new THREE.CanvasRenderer({ antialias: true });
+            ? new THREE.WebGLRenderer({ antialias: true, alpha: true })
+            : new THREE.CanvasRenderer({ antialias: true, alpha: true });
         container.appendChild(this.renderer.domElement);
         this.renderer.shadowMap.enabled = true;
         this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-        this.renderer.setClearColor(0xffffff, 1);
+        this.renderer.setClearColor(0x000000, 0);
 
         this.reinit(container, dimentions);
 
@@ -273,8 +273,9 @@
         this.scene.add(this.light);
 
         if (this.desk) this.scene.remove(this.desk);
-        this.desk = new THREE.Mesh(new THREE.PlaneGeometry(this.w * 6, this.h * 6, 1, 1), 
-                new THREE.MeshPhongMaterial({ color: that.desk_color }));
+        let shadowplane = new THREE.ShadowMaterial();
+        shadowplane.opacity = 0.5;
+        this.desk = new THREE.Mesh(new THREE.PlaneGeometry(this.w * 6, this.h * 6, 1, 1), shadowplane);
         this.desk.receiveShadow = that.use_shadows;
         this.scene.add(this.desk);
 
@@ -702,8 +703,12 @@
         this.clear();
         var step = this.w / 4.5;
 
-        this.pane = new THREE.Mesh(new THREE.PlaneGeometry(this.w * 6, this.h * 6, 1, 1), 
-                new THREE.MeshPhongMaterial(that.selector_back_colors));
+        let shadowplane = new THREE.ShadowMaterial();
+        shadowplane.opacity = 0.5;
+
+        //let solidcolorplane = new THREE.MeshPhongMaterial(that.selector_back_colors);
+
+        this.pane = new THREE.Mesh(new THREE.PlaneGeometry(this.w * 6, this.h * 6, 1, 1), shadowplane);
         this.pane.receiveShadow = true;
         this.pane.position.set(0, 0, 1);
         this.scene.add(this.pane);

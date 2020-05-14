@@ -146,6 +146,25 @@ function getTexture(texturename) {
     return {name:'',texture:''};
 }
 
+var THEMES = {
+    'default': {
+        name: 'Default Blue',
+        author: 'MajorVictory',
+    },
+    'blue-felt': {
+        name: 'Blue Felt',
+        author: 'MajorVictory',
+    },
+    'red-felt': {
+        name: 'Red Felt',
+        author: 'MajorVictory',
+    },
+    'green-felt': {
+        name: 'Green Felt',
+        author: 'MajorVictory',
+    }
+};
+
 var COLORSETS = {
     'radiant': {
         name: 'Radiant',
@@ -653,7 +672,7 @@ function applyColorSet(colorset, texture = null, update = true) {
 
 	    if (update) {
 		    $t.selectByValue($t.id('color'), colorset);
-            $t.DiceFavorites.settings['colorset'] = colorset;
+            $t.DiceFavorites.settings.colorset.value = colorset;
 	    }
     }
 
@@ -671,12 +690,12 @@ function applyColorSet(colorset, texture = null, update = true) {
 
         if (update) {
             $t.selectByValue($t.id('texture'), tex.name);
-            $t.DiceFavorites.settings['texture'] = tex.name;
+            $t.DiceFavorites.settings.texture.value = tex.name;
         }
     } else {
         if (update) {
             $t.selectByValue($t.id('texture'), '');
-            $t.DiceFavorites.settings['texture'] = '';
+            $t.DiceFavorites.settings.texture.value = '';
         }
     }
 

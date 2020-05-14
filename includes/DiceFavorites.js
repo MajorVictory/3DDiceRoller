@@ -11,10 +11,11 @@ class DiceFavorites {
 		if (storage == null) return;
 
 		this.settings = {
-			allowDiceOverride: '1',
-			system: 'd20',
-			colorset: 'random',
-			texture: ''
+			allowDiceOverride: { value: '1', default: '1'},
+			system: { value: 'd20', default: 'd20'},
+			colorset: { value: 'random', default: 'random'},
+			texture: { value: '', default: ''},
+			theme: { value: 'blue-felt', default: 'blue-felt'}
 		};
 
 		if (storage.getItem('DiceFavorites') != '1') {
@@ -30,8 +31,8 @@ class DiceFavorites {
 		if (storage == null) return;
 
 		const properties = Object.entries(this.settings);
-		for (const [key, value] of properties) {
-			storage.setItem('DiceFavorites.settings.'+key, value);
+		for (const [key, entry] of properties) {
+			storage.setItem('DiceFavorites.settings.'+key, entry.value);
 		}
 	}
 
@@ -40,8 +41,23 @@ class DiceFavorites {
 		if (storage == null) return;
 
 		const properties = Object.entries(this.settings);
-		for (const [key, value] of properties) {
-			this.settings[key] = storage.getItem('DiceFavorites.settings.'+key);
+		for (const [key, entry] of properties) {
+			console.log('properties', key, entry);
+
+			let value = storage.getItem('DiceFavorites.settings.'+key) || entry.default;
+
+			// happens if old settings info is retrieved with invalid data
+			// set default and save again
+			if (value == undefined || value == null || value == 'null' || value == 'undefined') {
+				value = entry.default;
+				storage.setItem('DiceFavorites.settings.'+key, value);
+			} 
+
+			if (!(typeof this.settings[key] == 'object')) {
+				this.settings[key] = {};
+			}
+
+			this.settings[key].value = value;
 		}
 	}
 
@@ -84,7 +100,10 @@ class DiceFavorites {
 		return storage;
 	}
 
-	create(name, notation = '', colorset = '', texture = '', x = 0, y = 0) {
+	create(name, notation = '', colorset = '', texture = '', x = null, y = null) {
+
+		x = x == null ? (window.innerWidth / 4) : x;
+		y = y == null ? (window.innerHeight / 4) : y;
 
 		let draggable = this.favtemplate.clone(true);
 
@@ -125,6 +144,9 @@ class DiceFavorites {
         	stack: '.fav_draggable',
         	containment: 'window',
         	snapTolerance: 10,
+        	start: function () {
+        		console.log('start drag');
+        	},
         	stop: function() {
         		teal.DiceFavorites.ensureOnScreen();
         		teal.DiceFavorites.store();

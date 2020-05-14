@@ -7,5 +7,3 @@
 @import "./tablet.css" (max-width: 992px);
 @import "./desktop.css" (min-width: 992px) and (max-width: 1200px);
 @import "./desktopbig.css" (min-width: 1200px);*/
-
-@import "./swfonts.css" ;

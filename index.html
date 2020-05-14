@@ -7,7 +7,17 @@
 <meta name="keywords" content="DnD, dangeon and dragons, roleplay, dice, roller, 3D, RPG, wargame"/>
 <meta name="description" content="Online 3D dice roller"/>
 <title>Major's 3D Dice</title>
-<style type="text/css">@import "./includes/css/viewports.css";</style>
+<link rel="stylesheet" type="text/css" href="./includes/themes/default/style.css">
+<script src="./libs/three.min.js"></script>
+<script src="./libs/cannon.js"></script>
+<script type="text/javascript" src="https://code.jquery.com/jquery-3.5.0.min.js"></script>
+<script type="text/javascript" src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
+<script type="text/javascript" src="./libs/jquery.ui.touch-punch.min.js"></script>
+<script type="text/javascript" src="./includes/DiceFavorites.js"></script>
+<script type="text/javascript" src="./includes/DiceFactory.js"></script>
+<script type="text/javascript" src="./includes/teal.js"></script>
+<script type="text/javascript" src="./includes/teal.chat.js"></script>
+<script type="text/javascript" src="./includes/colorsets.js"></script>
 </head>
 <body>
     <input type="hidden" id="parent_notation" value="">
@@ -91,6 +101,18 @@
         </div>
     </div>
 
+    <div id="log" class="teal-chat" style="display: none"></div>
+
+    <div id="fav_container">
+        <fieldset class="fav_draggable">
+            <legend class="fav_name">Attack</legend>
+            <button class="fav_edit" title="Edit Favorite Name">✏️</button><button class="fav_delete" title="Delete Favorite">❌</button><input type="text" class="fav_notation" value="2d20"></input>
+            <button class="fav_throw" title="Throw Dice">🎲</button>
+            <input type="hidden" class="fav_colorset" value=""></input>
+            <input type="hidden" class="fav_texture" value=""></input>
+        </fieldset>
+    </div>
+
     <fieldset id="control_panel_hidden" class="control_panel noselect">
         <div id="control_panel_show" class="control_label" title="Show Settings">⚙️</div>
     </fieldset>
@@ -98,6 +120,9 @@
         <legend>Settings</legend>
         <div id="control_panel_hide" class="control_label" title="Hide Settings">⚙️</div>
         <div class="connection_message control_label" style="color:orange">Loading Textures...</div>
+        <label for="theme" title="Set an overall color theme for the page">Site Theme (reloads page):</label>
+        <select id="theme" name="theme">
+        </select>
         <label for="system" title="Select which type of dice to display">Dice Set:</label>
         <select id="system" name="system">
         </select>
@@ -112,29 +137,6 @@
         <button id="logout" title="Leave Room and Refresh">Logout</button>
     </fieldset>
 
-    <div id="log" class="teal-chat" style="display: none"></div>
-
-    <div id="fav_container">
-        <fieldset class="fav_draggable">
-            <legend class="fav_name">Attack</legend>
-            <button class="fav_edit" title="Edit Favorite Name">✏️</button><button class="fav_delete" title="Delete Favorite">❌</button><input type="text" class="fav_notation" value="2d20"></input>
-            <button class="fav_throw" title="Throw Dice">🎲</button>
-            <input type="hidden" class="fav_colorset" value=""></input>
-            <input type="hidden" class="fav_texture" value=""></input>
-        </fieldset>
-    </div>
-
-    <script src="./libs/three.min.js"></script>
-    <!-- <script src="./libs/cannon.min.js"></script> -->
-    <script src="./libs/cannon.js"></script>
-
-    <script type="text/javascript" src="https://code.jquery.com/jquery-3.5.0.min.js"></script>
-    <script type="text/javascript" src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
-    <script type="text/javascript" src="./includes/DiceFavorites.js"></script>
-    <script type="text/javascript" src="./includes/DiceFactory.js"></script>
-    <script type="text/javascript" src="./includes/teal.js"></script>
-    <script type="text/javascript" src="./includes/teal.chat.js"></script>
-    <script type="text/javascript" src="./includes/colorsets.js"></script>
     <script type="text/javascript" src="./includes/dice.js"></script>
     <script type="text/javascript" src="./includes/login.js"></script>
     <script type="text/javascript" defer="defer">
@@ -154,6 +156,5 @@
             $t.raise_event($t.id('throw'), 'mouseup');
         }
     </script>
-
 </body>
 </html>

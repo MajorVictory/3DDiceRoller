@@ -42,47 +42,61 @@ function preload_and_init() {
     ImageLoader(TEXTURELIST, function(images) {
         diceTextures = images;
 
+        // load theme
+        let themeid = $t.DiceFavorites.settings.theme.value;
+        if (themeid != 'default') {
+            let headelement = document.getElementsByTagName("head")[0];
+            $t.element('link', {rel: 'stylesheet', type: 'text/css', href: './includes/themes/'+themeid+'/style.css'}, headelement);
+        }
+
         // init colorset textures
         initColorSets();
 
-        var systemselect = $t.id('system');
-        var colorselect = $t.id('color');
-        var textureselect = $t.id('texture');
+        // fill in the select box for themes
+        const themeprops = Object.entries(THEMES);
+        for (const [key, value] of themeprops) {
 
+            let attributes = {value: key};
+            if(key == $t.DiceFavorites.settings.theme.value) attributes['selected'] = 'selected';
+            $t.element('option', attributes, $t.id('theme'), value.name);
+        }
+
+        // fill in the select box for dice sets
         const systemprops = Object.entries($t.DiceFactory.systems);
         for (const [key, value] of systemprops) {
 
             let attributes = {value: key};
-            if(key == $t.DiceFavorites.settings['system']) attributes['selected'] = 'selected';
-            $t.element('option', attributes, systemselect, value.name);
+            if(key == $t.DiceFavorites.settings.system.value) attributes['selected'] = 'selected';
+            $t.element('option', attributes, $t.id('system'), value.name);
         }
 
+        // fill in the select box for colorsets
         for(let i = 0, l = COLORCATEGORIES.length; i < l; i++){
-
-            var category = $t.element('optgroup', {label: COLORCATEGORIES[i]}, colorselect, undefined);
-
+            var category = $t.element('optgroup', {label: COLORCATEGORIES[i]}, $t.id('color'), undefined);
             const itemprops = Object.entries(COLORSETS);
             for (const [key, value] of itemprops) {
 
                 if (value.category == COLORCATEGORIES[i]) {
                     let attributes = {value: key};
-                    if(key == $t.DiceFavorites.settings['colorset']) attributes['selected'] = 'selected';
+                    if(key == $t.DiceFavorites.settings.colorset.value) attributes['selected'] = 'selected';
                     $t.element('option', attributes, category, value.name);
                 }
             }
         }
 
+        // fill in the select box for textures
         const itemprops = Object.entries(TEXTURELIST);
         for (const [key, value] of itemprops) {
 
             let attributes = {value: key};
-            if(key == $t.DiceFavorites.settings['texture']) attributes['selected'] = 'selected';
-            $t.element('option', attributes, textureselect, value.name);
+            if(key == $t.DiceFavorites.settings.texture.value) attributes['selected'] = 'selected';
+            $t.element('option', attributes, $t.id('texture'), value.name);
         }
 
+        
         var params = $t.get_url_params();
-        params.colorset = $t.DiceFavorites.settings['colorset'] || params.colorset;
-        params.texture = $t.DiceFavorites.settings['texture'] || params.texture;
+        params.colorset = $t.DiceFavorites.settings.colorset.value || params.colorset;
+        params.texture = $t.DiceFavorites.settings.texture.value || params.texture;
 
         if (params.colorset || params.texture) {
             applyColorSet((params.colorset || 'random'), (params.texture || null));
@@ -111,6 +125,7 @@ function login_initialize(container) {
     var label = $t.id('label');
     var set = $t.id('set');
     var selector_div = $t.id('selector_div');
+    var theme_select = $t.id('theme');
     var system_select = $t.id('system');
     var color_select = $t.id('color');
     var texture_select = $t.id('texture');
@@ -140,6 +155,15 @@ function login_initialize(container) {
     $t.bind(socket_button, 'focus', function(ev) { $t.set(container, { class: '' }); });
     $t.bind(socket_button, 'blur', function(ev) { $t.set(container, { class: 'noselect' }); });
 
+     function on_theme_select_change(ev) {
+        $t.DiceFavorites.settings.theme.value = theme_select.value;
+        $t.DiceFavorites.storeSettings();
+        location.reload();
+    }
+    $t.bind(theme_select, ['keyup','change','touchend'], on_theme_select_change);
+    $t.bind(theme_select, 'focus', function(ev) { $t.set(container, { class: '' }); });
+    $t.bind(theme_select, 'blur', function(ev) { $t.set(container, { class: 'noselect' }); });
+
     function on_system_select_change(ev) {
 
         let systemid = system_select.value;
@@ -151,7 +175,7 @@ function login_initialize(container) {
             $t.dice.selector_dice = Object.keys($t.DiceFactory.dice);
         }
 
-        $t.DiceFavorites.settings['system'] = systemid;
+        $t.DiceFavorites.settings.system.value = systemid;
         $t.DiceFavorites.storeSettings();
 
         if($t.show_selector) $t.show_selector(alldice);
@@ -257,9 +281,9 @@ function login_initialize(container) {
         action_pool['login']({user: 'Yourself'});
     });
 
-    $('#checkbox_allowdiceoverride').prop('checked', $t.DiceFavorites.settings['allowDiceOverride'] == '1');
+    $('#checkbox_allowdiceoverride').prop('checked', $t.DiceFavorites.settings.allowDiceOverride.value == '1');
     $('#checkbox_allowdiceoverride').change(function(event) {
-        $t.DiceFavorites.settings['allowDiceOverride'] = $('#checkbox_allowdiceoverride').prop('checked') ? '1' : '0';
+        $t.DiceFavorites.settings.allowDiceOverride.value = $('#checkbox_allowdiceoverride').prop('checked') ? '1' : '0';
         $t.DiceFavorites.storeSettings();
         if($t.show_selector) $t.show_selector();
     });
@@ -419,15 +443,15 @@ function login_initialize(container) {
         });
 
         function on_set_change(ev) { 
+            if (ev) ev.stopPropagation();
             set.style.width = set.value.length + 3 + 'ex';
 
             if(ev && ev.keyCode && ev.keyCode == 13) {
                 $t.raise_event($t.id('throw'), 'mouseup');
             }
         }
-        $t.bind(set, 'keyup', on_set_change);
-        $t.bind(set, 'mousedown', function(ev) { ev.stopPropagation(); });
-        $t.bind(set, 'mouseup', function(ev) { ev.stopPropagation(); });
+        $t.bind(set, ['mouseup', 'keyup', 'touchend'], on_set_change);
+        $t.bind(set, ['mousedown', 'touchstart'], function(ev) { ev.stopPropagation(); });
         $t.bind(set, 'focus', function(ev) { $t.set(container, { class: '' }); });
         $t.bind(set, 'blur', function(ev) { $t.set(container, { class: 'noselect' }); });
 
@@ -869,30 +893,6 @@ function login_initialize(container) {
                     rolls += '</span>]';
 
                     totals += '<span style="font-family: \'Legion-Symbol-Regular\'">';
-
-                    /*
-                    if (hit == evade) {
-                        hit = 0;
-                        evade = 0;
-                    } else if (hit > evade)  {
-                        hit -= evade;
-                        evade = 0;
-                    } else if (evade > hit) {
-                        evade -= hit;
-                        hit = 0;
-                    }
-
-                    if (critical == evade) {
-                        evade = 0;
-                        critical = 0;
-                    } else if (critical > evade) {
-                        critical -= evade;
-                        evade = 0;
-                    } else if (evade > critical) {
-                        evade -= critical;
-                        critical = 0;
-                    }
-                    */
                     
                     if (atk_hit > 0) totals += 'h'.repeat(Math.max(atk_hit,0));
                     if (atk_crit > 0) totals += 'c'.repeat(Math.max(atk_crit,0));

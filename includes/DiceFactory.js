@@ -422,7 +422,7 @@ class DiceFactory {
 		}
 		if (!geom) return null;
 
-        if (diceobj.colorset && $t.DiceFavorites.settings['allowDiceOverride'] == '1') {
+        if (diceobj.colorset && $t.DiceFavorites.settings.allowDiceOverride.value == '1') {
             this.setMaterialInfo(diceobj.colorset);
         } else {
             this.setMaterialInfo();
