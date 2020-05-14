@@ -441,54 +441,54 @@ var COLORSETS = {
     'swrpg_abi': {
         name: 'Star Wars RPG - Ability',
         category: 'Star Wars™ RPG',
-        foreground: '#000000',
+        foreground: '#00FF00',
         background: ['#3D9238','#52B848','#5EAC56','#9ECB9A'],
-        outline: 'none',
+        outline: '#000000',
         texture: 'cloudy',
         description: 'Star Wars™ RPG Ability Dice'
     },
     'swrpg_pro': {
         name: 'Star Wars RPG - Proficiency',
         category: 'Star Wars™ RPG',
-        foreground: '#000000',
+        foreground: '#FFFF00',
         background: ['#CABB1C','#F9E33B','#FFE900','#F0E49D'],
-        outline: 'none',
+        outline: '#000000',
         texture: 'paper',
         description: 'Star Wars™ RPG Proficiency Dice'
     },
     'swrpg_dif': {
         name: 'Star Wars RPG - Difficulty',
         category: 'Star Wars™ RPG',
-        foreground: '#ffffff',
+        foreground: '#8000FC',
         background: ['#39165F','#664B84','#50247E','#745F88'],
-        outline: 'none',
-        texture: 'speckles',
+        outline: '#000000',
+        texture: 'cloudy',
         description: 'Star Wars™ RPG Difficulty Dice'
     },
     'swrpg_cha': {
         name: 'Star Wars RPG - Challenge',
         category: 'Star Wars™ RPG',
-        foreground: '#ffffff',
+        foreground: '#FF0000',
         background: ['#A91F32','#EB4254','#E51836','#BA3645'],
-        outline: 'none',
-        texture: 'stainedglass',
+        outline: '#000000',
+        texture: 'paper',
         description: 'Star Wars™ RPG Challenge Dice'
     },
     'swrpg_boo': {
         name: 'Star Wars RPG - Boost',
         category: 'Star Wars™ RPG',
-        foreground: '#000000',
+        foreground: '#00FFFF',
         background: ['#4B9DC6','#689FC4','#85CFF2','#8FC0D8'],
-        outline: 'none',
-        texture: 'stars',
+        outline: '#000000',
+        texture: 'glitter',
         description: 'Star Wars™ RPG Boost Dice'
     },
     'swrpg_set': {
         name: 'Star Wars RPG - Setback',
         category: 'Star Wars™ RPG',
-        foreground: '#ffffff',
+        foreground: '#111111',
         background: ['#252223','#241F21','#282828','#111111'],
-        outline: 'none',
+        outline: '#ffffff',
         texture: 'glitter',
         description: 'Star Wars™ RPG Setback Dice'
     },
@@ -497,7 +497,7 @@ var COLORSETS = {
         category: 'Star Wars™ RPG',
         foreground: '#000000',
         background: ['#F3F3F3','#D3D3D3','#BABABA','#FFFFFF'],
-        outline: 'none',
+        outline: '#FFFFFF',
         texture: 'stars',
         description: 'Star Wars™ RPG Force Dice'
     },
