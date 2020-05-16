@@ -162,6 +162,10 @@ var THEMES = {
     'green-felt': {
         name: 'Green Felt',
         author: 'MajorVictory',
+    },
+    'greenscreen': {
+        name: 'Greenscreen',
+        author: 'MajorVictory',
     }
 };
 

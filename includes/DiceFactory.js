@@ -454,6 +454,33 @@ class DiceFactory {
 		return this.dice[type];
 	}
 
+    getValue(dicemesh) {
+
+        const diceobj = this.dice[dicemesh.notation.type];
+
+        let vector = new THREE.Vector3(0, 0, diceobj.shape == 'd4' ? -1 : 1);
+
+        let closest_face, closest_angle = Math.PI * 2;
+        for (let i = 0, l = dicemesh.geometry.faces.length; i < l; ++i) {
+            let face = dicemesh.geometry.faces[i];
+            if (face.materialIndex == 0) continue;
+            let angle = face.normal.clone().applyQuaternion(dicemesh.body.quaternion).angleTo(vector);
+            if (angle < closest_angle) {
+                closest_angle = angle;
+                closest_face = face;
+            }
+        }
+        let matindex = closest_face.materialIndex - 1;
+
+        if (diceobj.shape == 'd4') return {value: matindex, label: '', mesh: dicemesh};
+        if (diceobj.shape == 'd10') matindex += 1;
+
+        let value = diceobj.values[((matindex-1) % diceobj.values.length)];
+        let label = diceobj.labels[(((matindex-1) % (diceobj.labels.length-2))+2)];
+
+        return {value: value, label: label, mesh: dicemesh};
+    }
+
 	getGeometry(type) {
 		return this.geometries[type];
 	}
@@ -928,6 +955,7 @@ class DiceNotation {
         this.error = false;
         this.boost = 1;
         this.notation = notation;
+        this.vectors = [];
 
         let notationdata =  this.notation;
         if (notationdata) {
