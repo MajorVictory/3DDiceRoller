@@ -43,9 +43,15 @@ optgroup {
 }
 
 input, select, button {
-    padding: 3px 15px;
     width: 10em;
     text-align: center;
+    border: solid 2px white;
+    background-color: #c0c0c0;
+    font-family: Trebuchet MS;
+}
+
+textarea {
+    text-align: left;
     border: solid 2px white;
     background-color: #c0c0c0;
     font-family: Trebuchet MS;
@@ -173,6 +179,8 @@ legend {
     font-size: 1em;
     margin-bottom: 5px;
     max-width: 25em;
+    min-width: 5em;
+    padding: 3px 0px;
 }
 
 #clear, #save, #throw, #rage {
@@ -336,7 +344,6 @@ legend {
 }
 
 .teal-chat-input {
-    font-size: 80%;
     font-family: Trebuchet MS;
     height: 2em;
     resize: none;

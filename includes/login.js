@@ -13,7 +13,7 @@ function pack_vectors(vectors) {
     }
     for (var i in vectors) {
         var v = vectors[i];
-        vectors[i] = [v.type, v.op, v.group, v.func, v.args, pack(v.pos), pack(v.velocity), pack(v.angle), pack(v.axis)];
+        vectors[i] = [v.type, v.op, v.group || '', v.func || '', v.args || '', pack(v.pos), pack(v.velocity), pack(v.angle), pack(v.axis)];
     }
 }
 
@@ -423,6 +423,7 @@ function login_initialize(container) {
         desk.style.width = canvas.style.width = w;
         desk.style.height = canvas.style.height = h;
         log.resize(window.innerWidth - 30, hh - 10);
+        if ($t.box) $t.box.setDimensions({ w: 500, h: 300 });
     }
 
     function make_notation_for_log(notation, result) {
@@ -551,7 +552,7 @@ function login_initialize(container) {
 
         $t.bind(window, 'resize', function() {
             resize();
-            box.reinit(canvas, { w: 500, h: 300 });
+            box.setDimensions({ w: 500, h: 300 });
             teal.DiceFavorites.ensureOnScreen();
         });
 

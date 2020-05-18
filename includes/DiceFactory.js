@@ -146,10 +146,18 @@ class DiceFactory {
 		diceobj.scale = 1.2;
         this.register(diceobj);
 
-		diceobj = new DicePreset('d6');
-		diceobj.setLabels(['1', '2', '3', '4', '5', '6']);
-		diceobj.setValues(1,6);
-		diceobj.scale = 0.9;
+        diceobj = new DicePreset('d6');
+        diceobj.setLabels(['1', '2', '3', '4', '5', '6']);
+        diceobj.setValues(1,6);
+        diceobj.scale = 0.9;
+        this.register(diceobj);
+
+        diceobj = new DicePreset('dpip', 'd6');
+        diceobj.setLabels([ '   \n ⬤ \n   ', '⬤  \n   \n  ⬤', '⬤  \n ⬤ \n  ⬤',
+                            '⬤ ⬤\n   \n⬤ ⬤', '⬤ ⬤\n ⬤ \n⬤ ⬤', '⬤ ⬤\n⬤ ⬤\n⬤ ⬤']);
+        diceobj.setValues(1,6);
+        diceobj.scale = 0.9;
+        diceobj.font = 'monospace';
         this.register(diceobj);
 
 		diceobj = new DicePreset('dsex', 'd6');
@@ -498,6 +506,10 @@ class DiceFactory {
         for (var i = 0; i < labels.length; ++i) {
             var mat = new THREE.MeshPhongMaterial(this.material_options);
             mat.map = this.createTextMaterial(diceobj, labels, i, size, margin, this.dice_texture_rand, this.label_color_rand, this.label_outline_rand, this.dice_color_rand)
+            mat.opacity = 1;
+            mat.transparent = true;
+            mat.depthTest = false;
+            mat.needUpdate = true;
             materials.push(mat);
         }
         return materials;
@@ -519,8 +531,10 @@ class DiceFactory {
         }
 
         let canvas = document.createElement("canvas");
-        let context = canvas.getContext("2d");
-        //context.clearRect(0, 0, this.canvas.width, this.canvas.height);
+        let context = canvas.getContext("2d", {alpha: true});
+        context.globalAlpha = 0;
+
+        context.clearRect(0, 0, canvas.width, canvas.height);
         let ts;
 
         if (diceobj.shape == 'd4') {
@@ -531,17 +545,18 @@ class DiceFactory {
 
         canvas.width = canvas.height = ts;
 
-        //create underlying texture
-        if (texture.name != '' && texture.name != 'none') {
-            context.drawImage(texture.texture, 0, 0, canvas.width, canvas.height);
-            context.globalCompositeOperation = 'multiply';
-        } else {
-            context.globalCompositeOperation = 'source-over';
-        }
-
         // create color
         context.fillStyle = backcolor;
         context.fillRect(0, 0, canvas.width, canvas.height);
+
+        //create underlying texture
+        if (texture.name != '' && texture.name != 'none') {
+            context.globalCompositeOperation = texture.composite || 'source-over';
+            context.drawImage(texture.texture, 0, 0, canvas.width, canvas.height);
+            context.globalCompositeOperation = 'source-over';
+        } else {
+            context.globalCompositeOperation = 'source-over';
+        }
 
         // create text
         context.globalCompositeOperation = 'source-over';

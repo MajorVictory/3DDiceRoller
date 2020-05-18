@@ -45,6 +45,7 @@ const DiceBox = (element_container, vector2_dimensions, dice_factory) => {
     let barrier_body_material = new CANNON.Material();
     let sounds_table = {};
     let sounds_dice = [];
+    let animstate = '';
     let iteration;
     let renderer;
     let barrier;
@@ -222,11 +223,19 @@ const DiceBox = (element_container, vector2_dimensions, dice_factory) => {
 
         cameraHeight.medium = cameraHeight.max / 1.5;
         cameraHeight.far = cameraHeight.max;
-        cameraHeight.close = cameraHeight.max;
+        cameraHeight.close = cameraHeight.max / 2;
 
         if (camera) scene.remove(camera);
         camera = new THREE.PerspectiveCamera(20, display.currentWidth / display.currentHeight, 1, cameraHeight.max * 1.3);
-        camera.position.z = cameraHeight.far;
+
+        switch (animstate) {
+            case 'selector':
+                camera.position.z = selector.dice.length > 9 ? cameraHeight.far : (selector.dice.length < 6 ? cameraHeight.close : cameraHeight.medium);
+                break;
+            case 'throw': case 'afterthrow': default: camera.position.z = cameraHeight.far;
+
+        }
+
         camera.lookAt(new THREE.Vector3(0,0,0));
         
         var maxwidth = Math.max(display.containerWidth, display.containerHeight);
@@ -286,12 +295,15 @@ const DiceBox = (element_container, vector2_dimensions, dice_factory) => {
             let func = notationVectors.set[i].func;
             let args = notationVectors.set[i].args;
 
+            console.log('boost', boost, notationVectors.boost);
+
             for(let k = 0; k < numdice; k++){
 
-                vector.x /= dist;
-                vector.y /= dist;
-
                 let vec = vectorRand(vector);
+
+                vec.x /= dist;
+                vec.y /= dist;
+
                 let pos = {
                     x: display.containerWidth * (vec.x > 0 ? -1 : 1) * 0.9,
                     y: display.containerHeight * (vec.y > 0 ? -1 : 1) * 0.9,
@@ -301,7 +313,12 @@ const DiceBox = (element_container, vector2_dimensions, dice_factory) => {
                 let projector = Math.abs(vec.x / vec.y);
                 if (projector > 1.0) pos.y /= projector; else pos.x *= projector;
 
+
                 let velvec = vectorRand(vector);
+
+                velvec.x /= dist;
+                velvec.y /= dist;
+
                 let velocity = { 
                     x: velvec.x * (boost * notationVectors.boost), 
                     y: velvec.y * (boost * notationVectors.boost), 
@@ -320,6 +337,8 @@ const DiceBox = (element_container, vector2_dimensions, dice_factory) => {
                     z: Math.random(), 
                     a: Math.random()
                 };
+
+                console.log('boost', diceobj.type, velocity);
 
                 notationVectors.vectors.push({ 
                     type: diceobj.type, 
@@ -540,6 +559,7 @@ const DiceBox = (element_container, vector2_dimensions, dice_factory) => {
     }
 
     const animateThrow = (threadid, callback, notationVectors) => {
+        animstate = 'throw';
         let time = (new Date()).getTime();
         let time_diff = (time - last_time) / 1000;
         if (time_diff > 3) time_diff = framerate;
@@ -596,6 +616,7 @@ const DiceBox = (element_container, vector2_dimensions, dice_factory) => {
     public_interface['animateThrow'] = animateThrow;
 
     const animateAfterThrow = (threadid) => {
+        animstate = 'afterthrow';
         let time = (new Date()).getTime();
         let time_diff = (time - last_time) / 1000;
         if (time_diff > 3) time_diff = framerate;
@@ -651,6 +672,7 @@ const DiceBox = (element_container, vector2_dimensions, dice_factory) => {
     public_interface['animateAfterThrow'] = animateAfterThrow;
 
     const animateSelector = (threadid) => {
+        animstate = 'selector';
         let time = (new Date()).getTime();
         let time_diff = (time - last_time) / 1000;
         if (time_diff > 3) time_diff = framerate;
@@ -748,7 +770,7 @@ const DiceBox = (element_container, vector2_dimensions, dice_factory) => {
         }
 
         let selectordice = alldice ? Object.keys(dicefactory.dice) : selector.dice;
-        camera.position.z = selectordice.length > 9 ? cameraHeight.far : cameraHeight.close;
+        camera.position.z = selectordice.length > 9 ? cameraHeight.far : (selectordice.length < 3 ? cameraHeight.close : cameraHeight.medium);
         let posxstart = selectordice.length > 9 ? -4 : (selectordice.length < 3 ? -0.5 : -1);
         let posystart = selectordice.length > 9 ? 1.5 : (selectordice.length < 4 ? 0 : 1);
         let poswrap = selectordice.length > 9 ? 4 : (selectordice.length < 4 ? 2 : 1);

@@ -31,78 +31,102 @@ function ImageLoader(sources, callback) {
 const TEXTURELIST = {
     'cloudy': {
         name: 'Clouds',
+        composite: 'destination-in',
         source: './textures/cloudy.png'
     },
     'fire': {
         name: 'Fire',
+        composite: 'multiply',
         source: './textures/fire.png'
     },
     'marble': {
         name: 'Marble',
+        composite: 'multiply',
         source: './textures/marble.png'
     },
     'water': {
         name: 'Water',
+        composite: 'destination-in',
         source: './textures/water.png'
     },
     'ice': {
         name: 'Ice',
+        composite: 'destination-in',
         source: './textures/ice.png'
     },
     'paper': {
         name: 'Paper',
+        composite: 'multiply',
         source: './textures/paper.png'
     },
     'speckles': {
         name: 'Speckles',
+        composite: 'multiply',
         source: './textures/speckles.png'
     },
     'glitter': {
         name: 'Glitter',
+        composite: 'multiply',
         source: './textures/glitter.png'
+    },
+    'glitter_2': {
+        name: 'Glitter (Transparent)',
+        composite: 'destination-in',
+        source: './textures/glitter-alpha.png'
     },
     'stars': {
         name: 'Stars',
+        composite: 'multiply',
         source: './textures/stars.png'
     },
     'stainedglass': {
         name: 'Stained Glass',
+        composite: 'multiply',
         source: './textures/stainedglass.png'
     },
     'skulls': {
         name: 'Skulls',
+        composite: 'multiply',
         source: './textures/skulls.png'
     },
     'leopard': {
         name: 'Leopard',
+        composite: 'multiply',
         source: './textures/leopard.png'
     },
     'tiger': {
         name: 'Tiger',
+        composite: 'multiply',
         source: './textures/tiger.png'
     },
     'cheetah': {
         name: 'Cheetah',
+        composite: 'multiply',
         source: './textures/cheetah.png'
     },
     'astral': {
         name: 'Astral Sea',
+        composite: 'multiply',
         source: './textures/astral.png'
     },
     'acleaf': {
         name: 'AC Leaf',
+        composite: 'multiply',
         source: './textures/acleaf.png'
     },
     'thecage': {
         name: 'Nicholas Cage',
+        composite: 'multiply',
         source: './textures/thecage.png'
     },
     'isabelle': {
         name: 'Isabelle',
+        composite: 'source-over',
         source: './textures/isabelle.png'
     },
     'none': {
         name: 'None',
+        composite: 'source-over',
         source: ''
     },
     '': {
@@ -129,7 +153,7 @@ function getTexture(texturename) {
     }
 
     if (texturename == 'none') {
-        return {name:'none',texture:''};
+        return {name:'none',texture:'',};
     }
 
     if(texturename == 'random') {
@@ -141,7 +165,7 @@ function getTexture(texturename) {
     }
 
     if (diceTextures[texturename] != null) {
-        return { name: texturename, texture: diceTextures[texturename] };
+        return { name: texturename, texture: diceTextures[texturename], composite: TEXTURELIST[texturename].composite };
     }
     return {name:'',texture:''};
 }
