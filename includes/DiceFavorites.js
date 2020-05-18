@@ -12,6 +12,9 @@ class DiceFavorites {
 
 		this.settings = {
 			allowDiceOverride: { value: '1', default: '1'},
+			shadows: { value: '1', default: '1'},
+			sounds: { value: '1', default: '1'},
+			volume: { value: '100', default: '100'},
 			system: { value: 'd20', default: 'd20'},
 			colorset: { value: 'random', default: 'random'},
 			texture: { value: '', default: ''},

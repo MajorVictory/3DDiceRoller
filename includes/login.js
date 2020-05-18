@@ -302,6 +302,49 @@ function login_initialize(container) {
         if($t.show_selector) $t.show_selector();
     });
 
+    $('#checkbox_shadows').prop('checked', $t.DiceFavorites.settings.shadows.value == '1');
+    $('#checkbox_shadows').change(function(event) {
+        $t.DiceFavorites.settings.shadows.value = $('#checkbox_shadows').prop('checked') ? '1' : '0';
+        $t.DiceFavorites.storeSettings();
+        if($t.show_selector && $t.box) {
+
+            if ($t.DiceFavorites.settings.shadows.value == '1') {
+                $t.box.enableShadows();
+            } else {
+                $t.box.disableShadows();
+            }
+            $t.show_selector();
+        }
+    });
+
+    $('#checkbox_sounds').prop('checked', $t.DiceFavorites.settings.sounds.value == '1');
+    $('#checkbox_sounds').change(function(event) {
+        $t.DiceFavorites.settings.sounds.value = $('#checkbox_sounds').prop('checked') ? '1' : '0';
+        $t.DiceFavorites.storeSettings();
+        if($t.box) $t.box.sounds = $t.DiceFavorites.settings.sounds.value == '1';
+    });
+
+    let volume_handle = $( "#volume_handle" );
+    $('#volume_slider').slider({
+        range: 'min',
+        min: 0,
+        max: 100,
+        value: $t.DiceFavorites.settings.volume.value,
+        create: function() {
+            volume_handle.text($(this).slider("value"));
+            if($t.box) $t.box.volume = parseInt(ui.value);
+        },
+        slide: function(event, ui) {
+            volume_handle.text(ui.value);
+            $t.DiceFavorites.settings.volume.value = ui.value;
+            if($t.box) $t.box.volume = parseInt(ui.value);
+        },
+        stop: function(event, ui) {
+            $t.DiceFavorites.storeSettings();
+            if($t.box) $t.box.volume = parseInt(ui.value);
+        }
+    });
+
     function connect_socket(reopen, callback) {
         if (reopen && $t.socket && $t.socket.readyState <= WebSocket.OPEN) {
             $t.socket.close();
@@ -491,6 +534,8 @@ function login_initialize(container) {
 
         box.initialize();
         $t.box = box;
+        $t.box.volume = parseInt($t.DiceFavorites.settings.volume.value);
+        $t.box.sounds = $t.DiceFavorites.settings.sounds.value == '1';
 
         $t.bind(container, ['mousedown', 'touchstart'], function(ev) {
 

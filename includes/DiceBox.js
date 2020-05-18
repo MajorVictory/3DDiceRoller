@@ -6,7 +6,6 @@ const DiceBox = (element_container, vector2_dimensions, dice_factory) => {
 	let container = element_container;
 	let dimensions = vector2_dimensions;
     let dicefactory = dice_factory;
-	let clientid = -1;
 
 	let adaptive_timestep = false;
     let last_time = 0;
@@ -29,11 +28,18 @@ const DiceBox = (element_container, vector2_dimensions, dice_factory) => {
         startDragTime: undefined
     }
 
+    let cameraHeight = {
+        max: null,
+        close: null,
+        medium: null,
+        far: null
+    };
+
     let scene = new THREE.Scene();
     let world = new CANNON.World();
     let raycaster = new THREE.Raycaster();
     let rayvisual = null;
-    let showdebugtracer = true;
+    let showdebugtracer = false;
     let dice_body_material = new CANNON.Material();
     let desk_body_material = new CANNON.Material();
     let barrier_body_material = new CANNON.Material();
@@ -50,25 +56,17 @@ const DiceBox = (element_container, vector2_dimensions, dice_factory) => {
     //public variables
     let public_interface = {};
 
-    let cameraHeight = {
-        max: null,
-        close: null,
-        medium: null,
-        far: null
-    };
-    public_interface['cameraHeight'] = cameraHeight; //register as 'public'
-
     let diceList = []; //'private' variable
     public_interface['diceList'] = diceList; //register as 'public'
-
-    let clientID = -1;
-    public_interface['clientID'] = clientID;
 
     let framerate = (1/60);
     public_interface['framerate'] = framerate;
 
     let sounds = true;
     public_interface['sounds'] = sounds;
+
+    let volume = 100;
+    public_interface['volume'] = volume;
 
     let selector = {
         animate: true,
@@ -112,10 +110,17 @@ const DiceBox = (element_container, vector2_dimensions, dice_factory) => {
             }
         }
 
-
         for (let i=1; i <= 10; ++i) {
             sounds_dice.push(new Audio('./sounds/dicehit'+i+'.wav'));
         }
+        console.log('volume', volume);
+        console.log('$t.DiceFavorites.settings.volume.value', $t.DiceFavorites.settings.volume.value);
+
+        sounds = $t.DiceFavorites.settings.sounds.value == '1';
+        volume = parseInt($t.DiceFavorites.settings.volume.value);
+        shadows = $t.DiceFavorites.settings.shadows.value == '1';
+
+        console.log('volume', volume);
 
         renderer = window.WebGLRenderingContext
             ? new THREE.WebGLRenderer({ antialias: true, alpha: true })
@@ -210,7 +215,6 @@ const DiceBox = (element_container, vector2_dimensions, dice_factory) => {
         }
         display.aspect = Math.min(display.currentWidth / display.containerWidth, display.currentHeight / display.containerHeight);
         display.scale = Math.sqrt(display.containerWidth * display.containerWidth + display.containerHeight * display.containerHeight) / 13;
-
 
         renderer.setSize(display.currentWidth * 2, display.currentHeight * 2);
 
@@ -433,6 +437,7 @@ const DiceBox = (element_container, vector2_dimensions, dice_factory) => {
         dicemesh.notation = vectordata;
         dicemesh.result = {value: undefined,label:''};
         dicemesh.stopped = false;
+        dicemesh.castShadow = shadows;
         dicemesh.body = new CANNON.Body({mass: diceobj.mass, shape: dicemesh.geometry.cannon_shape, material: dice_body_material});
         dicemesh.body.position.set(vectordata.pos.x, vectordata.pos.y, vectordata.pos.z);
         dicemesh.body.quaternion.setFromAxisAngle(new CANNON.Vec3(vectordata.axis.x, vectordata.axis.y, vectordata.axis.z), vectordata.axis.a * Math.PI * 2);
@@ -442,7 +447,7 @@ const DiceBox = (element_container, vector2_dimensions, dice_factory) => {
         dicemesh.body.angularDamping = 0.1;
 
         dicemesh.body.addEventListener('collide', function(e) {
-            if (!sounds) return;
+            if (!$t.box.sounds) return;
 
             if (e.body.mass > 0) { // dice to dice collision
                 let speed = e.body.velocity.length();
@@ -454,7 +459,7 @@ const DiceBox = (element_container, vector2_dimensions, dice_factory) => {
                 strength = Math.max(Math.min(speed / (high-low), 1), strength);
 
                 let sound = sounds_dice[Math.floor(Math.random() * sounds_dice.length)];
-                sound.volume = strength;
+                sound.volume = (strength * ($t.box.volume/100));
                 sound.play();
 
             } else { // dice to table collision
@@ -467,9 +472,9 @@ const DiceBox = (element_container, vector2_dimensions, dice_factory) => {
                 let low = 250;
                 strength = Math.max(Math.min(speed / (high-low), 1), strength);
 
-                let sounds = sounds_table[surface];
-                let sound = sounds[Math.floor(Math.random() * sounds.length)];
-                sound.volume = strength;
+                let soundlist = sounds_table[surface];
+                let sound = soundlist[Math.floor(Math.random() * soundlist.length)];
+                sound.volume = (strength * ($t.box.volume/100));
                 sound.play();
             }
         });
@@ -728,13 +733,16 @@ const DiceBox = (element_container, vector2_dimensions, dice_factory) => {
         clearDice();
         let step = display.containerWidth / 5;
 
+
+        renderer.shadowMap.enabled = shadows;
+
         if (pane) scene.remove(pane);
         if (shadows) {
             let shadowplane = new THREE.ShadowMaterial();
             shadowplane.opacity = 0.5;
 
             pane = new THREE.Mesh(new THREE.PlaneGeometry(display.containerWidth * 6, display.containerHeight * 6, 1, 1), shadowplane);
-            pane.receiveShadow = true;
+            pane.receiveShadow = shadows;
             pane.position.set(0, 0, 1);
             scene.add(pane);
         }

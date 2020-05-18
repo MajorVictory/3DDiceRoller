@@ -55,7 +55,7 @@ input[type="checkbox"] {
     width: 1em; 
 }
 
-input:hover, select:hover, button:hover {
+input:hover, select:hover, button:hover, .ui-slider-handle:hover {
     border-color: #9794ff;
 }
 
@@ -91,6 +91,32 @@ fieldset {
 legend {
     font-size: 1.5em;
     margin: 0px auto;
+}
+
+.ui-slider {
+    border: 1px solid white;
+    position: relative;
+    background: #c0c0c0;
+    text-align: left;
+    margin: 20px;
+}
+
+.ui-slider-handle {
+    position: absolute;
+    width: 1.5em;
+    height: 1em;
+    top: 50%;
+    margin-top: -0.8em;
+    margin-left: -1em;
+    padding: 3px 5px;
+    text-align: center;
+    border: solid 2px white;
+    color: #000000;
+    background-color: #c0c0c0;
+    font-family: Trebuchet MS;
+    font-size: 1em;
+    line-height: 1em;
+    cursor: pointer;
 }
 
 #svg *, .svg * {
@@ -405,7 +431,6 @@ legend {
 
 #control_panel_shown div {
     font-size: 12pt;
-    margin-top: 0.3em;
     font-family: Trebuchet MS;
 }
 
