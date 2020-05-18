@@ -13,7 +13,7 @@ function pack_vectors(vectors) {
     }
     for (var i in vectors) {
         var v = vectors[i];
-        vectors[i] = [v.set, pack(v.pos), pack(v.velocity), pack(v.angle), pack(v.axis)];
+        vectors[i] = [v.type, v.op, v.group, v.func, v.args, pack(v.pos), pack(v.velocity), pack(v.angle), pack(v.axis)];
     }
 }
 
@@ -28,7 +28,17 @@ function unpack_vectors(vectors) {
     }
     for (var i in vectors) {
         var v = vectors[i];
-        vectors[i] = { set: v[0], pos: unpack(v[1]), velocity: unpack(v[2]), angle: unpack(v[3]), axis: unpack(v[4]) };
+        vectors[i] = { 
+                    type: v[0], 
+                    op: v[1],
+                    group: v[2], 
+                    func: v[3], 
+                    args: v[4], 
+                    pos: unpack(v[5]), 
+                    velocity: unpack(v[6]), 
+                    angle: unpack(v[7]), 
+                    axis: unpack(v[8])
+                };
     }
 }
 
@@ -41,6 +51,8 @@ function set_connection_message(text, color = 'orange') {
 function preload_and_init() {
     ImageLoader(TEXTURELIST, function(images) {
         diceTextures = images;
+
+        $t.DiceFavorites.favtemplate = $('.fav_draggable');
 
         // load theme
         let themeid = $t.DiceFavorites.settings.theme.value;
@@ -118,7 +130,8 @@ function preload_and_init() {
 }
 
 function login_initialize(container) {
-    var cid, user, room;
+    let cid = -1;
+    var user, room;
     var connection_error_text = "connection error, please reload the page";
     var box;
     var canvas = $t.id('canvas');
@@ -134,6 +147,7 @@ function login_initialize(container) {
     var desk = $t.id('desk');
     var log = new $t.chat.chat_box($t.id('log'));
     var deskrolling = false;
+    var diceset = [];
 
     $t.hidden(desk, true);
     show_waitform(false);
@@ -170,9 +184,9 @@ function login_initialize(container) {
         let alldice = (systemid == 'all');
 
         if (!alldice) {
-            $t.dice.selector_dice = $t.DiceFactory.systems[systemid].dice;
+            diceset = $t.DiceFactory.systems[systemid].dice;
         } else {
-            $t.dice.selector_dice = Object.keys($t.DiceFactory.dice);
+            diceset = Object.keys($t.DiceFactory.dice);
         }
 
         $t.DiceFavorites.settings.system.value = systemid;
@@ -374,7 +388,7 @@ function login_initialize(container) {
         var res = $t.element('span');
 
         res.innerHTML = (notation.result.length ? ' (preset result)' : '');
-        res.innerHTML += '<span class="chat-notation">'+$t.dice.stringify_notation(notation) + (notation.result.length ? ' (preset result)' : '')+'</span>';
+        res.innerHTML += '<span class="chat-notation">'+notation.stringify() + (notation.result.length ? ' (preset result)' : '')+'</span>';
         res.innerHTML += '<span class="chat-notation-result">'+(result ? ' → ' + result : ' ...')+'</span>';
 
         return res;
@@ -409,7 +423,6 @@ function login_initialize(container) {
         setSaveButtonText();
 
         $t.bind($t.id('save'), ['mouseup', 'touchend'], function(ev) {
-            ev.stopPropagation();
 
             let names = [
                 '👊 Melee',
@@ -435,11 +448,11 @@ function login_initialize(container) {
             ];
 
             let name = prompt('Set Name for Favorite', names[Math.floor(Math.random() * names.length)]);
-
-            teal.DiceFavorites.create(name, set.value, color_select.value, texture_select.value, ev.pageX, ev.pageY);
-            teal.DiceFavorites.store();
+            $t.DiceFavorites.create(name, set.value, color_select.value, texture_select.value, ev.pageX, ev.pageY);
+            $t.DiceFavorites.store();
 
             setSaveButtonText();
+            ev.stopPropagation();
         });
 
         function on_set_change(ev) { 
@@ -457,6 +470,7 @@ function login_initialize(container) {
 
         $t.bind($t.id('rage'), ['mouseup', 'touchend'], function(ev) {
             ev.stopPropagation();
+            ev.preventDefault();
             let rage = 0;
             // count '!'
             for(let i = 0, l = set.value.length; i < l; i++){
@@ -471,41 +485,16 @@ function login_initialize(container) {
             on_set_change();
         });
 
-        box = new $t.dice.dice_box(canvas, { w: 500, h: 300 });
-        box.use_adaptive_timestep = false;
+        box = DiceBox(canvas, { w: 500, h: 300 }, $t.DiceFactory);
+
+        box.selector.dice = ['df', 'd4', 'd6', 'd8', 'd10', 'd100', 'd12', 'd20'];
+
+        box.initialize();
         $t.box = box;
 
-        box.bind_mouse(container, notation_getter, before_roll);
-        box.bind_throw($t.id('throw'), notation_getter, before_roll);
+        $t.bind(container, ['mousedown', 'touchstart'], function(ev) {
 
-        $t.bind(container, ['mouseup', 'touchend'], function(ev) {
-            ev.stopPropagation();
-
-            // if total display is up and dice aren't rolling, reset the selector
-            if (info_div.style.display != 'none') {
-                if (!box.rolling) show_selector();
-                return;
-            }
-
-            // otherwise, select dice
-            let name = box.search_dice_by_mouse(ev);
-            if (name) {
-                let notation = $t.dice.parse_notation(set.value);
-
-                let shift = (ev && ev.shiftKey);
-                let ctrl = (ev && ev.ctrlKey);
-                let leftclick = (ev && ev.button == 0);
-
-                let op = '+';
-                if (ctrl && leftclick) op = '*';
-                if (shift && leftclick) op = '/';
-                if (ctrl && shift && leftclick) op = '-';
-
-                notation.addSet(1, name, '', '', op);
-
-                set.value = $t.dice.stringify_notation(notation);
-                on_set_change();
-            }
+            box.startDragThrow(ev);
         });
 
         if (params.notation) {
@@ -522,19 +511,19 @@ function login_initialize(container) {
         });
 
         function close() {
-            if (cid) {
+            if (cid && $t.socket) {
                 $t.rpc({ method: 'logout', cid: cid });
                 $t.socket.close();
             }
         }
-        $t.bind(window, 'beforeunload', close);
-        window.onbeforeunload = close;
-        window.onunload = close;
 
         $t.bind($t.id('logout'), 'click', function() {
             close();
             location.reload();
         });
+        $t.bind(window, 'beforeunload', close);
+        window.onbeforeunload = close;
+        window.onunload = close;
 
         function show_selector() {
 
@@ -544,38 +533,51 @@ function login_initialize(container) {
             selector_div.style.display = 'block';
             $t.id('sethelp').style.display = 'block';
             deskrolling = false;
+
             applyColorSet(color_select.value, (texture_select.value || null));
-            box.alldice = params.alldice;
-            box.draw_selector((params.alldice && params.alldice == '1'));
+
+            box.selector.dice = diceset;
+            box.showSelector((params.alldice && params.alldice == '1'));
         }
 
         $t.show_selector = show_selector;
 
-        function before_roll(vectors, notation, callback) {
+
+        function sendNetworkedRoll(notationVectors) {
+
             label.innerHTML = log.own_user+' is Rolling...';
             info_div.style.display = 'block';
             $t.id('sethelp').style.display = 'none';
             deskrolling = true;
             set_connection_message('');
             show_waitform(true);
-            box.clear();
-            var time = new Date().getTime();
-            log.add_unconfirmed_message(log.own_user, make_notation_for_log(notation),
-                    time, log.roll_uuid = $t.uuid());
+
+            let time = new Date().getTime();
+            log.add_unconfirmed_message(log.own_user, make_notation_for_log(notationVectors.notation), time, log.roll_uuid = $t.uuid());
 
             if ($t.offline) {
-                action_pool['roll']({ method: 'roll', user: log.own_user, cid: cid, vectors: vectors, notation: notation, time: time, colorset: color_select.value, texture: texture_select.value });
+                action_pool['roll']({ 
+                    method: 'roll',
+                    user: log.own_user,
+                    cid: cid,
+                    time: time,
+                    notation: notationVectors.notation,
+                    vectors: notationVectors.vectors,
+                    colorset: color_select.value,
+                    texture: texture_select.value
+                });
 
             } else {
                 try {
-                    pack_vectors(vectors);
+                    pack_vectors(notationVectors.vectors);
 
-                    $t.rpc({ method: 'roll', cid: cid, vectors: vectors, notation: notation, time: time },
-                    function(response) {
-                        if (response.method != 'roll') return;
-                        if (response && response.error) set_connection_message(response.error, 'red');
-                        show_waitform(false);
-                        callback();
+                    $t.rpc({ 
+                        method: 'roll',
+                        user: log.own_user,
+                        cid: cid,
+                        time: time,
+                        notation: notationVectors.notation,
+                        vectors: notationVectors.vectors
                     });
                 }
                 catch (e) {
@@ -586,16 +588,61 @@ function login_initialize(container) {
             }
         }
 
-        function notation_getter() {
-            return $t.dice.parse_notation(set.value);
-        }
+        $t.bind(container, ['mouseup', 'touchend'], function(ev) {
+            let notationVectors = box.endDragThrow(ev, $t.id('set').value);
+
+            if (!notationVectors || notationVectors.error) {
+
+                // if total display is up and dice aren't rolling, reset the selector
+                if (info_div.style.display != 'none') {
+                    if (!box.rolling) show_selector();
+                    return;
+                }
+
+                // otherwise, select dice
+                let name = box.getDiceAtMouse(ev);
+                if (name) {
+                    let notation = new DiceNotation(set.value);
+
+                    let shift = (ev && ev.shiftKey);
+                    let ctrl = (ev && ev.ctrlKey);
+                    let leftclick = (ev && ev.button == 0);
+
+                    let op = '+';
+                    if (ctrl && leftclick) op = '*';
+                    if (shift && leftclick) op = '/';
+                    if (ctrl && shift && leftclick) op = '-';
+
+                    notation.addSet(1, name, '', '', op);
+
+                    set.value = notation.stringify();
+                    on_set_change();
+                }
+
+            } else {
+                sendNetworkedRoll(notationVectors);
+            }
+        });
+
+        $t.bind($t.id('throw'), ['mouseup', 'touchend'], function(ev) {
+            ev.preventDefault();
+            ev.stopPropagation();
+            let notationVectors = box.startClickThrow($t.id('set').value);
+            if (!notationVectors || notationVectors.error) return;
+
+            sendNetworkedRoll(notationVectors);
+        });
 
         log.bind_send(function(text) {
-            var notation = $t.dice.parse_notation(text);
+            var notation = new DiceNotation(text);
             var uuid = $t.uuid();
             if (notation.set.length && !notation.error) {
                 set.value = text;
-                box.start_throw(function() { return notation; }, before_roll);
+                let notationVectors = box.startClickThrow(notation);
+
+                if (!notationVectors || notationVectors.error) return;
+
+                sendNetworkedRoll(notationVectors);
             }
             else {
                 if (text.length > 1) {
@@ -641,8 +688,7 @@ function login_initialize(container) {
             set_connection_message(' ');
         },
         userlist: function(res) {
-            var f = $t.id('label_players');
-            f.innerHTML = res.room + ': ' + res.list.join(', ');
+            $t.id('label_players').innerHTML = res.room + ': ' + res.list.join(', ');
             log.add_info(res.user + ' has ' + { 'add': 'joined', 'del': 'left' }[res.act] + ' the room');
         },
         roll: function(res) {
@@ -653,13 +699,23 @@ function login_initialize(container) {
 
             label.innerHTML = res.user+' is Rolling...';
             info_div.style.display = 'block';
-            //selector_div.style.display = 'none';
             deskrolling = true;
+
             if (res.colorset.length > 0 || res.texture.length > 0) applyColorSet(res.colorset, res.texture, false);
-            box.clear();
-            box.rolling = true;
+
             if (!$t.offline) unpack_vectors(res.vectors);
-            box.roll(res.vectors, res.notation.result, function(result) {
+
+            let notationVectors = new DiceNotation(res.notation);
+            notationVectors.vectors = res.vectors;
+
+            box.rollDice(notationVectors, function(notationVectors) {
+
+
+                console.log('after roll - notationVectors', notationVectors);
+
+                let resultDice = $t.box.diceList;
+
+                console.log('Roll Finished', resultDice);
 
                 let numberdicevalues = [];
                 let numberdiceoperators = [];
@@ -670,29 +726,29 @@ function login_initialize(container) {
                 let legiondice = [];
 
                 // split up results between nubmer and symbol dice
-                for(let i = 0; i < result.dice.length; i++){
+                for(let i = 0; i < resultDice.length; i++){
 
-                    let dicemesh = result.dice[i];
-                    let diceobj =  $t.DiceFactory.get(dicemesh.dice_type);
-                    let operator = dicemesh.dice_operator;
+                    let dicemesh = resultDice[i];
+                    let diceobj =  $t.DiceFactory.get(dicemesh.notation.type);
+                    let operator = dicemesh.notation.op;
 
                     if (diceobj.system == 'swrpg') {
-                        swrpgdice.push(result.labels[i]);
+                        swrpgdice.push(dicemesh.result.label);
                     } else if (diceobj.system == 'swarmada') {
-                        swarmadadice.push(result.labels[i]);
+                        swarmadadice.push(dicemesh.result.label);
                     } else if (diceobj.system == 'xwing') {
-                        xwingdice.push(result.labels[i]);
+                        xwingdice.push(dicemesh.result.label);
                     } else if (diceobj.system == 'legion') {
-                        legiondice.push(result.labels[i]);
+                        legiondice.push(dicemesh.result.label);
                     } else if (diceobj.system == 'd20') {
                         numberdiceoperators.push(operator);
-                        numberdicevalues.push(result.values[i]);
+                        numberdicevalues.push(dicemesh.result.value);
                     } else {
                         if (diceobj.display == 'labels') {
-                            labeldicevalues.push(result.labels[i]);
+                            labeldicevalues.push(dicemesh.result.label);
                         } else if (diceobj.display == 'values') {
                             numberdiceoperators.push(operator);
-                            numberdicevalues.push(result.values[i]);
+                            numberdicevalues.push(dicemesh.result.value);
                         }
                     }
                 }
@@ -947,12 +1003,12 @@ function login_initialize(container) {
 
                     rolls += ']';
 
-                    if (res.notation.constant != '') {
-                        let constant = parseInt(res.notation.constant);
+                    if (notationVectors.constant != '') {
+                        let constant = parseInt(notationVectors.constant);
 
-                        rolls += res.notation.op + Math.abs(constant);
+                        rolls += notationVectors.op + Math.abs(constant);
 
-                        switch (res.notation.op) {
+                        switch (notationVectors.op) {
                             case '*': total *= constant; break;
                             case '/': total = total / constant; break;
                             case '-': total -= constant; break;

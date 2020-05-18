@@ -945,7 +945,6 @@ class DiceNotation {
         if (typeof notation == 'object') {
             notation = notation.notation;
         }
-        if (!notation || notation =='0') notation = '';
 
         this.set = [];
         this.setkeys = [];
@@ -956,8 +955,13 @@ class DiceNotation {
         this.boost = 1;
         this.notation = notation;
         this.vectors = [];
+        this.owner = -1;
 
-        let notationdata =  this.notation;
+        if (!notation || notation =='0') {
+            this.error = true;
+        }
+
+        let notationdata = this.notation;
         if (notationdata) {
             let rage = (notationdata.split('!').length-1) || 0;
             if (rage > 0) {
@@ -1028,7 +1032,7 @@ class DiceNotation {
             output += (i > 0 && set.op) ? set.op : '';
             output += set.num + set.type;
             output += (set.func) ? set.func : '';
-            output += (set.arg) ? set.arg : '';
+            output += (set.args) ? set.args : '';
         }
 
         output += (this.constant) ? this.op+''+Math.abs(this.constant) : '';
@@ -1069,7 +1073,7 @@ class DiceNotation {
             setentry.num = update ? (amount + setentry.num) : amount;
             setentry.type = diceobj.type;
             if (funcname) setentry.func = funcname;
-            if (funcargs) setentry.arg = funcargs;
+            if (funcargs) setentry.args = funcargs;
             if (operator) setentry.op = operator;
 
             if (!update)  {

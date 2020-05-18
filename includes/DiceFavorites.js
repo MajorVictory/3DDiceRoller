@@ -4,7 +4,7 @@
 class DiceFavorites {
 
 	constructor() {
-		this.favtemplate = $('.fav_draggable');
+		this.favtemplate = null;
 		this.savetimeout = null;
 
 		let storage = this.getStorage();
@@ -42,7 +42,6 @@ class DiceFavorites {
 
 		const properties = Object.entries(this.settings);
 		for (const [key, entry] of properties) {
-			console.log('properties', key, entry);
 
 			let value = storage.getItem('DiceFavorites.settings.'+key) || entry.default;
 
@@ -145,7 +144,7 @@ class DiceFavorites {
         	containment: 'window',
         	snapTolerance: 10,
         	start: function () {
-        		console.log('start drag');
+        		//console.log('start drag');
         	},
         	stop: function() {
         		teal.DiceFavorites.ensureOnScreen();

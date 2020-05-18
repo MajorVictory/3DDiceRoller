@@ -11,6 +11,7 @@ const DiceBox = (element_container, vector2_dimensions, dice_factory) => {
 	let adaptive_timestep = false;
     let last_time = 0;
     let running = false;
+    let rolling = false;
     let threadid;
 
     let display = {
@@ -18,25 +19,26 @@ const DiceBox = (element_container, vector2_dimensions, dice_factory) => {
         currentHeight: null,
         containerWidth: null,
         containerHeight: null,
-    	ascpect: null,
+    	aspect: null,
     	scale: null
     };
 
-    let cameraHeight = {
-        close: null,
-    	medium: null,
-    	far: null
-    };
+    let mouse = {
+        pos: new THREE.Vector2(),
+        startDrag: undefined,
+        startDragTime: undefined
+    }
 
     let scene = new THREE.Scene();
     let world = new CANNON.World();
     let raycaster = new THREE.Raycaster();
     let rayvisual = null;
-    let showdebugtracer = false;
-    let mouse = new THREE.Vector2();
+    let showdebugtracer = true;
     let dice_body_material = new CANNON.Material();
     let desk_body_material = new CANNON.Material();
     let barrier_body_material = new CANNON.Material();
+    let sounds_table = {};
+    let sounds_dice = [];
     let iteration;
     let renderer;
     let barrier;
@@ -48,7 +50,15 @@ const DiceBox = (element_container, vector2_dimensions, dice_factory) => {
     //public variables
     let public_interface = {};
 
-    let diceList = []; //'private' varaible
+    let cameraHeight = {
+        max: null,
+        close: null,
+        medium: null,
+        far: null
+    };
+    public_interface['cameraHeight'] = cameraHeight; //register as 'public'
+
+    let diceList = []; //'private' variable
     public_interface['diceList'] = diceList; //register as 'public'
 
     let clientID = -1;
@@ -56,6 +66,9 @@ const DiceBox = (element_container, vector2_dimensions, dice_factory) => {
 
     let framerate = (1/60);
     public_interface['framerate'] = framerate;
+
+    let sounds = true;
+    public_interface['sounds'] = sounds;
 
     let selector = {
         animate: true,
@@ -88,6 +101,21 @@ const DiceBox = (element_container, vector2_dimensions, dice_factory) => {
     public_interface['disableShadows'] = disableShadows;
 
     const initialize = () => {
+
+        let surfaces = ['felt'];
+
+        for (let i=0, len=surfaces.length; i < len; ++i) {
+            let surface = surfaces[i];
+            sounds_table[surface] = [];
+            for (let s=1; s <= 5; ++s) {
+                sounds_table[surface].push(new Audio('./sounds/surface_'+surface+''+s+'.wav'));
+            }
+        }
+
+
+        for (let i=1; i <= 10; ++i) {
+            sounds_dice.push(new Audio('./sounds/dicehit'+i+'.wav'));
+        }
 
         renderer = window.WebGLRenderingContext
             ? new THREE.WebGLRenderer({ antialias: true, alpha: true })
@@ -131,8 +159,9 @@ const DiceBox = (element_container, vector2_dimensions, dice_factory) => {
         world.add(barrier);
 
         if (showdebugtracer) {
-            //raycaster.setFromCamera( this.mouse, this.camera );
-            rayvisual = new THREE.ArrowHelper(raycaster.ray.direction, raycaster.ray.origin, 1000, 0xff0000);
+            //raycaster.setFromCamera( this.mouse.pos, this.camera );
+            rayvisual = new THREE.ArrowHelper(raycaster.ray.direction, camera.position, 1000, 0xff0000);
+            rayvisual.headWidth = rayvisual.headLength * 0.005;
             scene.add(rayvisual);
         }
 
@@ -147,14 +176,23 @@ const DiceBox = (element_container, vector2_dimensions, dice_factory) => {
 
         let clientX = (event.changedTouches && event.changedTouches.length) ? event.changedTouches[0].clientX : event.clientX;
         let clientY = (event.changedTouches && event.changedTouches.length) ? event.changedTouches[0].clientY : event.clientY;
-		
-		mouse.x = ( clientX / window.innerWidth ) * 2 - 1;
-        mouse.y = - ( clientY / window.innerHeight ) * 2 + 1;
 
-        mouse.y -= 0.25; // dumb fix for positioning of ray tracer
+        let xpercent = ( clientX / (display.currentWidth * 2) );
+        let ypercent = ( clientY / (display.currentHeight * 2));
+
+        if (xpercent <= 0.5) {
+            mouse.pos.x = ((0.5-xpercent) * 2) *-1;
+        } else {
+            mouse.pos.x = (xpercent-0.5) * 2;
+        }
+        if (ypercent <= 0.5) {
+            mouse.pos.y = (0.5-ypercent) * 2;
+        } else {
+            mouse.pos.y = ((ypercent-0.5) * 2) *-1;
+        }
 
         if (raycaster && showdebugtracer) {
-            raycaster.setFromCamera(mouse, camera);
+            raycaster.setFromCamera(mouse.pos, camera);
             rayvisual.setDirection(raycaster.ray.direction);
         }
     }
@@ -173,16 +211,17 @@ const DiceBox = (element_container, vector2_dimensions, dice_factory) => {
         display.aspect = Math.min(display.currentWidth / display.containerWidth, display.currentHeight / display.containerHeight);
         display.scale = Math.sqrt(display.containerWidth * display.containerWidth + display.containerHeight * display.containerHeight) / 13;
 
+
         renderer.setSize(display.currentWidth * 2, display.currentHeight * 2);
 
-        display.containerWidthh = display.currentHeight / display.aspect / Math.tan(10 * Math.PI / 180);
+        cameraHeight.max = display.currentHeight / display.aspect / Math.tan(10 * Math.PI / 180);
 
-        cameraHeight.medium = display.containerWidthh / 1.5;
-        cameraHeight.far = display.containerWidthh;
-        cameraHeight.close = display.containerWidthh;
+        cameraHeight.medium = cameraHeight.max / 1.5;
+        cameraHeight.far = cameraHeight.max;
+        cameraHeight.close = cameraHeight.max;
 
         if (camera) scene.remove(camera);
-        camera = new THREE.PerspectiveCamera(20, display.currentWidth / display.currentHeight, 1, display.containerWidthh * 1.3);
+        camera = new THREE.PerspectiveCamera(20, display.currentWidth / display.currentHeight, 1, cameraHeight.max * 1.3);
         camera.position.z = cameraHeight.far;
         camera.lookAt(new THREE.Vector3(0,0,0));
         
@@ -219,7 +258,7 @@ const DiceBox = (element_container, vector2_dimensions, dice_factory) => {
 	public_interface['setDimensions'] = setDimensions; //register as 'public'
 
     const vectorRand = (vector) => {
-        let angle = rnd() * Math.PI / 5 - Math.PI / 5 / 2;
+        let angle = Math.random() * Math.PI / 5 - Math.PI / 5 / 2;
         let vec = {
             x: vector.x * Math.cos(angle) - vector.y * Math.sin(angle),
             y: vector.x * Math.sin(angle) + vector.y * Math.cos(angle)
@@ -230,16 +269,18 @@ const DiceBox = (element_container, vector2_dimensions, dice_factory) => {
     }
 
     //returns an array of vectordata objects
-    const getNotationVectors = (notation, vector, boost, dist, owner) => {
-        notation.vectors = [];
-        for (let i in notation.set) {
+    const getNotationVectors = (notation, vector, boost, dist) => {
 
-            const diceobj = dicefactory.get(notation.set[i].type);
-            let numdice = notation.set[i].num;
-            let operator = notation.set[i].op;
-            let group = notation.set[i].group;
-            let func = notation.set[i].func;
-            let args = notation.set[i].args;
+        let notationVectors = new DiceNotation(notation);
+
+        for (let i in notationVectors.set) {
+
+            const diceobj = dicefactory.get(notationVectors.set[i].type);
+            let numdice = notationVectors.set[i].num;
+            let operator = notationVectors.set[i].op;
+            let group = notationVectors.set[i].group;
+            let func = notationVectors.set[i].func;
+            let args = notationVectors.set[i].args;
 
             for(let k = 0; k < numdice; k++){
 
@@ -248,9 +289,9 @@ const DiceBox = (element_container, vector2_dimensions, dice_factory) => {
 
                 let vec = vectorRand(vector);
                 let pos = {
-                    x: this.w * (vec.x > 0 ? -1 : 1) * 0.9,
-                    y: this.h * (vec.y > 0 ? -1 : 1) * 0.9,
-                    z: rnd() * 200 + 200
+                    x: display.containerWidth * (vec.x > 0 ? -1 : 1) * 0.9,
+                    y: display.containerHeight * (vec.y > 0 ? -1 : 1) * 0.9,
+                    z: Math.random() * 200 + 200
                 };
 
                 let projector = Math.abs(vec.x / vec.y);
@@ -258,25 +299,25 @@ const DiceBox = (element_container, vector2_dimensions, dice_factory) => {
 
                 let velvec = vectorRand(vector);
                 let velocity = { 
-                    x: velvec.x * (boost * notation.boost), 
-                    y: velvec.y * (boost * notation.boost), 
+                    x: velvec.x * (boost * notationVectors.boost), 
+                    y: velvec.y * (boost * notationVectors.boost), 
                     z: -10
                 };
 
                 let angle = {
-                    x: -(rnd() * vec.y * 5 + diceobj.inertia * vec.y),
-                    y: rnd() * vec.x * 5 + diceobj.inertia * vec.x,
+                    x: -(Math.random() * vec.y * 5 + diceobj.inertia * vec.y),
+                    y: Math.random() * vec.x * 5 + diceobj.inertia * vec.x,
                     z: 0
                 };
 
                 let axis = { 
-                    x: rnd(), 
-                    y: rnd(), 
-                    z: rnd(), 
-                    a: rnd()
+                    x: Math.random(), 
+                    y: Math.random(), 
+                    z: Math.random(), 
+                    a: Math.random()
                 };
 
-                notation.vectors.push({ 
+                notationVectors.vectors.push({ 
                     type: diceobj.type, 
                     op: operator,
                     group: group, 
@@ -285,13 +326,11 @@ const DiceBox = (element_container, vector2_dimensions, dice_factory) => {
                     pos: pos, 
                     velocity: velocity, 
                     angle: angle, 
-                    axis: axis,
-                    owner: owner
+                    axis: axis
                 });
             }            
         }
-        notation.vectors = vectors;
-        return notation;
+        return notationVectors;
     }
 
     // swaps dice faces to match desired result
@@ -305,7 +344,7 @@ const DiceBox = (element_container, vector2_dimensions, dice_factory) => {
         }
 
         let values = diceobj.values;
-        value = parseInt(dicemesh.result.value);
+        let value = parseInt(dicemesh.result.value);
         
         if (dicemesh.notation.type == 'd10' && value == 0) value = 10;
         if (dicemesh.notation.type == 'd100' && value == 0) value = 100;
@@ -393,6 +432,7 @@ const DiceBox = (element_container, vector2_dimensions, dice_factory) => {
 
         dicemesh.notation = vectordata;
         dicemesh.result = {value: undefined,label:''};
+        dicemesh.stopped = false;
         dicemesh.body = new CANNON.Body({mass: diceobj.mass, shape: dicemesh.geometry.cannon_shape, material: dice_body_material});
         dicemesh.body.position.set(vectordata.pos.x, vectordata.pos.y, vectordata.pos.z);
         dicemesh.body.quaternion.setFromAxisAngle(new CANNON.Vec3(vectordata.axis.x, vectordata.axis.y, vectordata.axis.z), vectordata.axis.a * Math.PI * 2);
@@ -400,15 +440,60 @@ const DiceBox = (element_container, vector2_dimensions, dice_factory) => {
         dicemesh.body.velocity.set(vectordata.velocity.x, vectordata.velocity.y, vectordata.velocity.z);
         dicemesh.body.linearDamping = 0.1;
         dicemesh.body.angularDamping = 0.1;
+
+        dicemesh.body.addEventListener('collide', function(e) {
+            if (!sounds) return;
+
+            if (e.body.mass > 0) { // dice to dice collision
+                let speed = e.body.velocity.length();
+                if (speed < 250) return;
+
+                let strength = 0.1;
+                let high = 12000;
+                let low = 250;
+                strength = Math.max(Math.min(speed / (high-low), 1), strength);
+
+                let sound = sounds_dice[Math.floor(Math.random() * sounds_dice.length)];
+                sound.volume = strength;
+                sound.play();
+
+            } else { // dice to table collision
+                let speed = e.target.velocity.length();
+                if (speed < 250) return;
+
+                let surface = 'felt';
+                let strength = 0.2;
+                let high = 12000;
+                let low = 250;
+                strength = Math.max(Math.min(speed / (high-low), 1), strength);
+
+                let sounds = sounds_table[surface];
+                let sound = sounds[Math.floor(Math.random() * sounds.length)];
+                sound.volume = strength;
+                sound.play();
+            }
+        });
+
         scene.add(dicemesh);
-        dices.push(dicemesh);
+        diceList.push(dicemesh);
         world.add(dicemesh.body);
+    }
+
+    //resets vectors on dice back to startign notation values for a roll after simulation.
+    const resetDice = (dicemesh, vectordata) => {
+        dicemesh.stopped = false;
+        dicemesh.body.position.set(vectordata.pos.x, vectordata.pos.y, vectordata.pos.z);
+        dicemesh.body.quaternion.setFromAxisAngle(new CANNON.Vec3(vectordata.axis.x, vectordata.axis.y, vectordata.axis.z), vectordata.axis.a * Math.PI * 2);
+        dicemesh.body.angularVelocity.set(vectordata.angle.x, vectordata.angle.y, vectordata.angle.z);
+        dicemesh.body.velocity.set(vectordata.velocity.x, vectordata.velocity.y, vectordata.velocity.z);
+        dicemesh.body.linearDamping = 0.1;
+        dicemesh.body.angularDamping = 0.1;
     }
 
     const solverBodyStopped = (physicsbody) => {
         let errorMargin = 6;
-        let angular = physicsbody.body.angularVelocity;
-        let velocity = physicsbody.body.velocity;
+        let angular = physicsbody.angularVelocity;
+        let velocity = physicsbody.velocity;
         return (
             Math.abs(angular.x) < errorMargin &&
             Math.abs(angular.y) < errorMargin &&
@@ -420,46 +505,36 @@ const DiceBox = (element_container, vector2_dimensions, dice_factory) => {
     }
 
     const throwFinished = () => {
-        let finished = true;
-        if (iteration < 10 / framerate) {
+        let stopped = 0;
+        if (iteration < (10 / framerate)) {
 
             for (let i=0, len=diceList.length; i < len; ++i) {
                 let dicemesh = diceList[i];
 
-                if (dicemesh.stopped === true) continue;
-                if (solverBodyStopped(dicemesh.body)) {
-                    if (dicemesh.stopped) {
-                        if (iteration - dicemesh.stopped > 3) {
-                            dicemesh.stopped = true;
+                if (dicemesh.stopped || solverBodyStopped(dicemesh.body)) {
 
-                            let facedata = dicefactory.getValue(dicemesh);
-                            dicemesh.result.value = facedata.value;
-                            dicemesh.result.label = facedata.label;
-
-                            continue;
-                        }
-                    } else {
-                        dicemesh.stopped = iteration;
-                    }
-                    finished = false;
-                } else {
-                    dicemesh.stopped = undefined;
-                    finished = false;
+                    ++stopped;
+                    let facedata = dicefactory.getValue(dicemesh);
+                    dicemesh.result.value = facedata.value;
+                    dicemesh.result.label = facedata.label;
+                    dicemesh.stopped = true;
                 }
             }
         }
-        return finished;
+        return stopped == diceList.length;
     }
 
     const simulateThrow = () => {
+        iteration = 0;
+        rolling = true;
+
         while (!throwFinished()) {
             ++iteration;
             world.step(framerate);
         }
     }
 
-    const animateThrow = (int_threadid) => {
-        threadid = int_threadid;
+    const animateThrow = (threadid, callback, notationVectors) => {
         let time = (new Date()).getTime();
         let time_diff = (time - last_time) / 1000;
         if (time_diff > 3) time_diff = framerate;
@@ -490,80 +565,37 @@ const DiceBox = (element_container, vector2_dimensions, dice_factory) => {
         renderer.render(scene, camera);
         last_time = last_time ? time : (new Date()).getTime();
 
-        if (running == threadid && throwFinished(diceList)) {
+        // roll finished
+        if (running == threadid && throwFinished()) {
             running = false;
+            rolling = false;
+            if(callback) callback(notationVectors);
+
+            
+            running = (new Date()).getTime();
+            animateAfterThrow(running);
+            return;
         }
 
+        // roll not finished, keep animating
         if (running == threadid) {
-            running = window.requestAnimationFrame();
-            animateThrow(running);
+            (function(call, tid, at, aftercall, vecs) {
+                if (!at && time_diff < framerate) {
+                    setTimeout(function() { requestAnimationFrame(function() { call(tid, aftercall, vecs); }); }, (framerate - time_diff) * 1000);
+                } else {
+                    requestAnimationFrame(function() { call(tid, aftercall, vecs); });
+                }
+            })(animateThrow, threadid, adaptive_timestep, callback, notationVectors);
         }
     }
+    public_interface['animateThrow'] = animateThrow;
 
-    const clearDice = () => {
-        running = false;
-        let dice;
-        while (dice = diceList.pop()) {
-            scene.remove(dice); 
-            if (dice.body) world.remove(dice.body);
-        }
-        if (pane) scene.remove(pane);
-        renderer.render(scene, camera);
-
-        setTimeout(function() { renderer.render(scene, camera); }, 100);
-    }
-    public_interface['clearDice'] = clearDice;
-
-    const rollDice = (dicenotation, vector, boost, dist, owner) => {
-
-        camera.position.z = cameraheight_rolling;
-
-        let notation = getNotationVectors(dicenotation, vector, boost, dist, owner);
-        clearDice();
-        iteration = 0;
-
-        for (let i=0, len=notation.vectors.length; i < len; ++i) {
-            spawnDice(notation.vectors[i]);
-        }
-
-        simulateThrow();
-
-        if (notation.result && notation.result.length > 0) {
-            for (let i in notation.result) {
-                let dicemesh = diceList[i];
-                if (dicemesh.result.value == notation.result[i]) continue;
-                swapDiceFace(dicemesh, notation.result[i]);
-            }
-        }
-
-        running = (new Date()).getTime();
-        last_time = 0;
-        animateThrow(running);
-    }
-    public_interface['rollDice'] = rollDice;
-
-    const rerollDice = (dicemeshList) => {
-        
-    }
-    public_interface['rerollDice'] = rerollDice;
-
-    const animateSelector = (int_threadid) => {
+    const animateAfterThrow = (threadid) => {
         let time = (new Date()).getTime();
         let time_diff = (time - last_time) / 1000;
         if (time_diff > 3) time_diff = framerate;
 
-        if (selector.rotate) {
-            //var angle_change = 0.3 * time_diff * Math.PI * Math.min(24000 + threadid - time, 6000) / 6000;
-            let angle_change = 0.005 * Math.PI;
-            if (angle_change < 0) running = false;
-            for (let i in diceList) {
-                diceList[i].rotation.y += angle_change;
-                diceList[i].rotation.x += angle_change / 4;
-                diceList[i].rotation.z += angle_change / 10;
-            }
-        }
-
-        raycaster.setFromCamera( mouse, camera );
+        raycaster.setFromCamera( mouse.pos, camera );
         if (rayvisual) rayvisual.setDirection(raycaster.ray.direction);
         let intersects = raycaster.intersectObjects(diceList);
         if ( intersects.length > 0 ) {
@@ -602,29 +634,99 @@ const DiceBox = (element_container, vector2_dimensions, dice_factory) => {
         last_time = time;
         renderer.render(scene, camera);
         if (running == threadid) {
-            running = window.requestAnimationFrame();
-            animateSelector(running);
+            (function(call, tid, at) {
+                if (!at && time_diff < framerate) {
+                    setTimeout(function() { requestAnimationFrame(function() { call(tid); }); }, (framerate - time_diff) * 1000);
+                } else {
+                    requestAnimationFrame(function() { call(tid); });
+                }
+            })(animateAfterThrow, threadid, adaptive_timestep);
         }
     }
+    public_interface['animateAfterThrow'] = animateAfterThrow;
+
+    const animateSelector = (threadid) => {
+        let time = (new Date()).getTime();
+        let time_diff = (time - last_time) / 1000;
+        if (time_diff > 3) time_diff = framerate;
+
+        if (selector.rotate) {
+            let angle_change = 0.005 * Math.PI;
+            for (let i in diceList) {
+                diceList[i].rotation.y += angle_change;
+                diceList[i].rotation.x += angle_change / 4;
+                diceList[i].rotation.z += angle_change / 10;
+            }
+        }
+
+        raycaster.setFromCamera( mouse.pos, camera );
+        if (rayvisual) rayvisual.setDirection(raycaster.ray.direction);
+        let intersects = raycaster.intersectObjects(diceList);
+        if ( intersects.length > 0 ) {
+
+            if ( selector.intersected != intersects[0].object ) {
+                
+                if ( selector.intersected ) {
+                    for(let i = 0, l = selector.intersected.material.length; i < l; i++){
+                        if (i == 0) continue;
+                        selector.intersected.material[i].emissive.setHex( selector.intersected.currentHex );
+                        selector.intersected.material[i].emissiveIntensity = selector.intersected.currentintensity;
+                    }
+                }
+
+                selector.intersected = intersects[0].object;
+                selector.intersected.currentHex = selector.intersected.material[1].emissive.getHex();
+                selector.intersected.currentintensity = selector.intersected.material[1].emissiveIntensity;
+
+                for(let i = 0, l = selector.intersected.material.length; i < l; i++){
+                    if (i == 0) continue;
+                    selector.intersected.material[i].emissive.setHex( 0xffffff );
+                    selector.intersected.material[i].emissiveIntensity = 0.5;
+                }
+            }
+        } else {
+                if ( selector.intersected ) {
+                    for(let i = 0, l = selector.intersected.material.length; i < l; i++){
+                        if (i == 0) continue;
+                        selector.intersected.material[i].emissive.setHex( selector.intersected.currentHex );
+                        selector.intersected.material[i].emissiveIntensity = selector.intersected.currentintensity;
+                    }
+                }
+                selector.intersected = null;
+        }
+
+        last_time = time;
+        renderer.render(scene, camera);
+        if (running == threadid) {
+            (function(call, tid, at) {
+                if (!at && time_diff < framerate) {
+                    setTimeout(function() { requestAnimationFrame(function() { call(tid); }); }, (framerate - time_diff) * 1000);
+                } else {
+                    requestAnimationFrame(function() { call(tid); });
+                }
+            })(animateSelector, threadid, adaptive_timestep);
+        }
+    }
+    public_interface['animateSelector'] = animateSelector;
 
     //returns a dicemesh under the mouse using raytracing
     const getDiceAtMouse = (event) => {
         if (rolling) return;
         if (event) onMouseMove(event);
 
-        raycaster.setFromCamera( mouse, camera );
+        raycaster.setFromCamera( mouse.pos, camera );
         if (rayvisual) rayvisual.setDirection(raycaster.ray.direction);
         let intersects = raycaster.intersectObjects(diceList);
 
         //this.scene.add(new THREE.ArrowHelper(this.raycaster.ray.direction, this.raycaster.ray.origin, 1000, 0x00ff00) );
 
-        if (intersects.length) return intersects[0].object;
+        if (intersects.length) return intersects[0].object.userData;
     }
     public_interface['getDiceAtMouse'] = getDiceAtMouse;
 
     const showSelector = (alldice = false) => {
         clearDice();
-        let step = display.containerWidth / 4.5;
+        let step = display.containerWidth / 5;
 
         if (pane) scene.remove(pane);
         if (shadows) {
@@ -637,23 +739,23 @@ const DiceBox = (element_container, vector2_dimensions, dice_factory) => {
             scene.add(pane);
         }
 
-        let dicelist = alldice ? Object.keys(dicefactory.dice) : selector.dice;
-        camera.position.z = dicelist.length > 9 ? camera.far : camera.close;
-        let posxstart = dicelist.length > 9 ? -4 : (dicelist.length < 3 ? -0.5 : -1);
-        let posystart = dicelist.length > 9 ? 1.5 : (dicelist.length < 4 ? 0 : 1);
-        let poswrap = dicelist.length > 9 ? 4 : (dicelist.length < 4 ? 2 : 1);
+        let selectordice = alldice ? Object.keys(dicefactory.dice) : selector.dice;
+        camera.position.z = selectordice.length > 9 ? cameraHeight.far : cameraHeight.close;
+        let posxstart = selectordice.length > 9 ? -4 : (selectordice.length < 3 ? -0.5 : -1);
+        let posystart = selectordice.length > 9 ? 1.5 : (selectordice.length < 4 ? 0 : 1);
+        let poswrap = selectordice.length > 9 ? 4 : (selectordice.length < 4 ? 2 : 1);
 
-        for (let i = 0, posx = posxstart, posy = posystart; i < dicelist.length; ++i, ++posx) {
+        for (let i = 0, posx = posxstart, posy = posystart; i < selectordice.length; ++i, ++posx) {
 
             if (posx > poswrap) {
                 posx = posxstart;
                 posy--;
             }
 
-            let dicemesh = dicefactory.create(dicelist[i]);
+            let dicemesh = dicefactory.create(selectordice[i]);
             dicemesh.position.set(posx * step, posy * step, step * 0.5);
             dicemesh.castShadow = shadows;
-            dicemesh.userData = dicelist[i];
+            dicemesh.userData = selectordice[i];
 
             diceList.push(dicemesh);
             scene.add(dicemesh);
@@ -663,9 +765,106 @@ const DiceBox = (element_container, vector2_dimensions, dice_factory) => {
         last_time = 0;
         if (selector.animate) animateSelector(running);
         else renderer.render(scene, camera);
+
     }
     public_interface['showSelector'] = showSelector;
 
+    const startClickThrow = (notation) => {
+        if (rolling) return;
+
+        let vector = { x: (Math.random() * 2 - 1) * display.currentWidth, y: -(Math.random() * 2 - 1) * display.currentHeight };
+        let dist = Math.sqrt(vector.x * vector.x + vector.y * vector.y);
+        let boost = (Math.random() + 3) * dist;
+
+        return getNotationVectors(notation, vector, boost, dist);
+    }
+    public_interface['startClickThrow'] = startClickThrow;
+
+    const startDragThrow = (event) => {
+        event.preventDefault();
+        mouse.startDragTime = (new Date()).getTime();
+        mouse.startDrag = $t.get_mouse_coords(event);
+    }
+    public_interface['startDragThrow'] = startDragThrow;
+
+    const endDragThrow = (event, notation) => {
+        if (rolling) return;
+        if (mouse.startDrag == undefined) return;
+        if (mouse.startDrag && event.changedTouches && event.changedTouches.length == 0) {
+            return;
+        }
+        event.stopPropagation();
+
+        let m = $t.get_mouse_coords(event);
+        let vector = { x: m.x - mouse.startDrag.x, y: -(m.y - mouse.startDrag.y) };
+        mouse.startDrag = undefined;
+        let dist = Math.sqrt(vector.x * vector.x + vector.y * vector.y);
+        if (dist < Math.sqrt(display.currentWidth * display.currentHeight * 0.01)) return;
+        let time_int = (new Date()).getTime() - mouse.startDragTime;
+        if (time_int > 2000) time_int = 2000;
+        let boost = Math.sqrt((2500 - time_int) / 2500) * dist * 2;
+        
+        return getNotationVectors(notation, vector, boost, dist);
+    }
+    public_interface['endDragThrow'] = endDragThrow;
+
+    const clearDice = () => {
+        running = false;
+        let dice;
+        while (dice = diceList.pop()) {
+            scene.remove(dice); 
+            if (dice.body) world.remove(dice.body);
+        }
+        if (pane) scene.remove(pane);
+        renderer.render(scene, camera);
+
+        setTimeout(function() { renderer.render(scene, camera); }, 100);
+    }
+    public_interface['clearDice'] = clearDice;
+
+    const rollDice = (notationVectors, callback) => {
+
+        if (notationVectors.error) {
+            callback();
+            return;
+        }
+
+        camera.position.z = cameraHeight.far;
+        clearDice();
+
+        for (let i=0, len=notationVectors.vectors.length; i < len; ++i) {
+            spawnDice(notationVectors.vectors[i]);
+        }
+        simulateThrow();
+
+        //reset dice vectors
+        for (let i=0, len=diceList.length; i < len; ++i) {
+            resetDice(diceList[i], notationVectors.vectors[i]);
+        }
+        
+        iteration = 0;
+
+        //check forced results, fix dice faces if necessary
+        if (notationVectors.result && notationVectors.result.length > 0) {
+            for (let i in notationVectors.result) {
+                let dicemesh = diceList[i];
+                if (dicemesh.result.value == notationVectors.result[i]) continue;
+                swapDiceFace(dicemesh, notationVectors.result[i]);
+            }
+        }
+
+        rolling = true;
+        running = (new Date()).getTime();
+        last_time = 0;
+        animateThrow(running, callback, notationVectors);
+
+    }
+    public_interface['rollDice'] = rollDice;
+
+    const rerollDice = (dicemeshList) => {
+        
+    }
+    public_interface['rerollDice'] = rerollDice;
 
 	return public_interface;
 }
