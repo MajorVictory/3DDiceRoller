@@ -93,7 +93,7 @@ class DiceFactory {
 
 	    this.canvas;
 
-        // fixes texture rotations on specific dice
+        // fixes texture rotations on specific dice models
         this.rotate = {
             d8: {even: -7.5, odd: -127.5},
             d10: {all: -6},
@@ -963,6 +963,9 @@ class DiceNotation {
 
         this.set = [];
         this.setkeys = [];
+        this.setid = 0;
+        this.groups = [];
+        this.totalDice = 0;
         this.op = '';
         this.constant = '';
         this.result = [];
@@ -987,28 +990,41 @@ class DiceNotation {
 
         notationdata = notationdata.split(' ').join(''); // remove spaces
 
+        //count group starts and ends
+        let groupstarts = notationdata.split('(').length-1;
+        let groupends = notationdata.split(')').length-1;
+        if (groupstarts != groupends) this.error = true;
+
+
         let no = notationdata.split('@');// 0: dice notations, 1: forced results
-        let rollregex = new RegExp(/(?:(\+|\-|\*|\/|){0,1})(\d+|)([a-z]{1}(?:[a-z]{1,4}|\d+)|)(?:([a-z]{1,4})(\d*)|)/, 'i');
+        let rollregex = new RegExp(/(\+|\-|\*|\/|){0,1}(\(|)(\d*)([a-z]{1,5}\d+|[a-z]{1,5}|)(?:\{([a-z]+|)(\d+|)\}|)(\)|)/, 'i');
         let resultsregex = new RegExp(/(\b)*(\-\d+|\d+)(\b)*/, 'gi'); // forced results: '1, 2, 3' or '1 2 3'
         let res;
 
         let runs = 0;
-        let breaklimit = 25;
+        let breaklimit = 30;
+        let groupLevel = 0;
+        let groupID = 0;
 
         // dice notations
         let notationstring = no[0];
-        while (notationstring.length > 0 && (res = rollregex.exec(notationstring)) !== null && runs < breaklimit) {
+        while (!this.error && notationstring.length > 0 && (res = rollregex.exec(notationstring)) !== null && runs < breaklimit) {
             runs++;
 
             //remove this notation so we can move on next iteration
             notationstring = notationstring.substring(res[0].length);
 
             let operator = res[1];
-            let amount = res[2];
-            let type = res[3];
-            let funcname = res[4];
-            let funcargs = res[5];
+            let groupstart = res[2] == '(';
+            let amount = res[3];
+            let type = res[4];
+            let funcname = res[5];
+            let funcargs = res[6];
+            let groupend = res[7] == ')';
             let addset = true;
+
+            // individual groups get a unique id so two seperate groups at the same level don't get combined later
+            if (groupstart) ++groupLevel;
 
             // if this is true, we have a single operator and constant as the whole notation string
             // e.g. '+7', '*4', '-2'
@@ -1027,7 +1043,12 @@ class DiceNotation {
                 addset = false;
             }
 
-            if (addset) this.addSet(amount, type, funcname, funcargs, operator);
+            if (addset) this.addSet(amount, type, groupID, groupLevel, funcname, funcargs, operator);
+            
+            if (groupend) {
+                --groupLevel;
+                ++groupID;
+            }
         }
 
         // forced results
@@ -1062,7 +1083,7 @@ class DiceNotation {
         return output;
     }
 
-    addSet(amount, type, funcname = '', funcargs = '', operator = '+') {
+    addSet(amount, type, groupID = 0, groupLevel = 0, funcname = '', funcargs = '', operator = '+') {
 
         let diceobj = teal.DiceFactory.get(type);
         if (diceobj == null) { this.error = true; return; }
@@ -1071,14 +1092,18 @@ class DiceNotation {
 
         // update a previous set if these match
         // has the added bonus of combining duplicate
-        let setkey = operator+''+type+''+funcname+''+funcargs;
+        let setkey = operator+''+type+''+groupID+''+groupLevel+''+funcname+''+funcargs;
         let update = (this.setkeys[setkey] != null);
 
         let setentry = {};
-        if (update) setentry = this.set[(this.setkeys[setkey]-1)];
+        if (update) {
+            setentry = this.set[(this.setkeys[setkey]-1)];
+        }
         /* setentry = {
             num: 0,
             type: '',
+            gid: 0,
+            glvl: 0,
             func: '',
             arg: 0,
             op: '',
@@ -1087,6 +1112,9 @@ class DiceNotation {
 
             setentry.num = update ? (amount + setentry.num) : amount;
             setentry.type = diceobj.type;
+            setentry.sid = this.setid;
+            setentry.gid = groupID;
+            setentry.glvl = groupLevel;
             if (funcname) setentry.func = funcname;
             if (funcargs) setentry.args = funcargs;
             if (operator) setentry.op = operator;
@@ -1096,6 +1124,66 @@ class DiceNotation {
             } else {
                 this.set[(this.setkeys[setkey]-1)] = setentry;
             }
+        }
+
+        if (!update) ++this.setid;
+    }
+
+    test_notations(teststring = '') {
+
+        let teststrings = [];
+
+        if (teststring != '') {
+            teststrings.push(teststring);
+        } else {
+            teststrings = [
+                '8',
+                '10',
+                '100',
+                '8h1',
+                '10h1',
+                '100{h1}',
+                '8{h20}',
+                '10{h4000}',
+                '800{l098029384}@8,8,8,8,8',
+                '5ddif{hi4}',
+                '6dpro{hi234}',
+                '((6dpro{hi234}))',
+                '(5ddif{hi4}*6dpro{hi234})',
+                '(5ddif{hi4}*6dpro{hi234})+6dpro{hi234}/10d20+7',
+                '+7',
+                '+10',
+                '+100',
+                '1d4',
+                '1d4+8d6l+4dsex+7',
+                '10d4',
+                '10d20',
+                '10d20+7',
+                '8d4{h4}',
+                '8d4{h4}+7',
+                '10d4{l2}',
+                '10d20',
+                '10d20+7',
+                '4dsex',
+                '4dwww+',
+                'ddab',
+                'ddif',
+                'dpro',
+                'dcha',
+                'dfor',
+                'dboo',
+                'dset'
+            ];
+        }
+
+        for(let i = 0, l = teststrings.length; i < l; i++){
+            console.log(i, teststrings[i]);
+
+            let parsed = this.parse_notation(teststrings[i]);
+            console.log('parse_notation', parsed);
+
+            let stringified = this.stringify_notation(parsed);
+            console.log('stringify_notation', stringified);
         }
     }
 

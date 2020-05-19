@@ -13,7 +13,19 @@ function pack_vectors(vectors) {
     }
     for (var i in vectors) {
         var v = vectors[i];
-        vectors[i] = [v.type, v.op, v.group || '', v.func || '', v.args || '', pack(v.pos), pack(v.velocity), pack(v.angle), pack(v.axis)];
+        vectors[i] = [
+            v.type,
+            v.op,
+            v.sid || 0,
+            v.gid || 0,
+            v.glvl || 0,
+            v.func || '',
+            v.args || '',
+            pack(v.pos),
+            pack(v.velocity),
+            pack(v.angle),
+            pack(v.axis)
+        ];
     }
 }
 
@@ -29,16 +41,18 @@ function unpack_vectors(vectors) {
     for (var i in vectors) {
         var v = vectors[i];
         vectors[i] = { 
-                    type: v[0], 
-                    op: v[1],
-                    group: v[2], 
-                    func: v[3], 
-                    args: v[4], 
-                    pos: unpack(v[5]), 
-                    velocity: unpack(v[6]), 
-                    angle: unpack(v[7]), 
-                    axis: unpack(v[8])
-                };
+            type: v[0], 
+            op: v[1],
+            sid: v[2],
+            gid: v[3],
+            glvl: v[4], 
+            func: v[5], 
+            args: v[6], 
+            pos: unpack(v[7]), 
+            velocity: unpack(v[8]), 
+            angle: unpack(v[9]), 
+            axis: unpack(v[10])
+        };
     }
 }
 
@@ -659,7 +673,7 @@ function login_initialize(container) {
                     if (shift && leftclick) op = '/';
                     if (ctrl && shift && leftclick) op = '-';
 
-                    notation.addSet(1, name, '', '', op);
+                    notation.addSet(1, name, 0, 0, '', '', op);
 
                     set.value = notation.stringify();
                     on_set_change();
@@ -756,316 +770,15 @@ function login_initialize(container) {
 
             box.rollDice(notationVectors, function(notationVectors) {
 
-
                 console.log('after roll - notationVectors', notationVectors);
 
                 let resultDice = $t.box.diceList;
 
                 console.log('Roll Finished', resultDice);
 
-                let numberdicevalues = [];
-                let numberdiceoperators = [];
-                let labeldicevalues = [];
-                let swrpgdice = [];
-                let swarmadadice = [];
-                let xwingdice = [];
-                let legiondice = [];
+                let results = $t.box.getDiceTotals(notationVectors, resultDice);
 
-                // split up results between nubmer and symbol dice
-                for(let i = 0; i < resultDice.length; i++){
-
-                    let dicemesh = resultDice[i];
-                    let diceobj =  $t.DiceFactory.get(dicemesh.notation.type);
-                    let operator = dicemesh.notation.op;
-
-                    if (diceobj.system == 'swrpg') {
-                        swrpgdice.push(dicemesh.result.label);
-                    } else if (diceobj.system == 'swarmada') {
-                        swarmadadice.push(dicemesh.result.label);
-                    } else if (diceobj.system == 'xwing') {
-                        xwingdice.push(dicemesh.result.label);
-                    } else if (diceobj.system == 'legion') {
-                        legiondice.push(dicemesh.result.label);
-                    } else if (diceobj.system == 'd20') {
-                        numberdiceoperators.push(operator);
-                        numberdicevalues.push(dicemesh.result.value);
-                    } else {
-                        if (diceobj.display == 'labels') {
-                            labeldicevalues.push(dicemesh.result.label);
-                        } else if (diceobj.display == 'values') {
-                            numberdiceoperators.push(operator);
-                            numberdicevalues.push(dicemesh.result.value);
-                        }
-                    }
-                }
-
-                let rolls = '';
-                let totals = '';
-
-                // swrpg dice, custom logic
-                if(swrpgdice.length > 0) {
-
-                    let success = 0;
-                    let failure = 0;
-                    let advantage = 0;
-                    let threat = 0;
-                    let triumph = 0;
-                    let despair = 0;
-                    let dark = 0;
-                    let light = 0;
-
-                    rolls += '[<span style="font-family: \'SWRPG-Symbol-Regular\'">';
-
-                    for(let i = 0; i < swrpgdice.length; i++){
-
-                        let currentlabel = swrpgdice[i];
-
-                        success += (currentlabel.split('s').length - 1);
-                        failure += (currentlabel.split('f').length - 1);
-                        advantage += (currentlabel.split('a').length - 1);
-                        threat += (currentlabel.split('t').length - 1);
-                        triumph += (currentlabel.split('x').length - 1);
-                        despair += (currentlabel.split('y').length - 1);
-                        dark += (currentlabel.split('z').length - 1);
-                        light += (currentlabel.split('Z').length - 1);
-                    }
-
-                    success += triumph;
-                    failure += despair;
-
-                    rolls += 's'.repeat(success);
-                    rolls += 'f'.repeat(failure);
-                    rolls += 'a'.repeat(advantage);
-                    rolls += 't'.repeat(threat);
-                    rolls += 'x'.repeat(triumph);
-                    rolls += 'y'.repeat(despair);
-                    rolls += 'z'.repeat(dark);
-                    rolls += 'Z'.repeat(light);
-
-                    rolls = rolls.trim();
-
-                    rolls += '</span>]';
-
-                    totals += '<span style="font-family: \'SWRPG-Symbol-Regular\'">';
-
-                    if (success > failure) totals += 's'.repeat(success-failure);
-                    if (failure > success) totals += 'f'.repeat(failure-success);
-                    if (advantage > threat) totals += 'a'.repeat(advantage-threat);
-                    if (threat > advantage) totals += 't'.repeat(threat-advantage);
-                    if (triumph > 0) totals += 'x'.repeat(triumph);
-                    if (despair > 0) totals += 'y'.repeat(despair);
-                    if (dark > 0) totals += 'z'.repeat(dark);
-                    if (light > 0) totals += 'Z'.repeat(light);
-
-                    totals = totals.trim() + '</span>';
-
-                }
-
-                // swarmada dice, custom logic
-                if(swarmadadice.length > 0) {
-
-                    let hit = 0;
-                    let critical = 0;
-                    let accuracy = 0;
-
-                    rolls += '[<span style="font-family: \'Armada-Symbol-Regular\'">';
-
-                    for(let i = 0; i < swarmadadice.length; i++){
-
-                        let currentlabel = swarmadadice[i];
-
-                        hit += (currentlabel.split('F').length - 1);
-                        critical += (currentlabel.split('E').length - 1);
-                        accuracy += (currentlabel.split('G').length - 1);
-                    }
-
-                    rolls += 'F'.repeat(hit);
-                    rolls += 'E'.repeat(critical);
-                    rolls += 'G'.repeat(accuracy);
-
-                    rolls = rolls.trim();
-
-                    rolls += '</span>]';
-
-                    totals += '<span style="font-family: \'Armada-Symbol-Regular\'">';
-                    
-                    if (hit > 0) totals += 'F'.repeat(hit);
-                    if (critical > 0) totals += 'E'.repeat(critical);
-                    if (accuracy > 0) totals += 'G'.repeat(accuracy);
-
-                    totals = totals.trim() + '</span>';
-
-                }
-
-                // xwing dice, custom logic
-                if(xwingdice.length > 0) {
-
-                    let hit = 0;
-                    let critical = 0;
-                    let focus = 0;
-                    let evade = 0;
-
-                    rolls += '[<span style="font-family: \'XWing-Symbol-Regular\'">';
-
-                    for(let i = 0; i < xwingdice.length; i++){
-
-                        let currentlabel = xwingdice[i];
-
-                        hit += (currentlabel.split('d').length - 1);
-                        critical += (currentlabel.split('c').length - 1);
-                        focus += (currentlabel.split('f').length - 1);
-                        evade += (currentlabel.split('e').length - 1);
-                    }
-
-                    rolls += 'd'.repeat(hit);
-                    rolls += 'c'.repeat(critical);
-                    rolls += 'f'.repeat(focus);
-                    rolls += 'e'.repeat(evade);
-
-                    rolls = rolls.trim();
-
-                    rolls += '</span>]';
-
-                    totals += '<span style="font-family: \'XWing-Symbol-Regular\'">';
-
-                    if (hit == evade) {
-                        hit = 0;
-                        evade = 0;
-                    } else if (hit > evade)  {
-                        hit -= evade;
-                        evade = 0;
-                    } else if (evade > hit) {
-                        evade -= hit;
-                        hit = 0;
-                    }
-
-                    if (critical == evade) {
-                        evade = 0;
-                        critical = 0;
-                    } else if (critical > evade) {
-                        critical -= evade;
-                        evade = 0;
-                    } else if (evade > critical) {
-                        evade -= critical;
-                        critical = 0;
-                    }
-                    
-                    if (hit > 0) totals += 'd'.repeat(Math.max(hit,0));
-                    if (critical > 0) totals += 'c'.repeat(Math.max(critical,0));
-                    if (focus > 0) totals += 'f'.repeat(Math.max(focus,0));
-                    if (evade > 0) totals += 'e'.repeat(Math.max(evade,0));
-
-                    totals = totals.trim() + '</span>';
-
-                }
-
-                // legion dice, custom logic
-                if(legiondice.length > 0) {
-
-                    let atk_hit = 0;
-                    let atk_crit = 0;
-                    let atk_surge = 0;
-
-                    let def_block = 0;
-                    let def_surge = 0;
-
-                    rolls += '[<span style="font-family: \'Legion-Symbol-Regular\'">';
-
-                    for(let i = 0; i < legiondice.length; i++){
-
-                        let currentlabel = legiondice[i];
-
-                        atk_hit += (currentlabel.split('h').length - 1);
-                        atk_crit += (currentlabel.split('c').length - 1);
-                        atk_surge += (currentlabel.split('o').length - 1);
-
-                        def_block += (currentlabel.split('s').length - 1);
-                        def_surge += (currentlabel.split('d').length - 1);
-                    }
-
-                    rolls += 'h'.repeat(atk_hit);
-                    rolls += 'c'.repeat(atk_crit);
-                    rolls += 'o'.repeat(atk_surge);
-
-                    rolls += 's'.repeat(def_block);
-                    rolls += 'd'.repeat(def_surge);
-
-                    rolls = rolls.trim();
-
-                    rolls += '</span>]';
-
-                    totals += '<span style="font-family: \'Legion-Symbol-Regular\'">';
-                    
-                    if (atk_hit > 0) totals += 'h'.repeat(Math.max(atk_hit,0));
-                    if (atk_crit > 0) totals += 'c'.repeat(Math.max(atk_crit,0));
-                    if (atk_surge > 0) totals += 'o'.repeat(Math.max(atk_surge,0));
-                    if (def_block > 0) totals += 's'.repeat(Math.max(def_block,0));
-                    if (def_surge > 0) totals += 'd'.repeat(Math.max(def_surge,0));
-
-                    totals = totals.trim() + '</span>';
-
-                }
-
-                // labels only
-                if (labeldicevalues.length > 0) {
-                    rolls += labeldicevalues.join('');
-                    totals += labeldicevalues.join('');
-                }
-
-                // numbers only
-                if (numberdicevalues.length > 0) {
-
-                    rolls += '[';
-
-                    let total = 0;
-                    let lastoperator = numberdiceoperators[0];
-                    let valuesofar = [];
-
-                    for(let i = 0; i < numberdicevalues.length; i++){                        
-                        let value = parseInt(numberdicevalues[i]);
-                        let op = numberdiceoperators[i];
-
-                        if(op != lastoperator) {
-                            lastoperator = op;
-                            if (i != numberdicevalues.length-1) {
-                                rolls += valuesofar.join(',')+']'+op+'[';
-                                valuesofar = [];
-                            }
-                        }
-
-                        valuesofar.push(value);
-
-                        if (i == numberdicevalues.length-1) {
-                            rolls += valuesofar.join(',');
-                        }
-
-                        switch (op) {
-                            case '*': total *= value; break;
-                            case '/': total = total / value; break;
-                            case '-': total -= value; break;
-                            case '+': default: total += value; break;
-                        }
-                    }
-
-                    rolls += ']';
-
-                    if (notationVectors.constant != '') {
-                        let constant = parseInt(notationVectors.constant);
-
-                        rolls += notationVectors.op + Math.abs(constant);
-
-                        switch (notationVectors.op) {
-                            case '*': total *= constant; break;
-                            case '/': total = total / constant; break;
-                            case '-': total -= constant; break;
-                            case '+': default: total += constant; break;
-                        }
-                    }
-                    
-                    totals += ' '+total;
-                }
-
-                label.innerHTML = (rolls+'<h2>'+totals+'</h2>');
+                label.innerHTML = (results.rolls+'<h2>'+results.labels+' '+results.values+'</h2>');
 
 
                 info_div.style.display = 'block';
@@ -1073,7 +786,7 @@ function login_initialize(container) {
                 deskrolling = false;
                 box.rolling = false;
                 if (log.roll_uuid) {
-                    log.confirm_message(log.roll_uuid, make_notation_for_log(res.notation, (rolls+' = '+totals)));
+                    log.confirm_message(log.roll_uuid, make_notation_for_log(res.notation, (results.rolls+' = '+results.labels+' '+results.values)));
                     delete log.roll_uuid;
                 }
             });
