@@ -899,59 +899,83 @@ const DiceBox = (element_container, vector2_dimensions, dice_factory) => {
     const getDiceTotals = (notationVectors, array_dicemeshes) => {
 
         let groupLevels = [];
-        let sets = [];
+        let valueSets = [];
+        let labelSets = [];
         console.log('notationVectors', notationVectors);
         console.log('array_dicemeshes', array_dicemeshes);
 
         // first calculate all sets into values
         // '4d20', '8d6', etc
-        // step 1: sort all results into corresponding sets
+        // step 1: sort all results into corresponding sets with values and labels
         for(let i = 0; i < array_dicemeshes.length; i++) {
             let notation = array_dicemeshes[i].notation;
-            if (!sets[notation.sid]) sets[notation.sid] = [];
+            let diceobj =  $t.DiceFactory.get(notation.type);
 
-            sets[notation.sid].push(array_dicemeshes[i]);
+            if (diceobj.display == 'labels') {
+                labelSets.push(array_dicemeshes[i]);
+            }
+            if (diceobj.display == 'values') {
+                if (!valueSets[notation.sid]) valueSets[notation.sid] = [];
+                valueSets[notation.sid].push(array_dicemeshes[i]);
+            }
         }
 
         let setValues = [];
+        let lastgroupid = 0;
 
         // step 2: iterate each set and combine their values
-        for (let i=0, len=sets.length; i < len; ++i) {
-            let set = sets[i];
+        for (let i=0, len=valueSets.length; i < len; ++i) {
+            let set = valueSets[i];
             if(!set) continue;
-
+            lastgroupid = Math.max(lastgroupid, set[0].notation.gid);
             setValues.push(diceGroupCombine(notationVectors, set));
         }
 
-        // step 3: iterate the combined sets and group first by level, then by groupid
+        // step 3: insert any trailing constant as another entry
+        if (notationVectors.constant != '') {
+            let constant = parseInt(notationVectors.constant);
+
+            setValues.push({
+                rolls: ''+constant,
+                labels: '',
+                gid: lastgroupid+1,
+                glvl: 0,
+                values: Math.abs(constant),
+                op: notationVectors.op,
+            });
+        }
+
+
+        // step 4: iterate the combined sets and group first by level, then by groupid
         for (let i=0, len=setValues.length; i < len; ++i) {
             let setvalue = setValues[i];
 
             let level = setvalue.glvl;
             let groupid = setvalue.gid;
 
-            if (!groupLevels[level+'']) {
-                groupLevels[level+''] = [];
+            if (!groupLevels[level]) {
+                groupLevels[level] = [];
             }
 
-            if (!groupLevels[level+''][groupid+'']) {
-                groupLevels[level+''][groupid+''] = [];
+            if (!groupLevels[level][groupid]) {
+                groupLevels[level][groupid] = [];
             }
 
             groupLevels[level+''][groupid+''].push(setvalue);
         }
         console.log('groupLevels - presort', groupLevels);
 
-        // step 4: sort the levels, put them in descending order
-        groupLevels.sort().reverse();
+        // step 5: sort the levels, put them in descending order
+        groupLevels = groupLevels.sort().reverse();
 
         console.log('groupLevels - postsort', groupLevels);
 
-        //step 5: iterate the levels combining all sets in a group at that level
+        //let results = {rolls: '', labels: '', values: ''};
+        let results = diceGroupCombine(notationVectors, labelSets);
+
+        //step 6: iterate the levels combining all sets in a group at that level
         // iterate levels first, levels should be in descending order
         //  so we start at the deepest level first and work upwards
-        let results = {rolls: '', labels: '', values: 0};
-
         for (let level=0, len=groupLevels.length; level < len; ++level) {
 
             let groupsInLevel = groupLevels[level];
@@ -975,6 +999,7 @@ const DiceBox = (element_container, vector2_dimensions, dice_factory) => {
 
                     if (groupResult.rolls.length > 0) resultsForGroup.rolls +=  op+'['+groupResult.rolls+']';
                     if (groupResult.labels.length > 0) resultsForGroup.labels += '['+groupResult.labels+']';
+                    groupResult.values = parseInt(groupResult.values) || 0;
                     if (i == 0) {
                         resultsForGroup.values = groupResult.values;
                     } else {
@@ -992,46 +1017,28 @@ const DiceBox = (element_container, vector2_dimensions, dice_factory) => {
 
                 if (resultsForGroup.rolls.length > 0) resultsForLevel.rolls += op+'('+resultsForGroup.rolls+')';
                 if (resultsForGroup.labels.length > 0) resultsForLevel.labels += resultsForGroup.labels;
+                resultsForGroup.values = parseInt(resultsForGroup.values) || 0;
+                    
                 switch (resultsForGroup.op) {
                     case '*': resultsForLevel.values *= resultsForGroup.values; break;
                     case '/': resultsForLevel.values /= resultsForGroup.values; break;
                     case '-': resultsForLevel.values -= resultsForGroup.values; break;
                     case '+': default: resultsForLevel.values += resultsForGroup.values; break;
                 }
-                resultsForLevel.op = resultsForGroup.op;
             }
             console.log('resultsForLevel', level, resultsForLevel);
 
-            let op = (level == groupLevels.length-1) ? '' : resultsForLevel.op;
+            results.op = (level == groupLevels.length-1) ? '' : '+';
+            console.log('(level == groupLevels.length-1)', level, groupLevels.length-1);
+            resultsForLevel.values = parseInt(resultsForLevel.values) || 0;
 
-            if (resultsForLevel.rolls.length > 0) results.rolls += op+''+resultsForLevel.rolls+'';
+            if (resultsForLevel.rolls.length > 0) results.rolls += results.op+''+resultsForLevel.rolls+'';
             if (resultsForLevel.labels.length > 0) results.labels += resultsForLevel.labels;
-            // top level, no more operators, values are kept as-is
-            if (level == groupLevels.length-1) {
-                results.values = resultsForLevel.values;
-                results.op = '';
-            } else {
-                switch (resultsForLevel.op) {
-                    case '*': results.values *= resultsForLevel.values; break;
-                    case '/': results.values /= resultsForLevel.values; break;
-                    case '-': results.values -= resultsForLevel.values; break;
-                    case '+': default: results.values += resultsForLevel.values; break;
-                }
-            }
-        }
-        console.log('results', results);
-
-        // step 6: apply any constant that was tagged onto the end
-        if (notationVectors.constant != '') {
-            let constant = parseInt(notationVectors.constant);
-
-            results.rolls += notationVectors.op + Math.abs(constant);
-
-            switch (notationVectors.op) {
-                case '*': results.values *= constant; break;
-                case '/': results.values /= constant; break;
-                case '-': results.values -= constant; break;
-                case '+': default: results.values += constant; break;
+            switch (results.op) {
+                case '*': results.values *= resultsForLevel.values; break;
+                case '/': results.values /= resultsForLevel.values; break;
+                case '-': results.values -= resultsForLevel.values; break;
+                case '+': default: results.values += resultsForLevel.values; break;
             }
         }
 
@@ -1297,6 +1304,7 @@ const DiceBox = (element_container, vector2_dimensions, dice_factory) => {
 
         // numbers only
         if (numberdicevalues.length > 0) {
+            values = 0;
             rolls += numberdicevalues.join('+');
             for(let i = 0; i < numberdicevalues.length; i++){                        
                 values += parseInt(numberdicevalues[i]);

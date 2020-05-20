@@ -997,7 +997,7 @@ class DiceNotation {
 
 
         let no = notationdata.split('@');// 0: dice notations, 1: forced results
-        let rollregex = new RegExp(/(\+|\-|\*|\/|){0,1}(\(|)(\d*)([a-z]{1,5}\d+|[a-z]{1,5}|)(?:\{([a-z]+|)(\d+|)\}|)(\)|)/, 'i');
+        let rollregex = new RegExp(/(\+|\-|\*|\/|){0,1}(\(*|)(\d*)([a-z]{1,5}\d+|[a-z]{1,5}|)(?:\{([a-z]+|)(\d+|)\}|)(\)*|)/, 'i');
         let resultsregex = new RegExp(/(\b)*(\-\d+|\d+)(\b)*/, 'gi'); // forced results: '1, 2, 3' or '1 2 3'
         let res;
 
@@ -1015,16 +1015,18 @@ class DiceNotation {
             notationstring = notationstring.substring(res[0].length);
 
             let operator = res[1];
-            let groupstart = res[2] == '(';
+            let groupstart = res[2] && res[2].length > 0;
             let amount = res[3];
             let type = res[4];
             let funcname = res[5];
             let funcargs = res[6];
-            let groupend = res[7] == ')';
+            let groupend = res[7] && res[7].length > 0;
             let addset = true;
 
             // individual groups get a unique id so two seperate groups at the same level don't get combined later
-            if (groupstart) ++groupLevel;
+            if (groupstart) {
+                groupLevel += res[2].length;
+            }
 
             // if this is true, we have a single operator and constant as the whole notation string
             // e.g. '+7', '*4', '-2'
@@ -1046,8 +1048,8 @@ class DiceNotation {
             if (addset) this.addSet(amount, type, groupID, groupLevel, funcname, funcargs, operator);
             
             if (groupend) {
-                --groupLevel;
-                ++groupID;
+                groupLevel -= res[7].length;
+                groupID += res[7].length;
             }
         }
 
