@@ -45,6 +45,7 @@ const DiceBox = (element_container, vector2_dimensions, dice_factory) => {
     let barrier_body_material = new CANNON.Material();
     let sounds_table = {};
     let sounds_dice = [];
+    let diceFunctions = {};
     let animstate = '';
     let iteration;
     let renderer;
@@ -98,6 +99,15 @@ const DiceBox = (element_container, vector2_dimensions, dice_factory) => {
     }
     public_interface['enableShadows'] = enableShadows;
     public_interface['disableShadows'] = disableShadows;
+
+    const registerDiceFunction = (funcName, callback, helptext) => {
+        diceFunctions[funcName] = {
+            name: funcName,
+            help: helptext,
+            method: callback
+        };
+    }
+    public_interface['registerDiceFunction'] = registerDiceFunction;
 
     const initialize = () => {
 
@@ -368,19 +378,28 @@ const DiceBox = (element_container, vector2_dimensions, dice_factory) => {
 
         let values = diceobj.values;
         let value = parseInt(dicemesh.result.value);
+        result = parseInt(result);
         
         if (dicemesh.notation.type == 'd10' && value == 0) value = 10;
         if (dicemesh.notation.type == 'd100' && value == 0) value = 100;
         if (dicemesh.notation.type == 'd100' && (value > 0 && value < 10)) value *= 10;
 
-        let valueindex = values.indexOf(value);
-        let resultindex = values.indexOf(result);
+        if (dicemesh.notation.type == 'd10' && result == 0) result = 10;
+        if (dicemesh.notation.type == 'd100' && result == 0) result = 100;
+        if (dicemesh.notation.type == 'd100' && (result > 0 && result < 10)) result *= 10;
+
+        let valueindex = diceobj.values.indexOf(value);
+        let resultindex = diceobj.values.indexOf(result);
+
+        console.log('swapDiceFace: values', diceobj.values);
+        console.log('swapDiceFace: value', value, 'result', result);
+        console.log('swapDiceFace: valueindex', valueindex, 'resultindex', resultindex);
 
         if (valueindex < 0 || resultindex < 0) return;
         if (valueindex == resultindex) return;
 
-        // find material index for correspondig value -> face
-        // and swap them
+        // find material index for corresponding value -> face and swap them
+        // must clone the geom before modifying it
         let geom = dicemesh.geometry.clone();
 
         // find list of faces that use the matching material index for the given value/result
@@ -391,10 +410,12 @@ const DiceBox = (element_container, vector2_dimensions, dice_factory) => {
         // the mesh's materials start at index 2
         var magic = 2;
         // except on d10 meshes
-        if (dicemesh.notation.type == 'd100' || dicemesh.notation.type == 'd10') magic = 1;
+        if (diceobj.shape == 'd10') magic = 1;
 
         let material_value = (valueindex+magic);
         let material_result = (resultindex+magic);
+
+        console.log('swapDiceFace', material_value, material_result);
 
         for (var i = 0, l = geom.faces.length; i < l; ++i) {
             var matindex = geom.faces[i].materialIndex;
@@ -411,20 +432,27 @@ const DiceBox = (element_container, vector2_dimensions, dice_factory) => {
 
         if (geomindex_value.length <= 0 || geomindex_result.length <= 0) return;
 
-        //swap the materials
-        for(let i = 0, l = geomindex_value.length; i < l; i++) {
-            geom.faces[geomindex_value[i]].materialIndex = material_result;
-        }
+        console.log('swapDiceFace: geomindex_value', geomindex_value, 'geomindex_result', geomindex_result);
 
+        //swap the materials
         for(let i = 0, l = geomindex_result.length; i < l; i++) {
             geom.faces[geomindex_result[i]].materialIndex = material_value;
+        }
+
+        for(let i = 0, l = geomindex_value.length; i < l; i++) {
+            geom.faces[geomindex_value[i]].materialIndex = material_result;
         }
 
         dicemesh.geometry = geom;
     }
 
     const swapDiceFace_D4 = (dicemesh, result) => {
+        const diceobj = dicefactory.get(dicemesh.notation.type);
+        let value = parseInt(dicemesh.result.value);
+        result = parseInt(result);
+
         if (!(value >= 1 && value <= 4)) return;
+
         var num = value - result;
         var geom = dicemesh.geometry.clone();
         for (var i = 0, l = geom.faces.length; i < l; ++i) {
@@ -438,9 +466,10 @@ const DiceBox = (element_container, vector2_dimensions, dice_factory) => {
         if (dicemesh.notation.type == 'd4' && num != 0) {
             if (num < 0) num += 4;
 
-            const diceobj = dicefactory.get(dicemesh.notation.type);
+            //const diceobj = dicefactory.get(dicemesh.notation.type);
 
-            dicemesh.material = dicefactory.createTextMeterial(diceobj, diceobj.labels[num]);
+            //dicemesh.material = dicefactory.createTextMaterial(diceobj, diceobj.labels[num]);
+            //dicemesh.material.needsUpdate = true;
         }
         dicemesh.geometry = geom;
     }
@@ -866,11 +895,6 @@ const DiceBox = (element_container, vector2_dimensions, dice_factory) => {
             spawnDice(notationVectors.vectors[i]);
         }
         simulateThrow();
-
-        //reset dice vectors
-        for (let i=0, len=diceList.length; i < len; ++i) {
-            resetDice(diceList[i], notationVectors.vectors[i]);
-        }
         
         iteration = 0;
 
@@ -881,6 +905,11 @@ const DiceBox = (element_container, vector2_dimensions, dice_factory) => {
                 if (dicemesh.result.value == notationVectors.result[i]) continue;
                 swapDiceFace(dicemesh, notationVectors.result[i]);
             }
+        }
+
+        //reset dice vectors
+        for (let i=0, len=diceList.length; i < len; ++i) {
+            resetDice(diceList[i], notationVectors.vectors[i]);
         }
 
         rolling = true;
@@ -898,7 +927,6 @@ const DiceBox = (element_container, vector2_dimensions, dice_factory) => {
 
     const getDiceTotals = (notationVectors, array_dicemeshes) => {
 
-        let groupLevels = [];
         let valueSets = [];
         let labelSets = [];
         console.log('notationVectors', notationVectors);
@@ -936,6 +964,7 @@ const DiceBox = (element_container, vector2_dimensions, dice_factory) => {
             let constant = parseInt(notationVectors.constant);
 
             setValues.push({
+                isconstant: true,
                 rolls: ''+constant,
                 labels: '',
                 gid: lastgroupid+1,
@@ -945,6 +974,7 @@ const DiceBox = (element_container, vector2_dimensions, dice_factory) => {
             });
         }
 
+        let groupLevels = {};
 
         // step 4: iterate the combined sets and group first by level, then by groupid
         for (let i=0, len=setValues.length; i < len; ++i) {
@@ -954,62 +984,70 @@ const DiceBox = (element_container, vector2_dimensions, dice_factory) => {
             let groupid = setvalue.gid;
 
             if (!groupLevels[level]) {
-                groupLevels[level] = [];
+                groupLevels[level] = {};
             }
 
             if (!groupLevels[level][groupid]) {
                 groupLevels[level][groupid] = [];
             }
 
-            groupLevels[level+''][groupid+''].push(setvalue);
+            groupLevels[level][groupid].push(setvalue);
         }
-        console.log('groupLevels - presort', groupLevels);
 
-        // step 5: sort the levels, put them in descending order
-        groupLevels = groupLevels.sort().reverse();
-
-        console.log('groupLevels - postsort', groupLevels);
+        console.log('groupLevels', groupLevels);
 
         //let results = {rolls: '', labels: '', values: ''};
         let results = diceGroupCombine(notationVectors, labelSets);
+        results.op = '';
+        results.values = '';
 
         //step 6: iterate the levels combining all sets in a group at that level
         // iterate levels first, levels should be in descending order
         //  so we start at the deepest level first and work upwards
-        for (let level=0, len=groupLevels.length; level < len; ++level) {
 
+        let groupLevelsKeys = Object.keys(groupLevels).reverse();
+        console.log('groupLevelsKeys', groupLevelsKeys);
+
+        for (let key=0, len=groupLevelsKeys.length; key < len; ++key) {
+
+            let level = groupLevelsKeys[key];
             let groupsInLevel = groupLevels[level];
             if (!groupsInLevel) continue;
 
-            let resultsForLevel = {rolls: '', labels: '', values: 0, op: '+'};
+
+            console.log('groupLevel[key] = value: ', level, groupsInLevel);
+
+            let resultsForLevel = {rolls: '', labels: '', values: 0, op: ''};
 
             // look for groups at this level and combine those
-            for (let groupid=0, len=groupsInLevel.length; groupid < len; ++groupid) {
-                let groupResults = groupsInLevel[groupid];
-                if (!groupResults) continue;
+            for (let groupid in groupsInLevel) {
 
-                let resultsForGroup = {rolls: '', labels: '', values: 0, op: groupResults[0] ? groupResults[0].op || '+' : '+'};
+                let groupResults = groupsInLevel[groupid];
+
+                let resultsForGroup = {rolls: '', labels: '', values: 0, op: ''};
 
                 for (let i=0, len=groupResults.length; i < len; ++i) {
                     let groupResult = groupResults[i];
 
-                    console.log('groupResult', level, groupid, i, groupResult);
-
                     let op = (i == 0) ? '' : groupResult.op;
 
-                    if (groupResult.rolls.length > 0) resultsForGroup.rolls +=  op+'['+groupResult.rolls+']';
+                    if (groupResult.rolls.length > 0 && !groupResult.isconstant) resultsForGroup.rolls +=  op+'['+groupResult.rolls+']';
+                    if (groupResult.rolls.length > 0 && groupResult.isconstant) resultsForGroup.rolls +=  op+groupResult.rolls;
                     if (groupResult.labels.length > 0) resultsForGroup.labels += '['+groupResult.labels+']';
-                    groupResult.values = parseInt(groupResult.values) || 0;
-                    if (i == 0) {
+                    if (resultsForGroup.op == '') resultsForGroup.op = groupResult.op;
+
+                    if (groupResult.isconstant) {
+
+                        resultsForGroup.op = groupResult.op;
+                        resultsForGroup.labels = groupResult.labels;
                         resultsForGroup.values = groupResult.values;
+
                     } else {
-                        switch (groupResult.op) {
-                            case '*': resultsForGroup.values *= groupResult.values; break;
-                            case '/': resultsForGroup.values /= groupResult.values; break;
-                            case '-': resultsForGroup.values -= groupResult.values; break;
-                            case '+': default: resultsForGroup.values += groupResult.values; break;
-                        }
+
+                        console.log('groupResults', level, groupid, i, groupResults);
+                        resultsForGroup.values = operate(resultsForGroup.values, groupResult.op, groupResult.values);
                     }
+
                 }
                 console.log('resultsForGroup', level, groupid, resultsForGroup);
 
@@ -1017,29 +1055,31 @@ const DiceBox = (element_container, vector2_dimensions, dice_factory) => {
 
                 if (resultsForGroup.rolls.length > 0) resultsForLevel.rolls += op+'('+resultsForGroup.rolls+')';
                 if (resultsForGroup.labels.length > 0) resultsForLevel.labels += resultsForGroup.labels;
-                resultsForGroup.values = parseInt(resultsForGroup.values) || 0;
-                    
-                switch (resultsForGroup.op) {
-                    case '*': resultsForLevel.values *= resultsForGroup.values; break;
-                    case '/': resultsForLevel.values /= resultsForGroup.values; break;
-                    case '-': resultsForLevel.values -= resultsForGroup.values; break;
-                    case '+': default: resultsForLevel.values += resultsForGroup.values; break;
-                }
+                if (resultsForLevel.op == '') resultsForLevel.op = resultsForGroup.op;
+
+                //if (groupResults.length == 1) {
+                //    resultsForLevel = resultsForGroup;
+                //} else {
+
+                    resultsForLevel.values = operate(resultsForLevel.values, resultsForGroup.op, resultsForGroup.values);
+                //}
             }
             console.log('resultsForLevel', level, resultsForLevel);
 
-            results.op = (level == groupLevels.length-1) ? '' : '+';
-            console.log('(level == groupLevels.length-1)', level, groupLevels.length-1);
-            resultsForLevel.values = parseInt(resultsForLevel.values) || 0;
 
-            if (resultsForLevel.rolls.length > 0) results.rolls += results.op+''+resultsForLevel.rolls+'';
+            if (resultsForLevel.rolls.length > 0) results.rolls += resultsForLevel.rolls+'';
             if (resultsForLevel.labels.length > 0) results.labels += resultsForLevel.labels;
-            switch (results.op) {
-                case '*': results.values *= resultsForLevel.values; break;
-                case '/': results.values /= resultsForLevel.values; break;
-                case '-': results.values -= resultsForLevel.values; break;
-                case '+': default: results.values += resultsForLevel.values; break;
-            }
+
+            if (results.op == '') results.op = resultsForLevel.op;
+            if (results.values == '' && resultsForLevel.values != '') results.values = parseInt(results.values) || 0;
+
+            //if (results.length == 1) {
+            //    resultsForLevel.values = resultsForGroup.values;
+            //    resultsForLevel.op = resultsForGroup.op;
+            //} else {
+
+                results.values = operate(results.values, resultsForLevel.op, resultsForLevel.values);
+            //}
         }
 
         console.log('results', results);
@@ -1062,12 +1102,47 @@ const DiceBox = (element_container, vector2_dimensions, dice_factory) => {
         let numberdicevalues = [];
         let numberdiceoperators = [];
 
+        let diceFunc = '';
+        let diceFuncArgs = '';
+
+        if (diceFunc == '' && dicemeshList[0] && dicemeshList[0].notation && dicemeshList[0].notation.func) {
+                diceFunc = dicemeshList[0].notation.func.toLowerCase();
+                console.log('diceFunc', diceFunc);
+        }
+        if (diceFuncArgs == '' && dicemeshList[0] && dicemeshList[0].notation && dicemeshList[0].notation.args) {
+            diceFuncArgs = dicemeshList[0].notation.args;
+            console.log('diceFuncArgs', diceFuncArgs);
+        }
+
+
+        console.log('diceFunctions', diceFunctions);
+        if (diceFunc != '') {
+            let funcdata = diceFunctions[diceFunc];
+
+            console.log('funcdata', funcdata);
+
+            if (funcdata && funcdata.method) {
+                let method = funcdata.method;
+                dicemeshList = funcdata.method(dicemeshList, diceFuncArgs);
+            }
+        }
+
         // split up results between known systems, symbol, and number dice
         for(let i = 0; i < dicemeshList.length; i++){
 
             let dicemesh = dicemeshList[i];
             let diceobj =  $t.DiceFactory.get(dicemesh.notation.type);
             let operator = dicemesh.notation.op;
+
+            if (diceFunc == '' && dicemesh.notation.func) {
+                diceFunc = dicemesh.notation.func.toLowerCase();
+                console.log('diceFunc', diceFunc);
+            }
+            if (diceFuncArgs == '') {
+                diceFuncArgs = dicemesh.notation.args;
+                console.log('diceFuncArgs', diceFuncArgs);
+            }
+
 
             if (diceobj.system == 'swrpg') {
                 swrpgdice.push(dicemesh.result.label);
@@ -1085,8 +1160,6 @@ const DiceBox = (element_container, vector2_dimensions, dice_factory) => {
             }
         }
 
-        console.log('numberdicevalues', numberdicevalues);
-        console.log('numberdiceoperators', numberdiceoperators);
 
         let rolls = '';
         let labels = '';
@@ -1306,8 +1379,9 @@ const DiceBox = (element_container, vector2_dimensions, dice_factory) => {
         if (numberdicevalues.length > 0) {
             values = 0;
             rolls += numberdicevalues.join('+');
-            for(let i = 0; i < numberdicevalues.length; i++){                        
-                values += parseInt(numberdicevalues[i]);
+
+            for(let i = 0; i < numberdicevalues.length; i++){
+                values = operate(values, numberdiceoperators[i], numberdicevalues[i]);
             }
         }
 
@@ -1321,6 +1395,18 @@ const DiceBox = (element_container, vector2_dimensions, dice_factory) => {
         
     }
     public_interface['getDiceTotals'] = getDiceTotals;
+
+    function operate(valuea, operator, valueb) {
+        switch (operator) {
+            case '^': valuea = Math.pow(valuea, valueb); break;
+            case '%': valuea = valuea % valueb; break;
+            case '*': valuea *= valueb; break;
+            case '/': valuea /= valueb; break;
+            case '-': valuea -= valueb; break;
+            case '+': default: valuea += valueb; break;
+        }
+        return valuea;
+    }
 
 	return public_interface;
 }

@@ -552,6 +552,8 @@ function login_initialize(container) {
         $t.box.volume = parseInt($t.DiceFavorites.settings.volume.value);
         $t.box.sounds = $t.DiceFavorites.settings.sounds.value == '1';
 
+        $t.DiceFunctions = new DiceFunctions($t.box);
+
         $t.bind(container, ['mousedown', 'touchstart'], function(ev) {
 
             box.startDragThrow(ev);
