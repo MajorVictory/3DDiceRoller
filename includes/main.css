@@ -1,92 +1,92 @@
 #svg *, .svg * {
-    -moz-user-select: none;
-    -webkit-user-select: none;
-    -khtml-user-select: none;
-    -o-user-select: none;
-    user-select: none;
+	-moz-user-select: none;
+	-webkit-user-select: none;
+	-khtml-user-select: none;
+	-o-user-select: none;
+	user-select: none;
 }
 
 #waitform {
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    z-index: 10000;
-    cursor: wait;
+	position: absolute;
+	width: 100%;
+	height: 100%;
+	z-index: 10000;
+	cursor: wait;
 }
 
 a {
-    color: gray;
+	color: gray;
 }
 
 em {
-    border: 1px rgba(0, 0, 0, 0.2) solid;
-    font-style: normal;
-    padding: 0px 3px;
-    background-color: rgba(0, 0, 0, 0.08);
-    border-radius: 3px;
+	border: 1px rgba(0, 0, 0, 0.2) solid;
+	font-style: normal;
+	padding: 0px 3px;
+	background-color: rgba(0, 0, 0, 0.08);
+	border-radius: 3px;
 }
 
 body {
-    font-family: Georgia;
+	font-family: Georgia;
 }
 
 h6 {
-    font-size: 100%;
-    font-weight: normal;
-    margin: 0px;
+	font-size: 100%;
+	font-weight: normal;
+	margin: 0px;
 }
 
 p {
-    font-size: 80%;
-    margin-top: 5px;
-    margin-bottom: 0px;
+	font-size: 80%;
+	margin-top: 5px;
+	margin-bottom: 0px;
 }
 
 .control_panel {
-    position: absolute;
-    margin: 10px;
-    z-index: 10;
+	position: absolute;
+	margin: 10px;
+	z-index: 10;
 }
 
 #control_panel_hidden {
-    padding: 5px;
+	padding: 5px;
 }
 
 #control_panel_hidden:hover {
-    padding: 5px;
-    outline: 2px solid rgba(21, 26, 26, 0.7);
+	padding: 5px;
+	outline: 2px solid rgba(21, 26, 26, 0.7);
 }
 
 #control_panel_shown {
-    padding: 30px 15px 15px 15px;
-    outline: 2px solid rgba(21, 26, 26, 0.7);
+	padding: 30px 15px 15px 15px;
+	outline: 2px solid rgba(21, 26, 26, 0.7);
 }
 
 #control_panel_shown div {
-    font-size: 12pt;
-    margin-top: 0.3em;
-    color: rgba(21, 26, 26, 0.7);
-    font-family: Trebuchet MS;
+	font-size: 12pt;
+	margin-top: 0.3em;
+	color: rgba(21, 26, 26, 0.7);
+	font-family: Trebuchet MS;
 }
 
 #control_panel_hide {
-    position: absolute;
-    top: 0px;
-    left: 5px;
-    cursor: pointer;
+	position: absolute;
+	top: 0px;
+	left: 5px;
+	cursor: pointer;
 }
 
 #control_panel_show {
-    cursor: pointer;
+	cursor: pointer;
 }
 
 #control_panel_hide:hover {
-    outline: 1px solid grey;
+	outline: 1px solid grey;
 }
 
 .hidden {
-    display: none;
-    visibility: none;
-    width: 0px;
-    height: 0px;
+	display: none;
+	visibility: none;
+	width: 0px;
+	height: 0px;
 }

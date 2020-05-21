@@ -29,9 +29,9 @@ class DiceFunctions {
 
 			//a full DiceFactory object
 			// contains labels/values for all sides, colorset, and dice system info
-            let diceobj =  $t.DiceFactory.get(dicemesh.notation.type);
+			let diceobj =  $t.DiceFactory.get(dicemesh.notation.type);
 
-            //do what you need to add/remove/change results
+			//do what you need to add/remove/change results
 			
 		}
 		return resultList;
@@ -51,7 +51,7 @@ class DiceFunctions {
 			let dicemesh = dicemeshList[i];
 			let result = dicemesh.result;
 			let notation = dicemesh.notation;
-            let diceobj =  $t.DiceFactory.get(dicemesh.notation.type);
+			let diceobj =  $t.DiceFactory.get(dicemesh.notation.type);
 			
 		}
 		return resultList;
