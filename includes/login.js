@@ -178,7 +178,7 @@ function login_initialize(container) {
 	function socket_button_press(ev) {
 		connect_socket(true);
 	}
-	$t.bind(socket_button, ['keyup','click'], socket_button_press);
+	$t.bind(socket_button, 'click', socket_button_press);
 	$t.bind(socket_button, ['mousedown', 'mouseup'], function(ev) { ev.stopPropagation(); });
 	$t.bind(socket_button, 'focus', function(ev) { $t.set(container, { class: '' }); });
 	$t.bind(socket_button, 'blur', function(ev) { $t.set(container, { class: 'noselect' }); });
@@ -188,7 +188,7 @@ function login_initialize(container) {
 		$t.DiceFavorites.storeSettings();
 		location.reload();
 	}
-	$t.bind(theme_select, ['keyup','change','touchend'], on_theme_select_change);
+	$t.bind(theme_select, 'change', on_theme_select_change);
 	$t.bind(theme_select, 'focus', function(ev) { $t.set(container, { class: '' }); });
 	$t.bind(theme_select, 'blur', function(ev) { $t.set(container, { class: 'noselect' }); });
 
@@ -208,7 +208,7 @@ function login_initialize(container) {
 
 		if($t.show_selector) $t.show_selector(alldice);
 	}
-	$t.bind(system_select, ['keyup','change','touchend'], on_system_select_change);
+	$t.bind(system_select, 'change', on_system_select_change);
 	$t.bind(system_select, 'focus', function(ev) { $t.set(container, { class: '' }); });
 	$t.bind(system_select, 'blur', function(ev) { $t.set(container, { class: 'noselect' }); });
 	on_system_select_change();
@@ -220,7 +220,7 @@ function login_initialize(container) {
 		$t.rpc( { method: 'texture', texture: texture_select.value });
 		if($t.show_selector) $t.show_selector();
 	}
-	$t.bind(color_select, ['keyup','change','touchend'], on_color_select_change);
+	$t.bind(color_select, 'change', on_color_select_change);
 	$t.bind(color_select, 'focus', function(ev) { $t.set(container, { class: '' }); });
 	$t.bind(color_select, 'blur', function(ev) { $t.set(container, { class: 'noselect' }); });
 
@@ -230,7 +230,7 @@ function login_initialize(container) {
 		$t.rpc( { method: 'texture', texture: texture_select.value });
 		if($t.show_selector) $t.show_selector();
 	}
-	$t.bind(texture_select, ['keyup','change','touchend'], on_texture_select_change);
+	$t.bind(texture_select, 'change', on_texture_select_change);
 	$t.bind(texture_select, 'focus', function(ev) { $t.set(container, { class: '' }); });
 	$t.bind(texture_select, 'blur', function(ev) { $t.set(container, { class: 'noselect' }); });
 
@@ -444,9 +444,7 @@ function login_initialize(container) {
 
 		notation = new DiceNotation(notation); //reinit notation class, if sent from server has no methods attached.
 		var res = $t.element('span');
-
-		res.innerHTML = (notation.result.length ? ' (preset result)' : '');
-		res.innerHTML += '<span class="chat-notation">'+notation.stringify() + (notation.result.length ? ' (preset result)' : '')+'</span>';
+		res.innerHTML += '<span class="chat-notation">'+notation.stringify(false) + (notation.result.length ? ' (preset result)' : '')+'</span>';
 		res.innerHTML += '<span class="chat-notation-result">'+(result ? ' → ' + result : ' ...')+'</span>';
 
 		return res;
@@ -782,7 +780,6 @@ function login_initialize(container) {
 
 				label.innerHTML = (results.rolls+'<h2>'+results.labels+' '+results.values+'</h2>');
 
-
 				info_div.style.display = 'block';
 				$t.id('labelhelp').style.display = 'block';
 				deskrolling = false;
@@ -791,6 +788,54 @@ function login_initialize(container) {
 					log.confirm_message(log.roll_uuid, make_notation_for_log(res.notation, (results.rolls+' = '+results.labels+' '+results.values)));
 					delete log.roll_uuid;
 				}
+
+				$('.ui-helper-hidden-accessible').remove();
+
+				$('.diceresult').mouseenter(function(event) {
+					let diceid = $(this).data('uuid');
+					let selecteddice = null;
+					for (let i=0, len=$t.box.diceList.length; i < len; ++i) {
+						let dicemesh = $t.box.diceList[i];
+
+						if (dicemesh.uuid == diceid) {
+							$t.box.setSelected(dicemesh);
+							break;
+						}
+					}
+				}).mouseleave(function(event) {
+					$t.box.setSelected();
+				});
+
+				$(document).tooltip({
+					items: '.diceresult',
+					track: true,
+					content: function() {
+
+						let diceid = $(this).data('uuid');
+
+						if (!diceid) return '';
+
+						let rollhistory = 'Roll History:<br>';
+
+						for (let i=0, len=$t.box.diceList.length; i < len; ++i) {
+							let dicemesh = $t.box.diceList[i];
+							let diceobj = $t.DiceFactory.get(dicemesh.notation.type);
+
+							if (dicemesh.uuid == diceid) {
+
+								for (let i=0, len=dicemesh.result.length; i < len; ++i) {
+									let historyresult = dicemesh.result[i];
+
+									let showvalue = (diceobj.display == 'value') ? historyresult.value : historyresult.label;
+
+									rollhistory += 'Roll '+(i+1)+': '+showvalue+' ('+historyresult.reason+')<br>';
+									
+								}
+							}
+						}
+						return rollhistory;
+					}
+				});
 			});
 		},
 		chat: function(res) {

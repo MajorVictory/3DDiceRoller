@@ -125,6 +125,19 @@ legend {
     cursor: pointer;
 }
 
+.ui-tooltip {
+    padding: 8px;
+    position: absolute;
+    z-index: 9999;
+    max-width: 300px;
+    color: #000000;
+    background-color: #c0c0c0;
+}
+body .ui-tooltip {
+    border: solid 2px white;
+}
+
+
 #svg *, .svg * {
     -moz-user-select: none;
     -webkit-user-select: none;
@@ -170,6 +183,11 @@ legend {
 
 #label > h2 {
     margin: 0px auto;
+}
+
+.diceresult:hover {
+    color: white;
+    cursor: pointer;
 }
 
 #set {

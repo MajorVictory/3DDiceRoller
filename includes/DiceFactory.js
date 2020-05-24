@@ -1,72 +1,5 @@
 "use strict"
 
-
-
-class DicePreset {
-
-	constructor(type, shape = '') {
-
-		shape = shape || type;
-
-		this.type = type;
-		this.shape = shape || type;
-		this.scale = 1;
-		this.font = 'Arial';
-		this.color = '';
-		this.labels = [];
-		this.valueMap = [];
-		this.values = [];
-		this.mass = 300;
-		this.inertia = 13;
-		this.geometry = null;
-		this.display = 'values';
-		this.system = 'd20';
-	}
-
-	setValues(min = 1, max = 20, step = 1) {
-		this.values = this.range(min, max, step);
-	}
-
-	setValueMap(map) {
-
-		for(let i = 0; i < this.values.length; i++){
-			let key = this.values[i];
-			if (map[key] != null) this.valueMap[key] = map[key];
-		}
-	}
-
-	setLabels(labels) {
-
-		this.labels.push('');
-		if(this.shape != 'd10') this.labels.push('');
-
-		if (this.shape == 'd4') {
-
-			let a = labels[0];
-			let b = labels[1];
-			let c = labels[2];
-			let d = labels[3];
-
-			this.labels = [
-				[[], [0, 0, 0], [b, d, c], [a, c, d], [b, a, d], [a, b, c]],
-				[[], [0, 0, 0], [b, c, d], [c, a, d], [b, d, a], [c, b, a]],
-				[[], [0, 0, 0], [d, c, b], [c, d, a], [d, b, a], [c, a, b]],
-				[[], [0, 0, 0], [d, b, c], [a, d, c], [d, a, b], [a, c, b]]
-			];
-		} else {
-			Array.prototype.push.apply(this.labels, labels)
-		}
-	}
-
-	range(start, stop, step = 1) {
-		var a = [start], b = start;
-		while (b < stop) {
-			a.push(b += step || 1);
-		}
-		return a;
-	}
-}
-
 class DiceFactory {
 
 	constructor() {
@@ -437,56 +370,70 @@ class DiceFactory {
 		}
 
 
-		let mesh = new THREE.Mesh(geom, this.createMaterials(diceobj, this.baseScale / 2, 1.0));
+		let dicemesh = new THREE.Mesh(geom, this.createMaterials(diceobj, this.baseScale / 2, 1.0));
+		dicemesh.result = [];
+		dicemesh.shape = diceobj.shape;
+		dicemesh.rerolls = 0;
+		dicemesh.resultReason = 'natural';
+
+		dicemesh.getFaceValue = function() {
+
+			let vector = new THREE.Vector3(0, 0, this.shape == 'd4' ? -1 : 1);
+
+			let closest_face, closest_angle = Math.PI * 2;
+			for (let i = 0, l = this.geometry.faces.length; i < l; ++i) {
+				let face = this.geometry.faces[i];
+				if (face.materialIndex == 0) continue;
+				let angle = face.normal.clone().applyQuaternion(this.body.quaternion).angleTo(vector);
+				if (angle < closest_angle) {
+					closest_angle = angle;
+					closest_face = face;
+				}
+			}
+			let matindex = closest_face.materialIndex - 1;
+
+			if (this.shape == 'd4') return {value: matindex, label: ''};
+			if (this.shape == 'd10') matindex += 1;
+
+			const diceobj = $t.DiceFactory.dice[this.shape];
+			let value = diceobj.values[((matindex-1) % diceobj.values.length)];
+			let label = diceobj.labels[(((matindex-1) % (diceobj.labels.length-2))+2)];
+			let reason = this.resultReason;
+
+			return {value: value, label: label, reason: reason};
+		}
+
+		dicemesh.storeRolledValue = function() {
+			this.result.push(this.getFaceValue());
+		}
+
+		dicemesh.getLastValue = function() {
+			if (!this.result || this.result.length < 1) return {value: undefined, label: ''};
+
+			return this.result[this.result.length-1];
+		}
 
 		if (diceobj.color) {
-			mesh.material[0].color = new THREE.Color(diceobj.color);
-			mesh.material[0].emissive = new THREE.Color(diceobj.color);
-			mesh.material[0].emissiveIntensity = 1;
-			mesh.material[0].needsUpdate = true;
+			dicemesh.material[0].color = new THREE.Color(diceobj.color);
+			dicemesh.material[0].emissive = new THREE.Color(diceobj.color);
+			dicemesh.material[0].emissiveIntensity = 1;
+			dicemesh.material[0].needsUpdate = true;
 		}
 
 		switch (type) {
 			case 'd1':
-				return this.fixmaterials(mesh, 1);
+				return this.fixmaterials(dicemesh, 1);
 			case 'd2':
-				return this.fixmaterials(mesh, 2);
+				return this.fixmaterials(dicemesh, 2);
 			case 'd3': case 'df': case 'dset': 
-				return this.fixmaterials(mesh, 3);
+				return this.fixmaterials(dicemesh, 3);
 			default:
-				return mesh;
+				return dicemesh;
 		}
 	}
 
 	get(type) {
 		return this.dice[type];
-	}
-
-	getValue(dicemesh) {
-
-		const diceobj = this.dice[dicemesh.notation.type];
-
-		let vector = new THREE.Vector3(0, 0, diceobj.shape == 'd4' ? -1 : 1);
-
-		let closest_face, closest_angle = Math.PI * 2;
-		for (let i = 0, l = dicemesh.geometry.faces.length; i < l; ++i) {
-			let face = dicemesh.geometry.faces[i];
-			if (face.materialIndex == 0) continue;
-			let angle = face.normal.clone().applyQuaternion(dicemesh.body.quaternion).angleTo(vector);
-			if (angle < closest_angle) {
-				closest_angle = angle;
-				closest_face = face;
-			}
-		}
-		let matindex = closest_face.materialIndex - 1;
-
-		if (diceobj.shape == 'd4') return {value: matindex, label: '', mesh: dicemesh};
-		if (diceobj.shape == 'd10') matindex += 1;
-
-		let value = diceobj.values[((matindex-1) % diceobj.values.length)];
-		let label = diceobj.labels[(((matindex-1) % (diceobj.labels.length-2))+2)];
-
-		return {value: value, label: label, mesh: dicemesh};
 	}
 
 	getGeometry(type) {
@@ -517,6 +464,11 @@ class DiceFactory {
 
 	createTextMaterial(diceobj, labels, index, size, margin, texture, forecolor, outlinecolor, backcolor) {
 		if (labels[index] === undefined) return null;
+
+        texture = texture || this.dice_texture_rand;
+        forecolor = forecolor || this.label_color_rand;
+        outlinecolor = outlinecolor || this.label_outline_rand;
+        backcolor = backcolor || this.dice_color_rand;
 
 		let text = labels[index];
 
@@ -951,246 +903,4 @@ class DiceFactory {
 		geom.cannon_shape = this.create_shape(vectors, faces, radius);
 		return geom;
 	}
-}
-
-class DiceNotation {
-
-	constructor(notation) {
-
-		if (typeof notation == 'object') {
-			notation = notation.notation;
-		}
-
-		this.set = [];
-		this.setkeys = [];
-		this.setid = 0;
-		this.groups = [];
-		this.totalDice = 0;
-		this.op = '';
-		this.constant = '';
-		this.result = [];
-		this.error = false;
-		this.boost = 1;
-		this.notation = notation;
-		this.vectors = [];
-		this.owner = -1;
-
-		if (!notation || notation =='0') {
-			this.error = true;
-		}
-
-		let notationdata = this.notation;
-		if (notationdata) {
-			let rage = (notationdata.split('!').length-1) || 0;
-			if (rage > 0) {
-				this.boost = Math.min(Math.max(rage, 0), 3) * 4;
-			}
-			notationdata = notationdata.split('!').join(''); //remove and continue
-		}
-
-		notationdata = notationdata.split(' ').join(''); // remove spaces
-
-		//count group starts and ends
-		let groupstarts = notationdata.split('(').length-1;
-		let groupends = notationdata.split(')').length-1;
-		if (groupstarts != groupends) this.error = true;
-
-
-		let no = notationdata.split('@');// 0: dice notations, 1: forced results
-		let rollregex = new RegExp(/(\+|\-|\*|\/|\%|\^|){0,1}(\(*|)(\d*)([a-z]{1,5}\d+|[a-z]{1,5}|)(?:\{([a-z]+)(.*?|)\}|)(\)*|)/, 'i');
-		let resultsregex = new RegExp(/(\b)*(\-\d+|\d+)(\b)*/, 'gi'); // forced results: '1, 2, 3' or '1 2 3'
-		let res;
-
-		let runs = 0;
-		let breaklimit = 30;
-		let groupLevel = 0;
-		let groupID = 0;
-
-		// dice notations
-		let notationstring = no[0];
-		while (!this.error && notationstring.length > 0 && (res = rollregex.exec(notationstring)) !== null && runs < breaklimit) {
-			runs++;
-
-			//remove this notation so we can move on next iteration
-			notationstring = notationstring.substring(res[0].length);
-
-			let operator = res[1];
-			let groupstart = res[2] && res[2].length > 0;
-			let amount = res[3];
-			let type = res[4];
-			let funcname = res[5];
-			let funcargs = res[6];
-			let groupend = res[7] && res[7].length > 0;
-			let addset = true;
-
-			// individual groups get a unique id so two seperate groups at the same level don't get combined later
-			if (groupstart) {
-				groupLevel += res[2].length;
-			}
-
-			// if this is true, we have a single operator and constant as the whole notation string
-			// e.g. '+7', '*4', '-2'
-			// in this case, assume a d20 is to be rolled
-			if ((runs == 1 && notationstring.length == 0) && !type && operator && amount) {
-				
-				type = 'd20';
-				this.op = operator;
-				this.constant = parseInt(amount);
-				amount = 1;
-
-			// in this case, we've got other sets and this is just an ending operator+constant
-			} else if ((runs > 1 && notationstring.length == 0) && !type) {
-				this.op = operator;
-				this.constant = parseInt(amount);
-				addset = false;
-			}
-
-			if (addset) this.addSet(amount, type, groupID, groupLevel, funcname, funcargs, operator);
-			
-			if (groupend) {
-				groupLevel -= res[7].length;
-				groupID += res[7].length;
-			}
-		}
-
-		// forced results
-		if (!this.error && no[1] && (res = no[1].match(resultsregex)) !== null) {
-			this.result.push(...res);
-		}
-	}
-
-	stringify() {
-		let output = '';
-
-		if (this.set.length < 1) return output;
-
-		for(let i = 0; i < this.set.length; i++){
-			let set = this.set[i];
-
-			output += (i > 0 && set.op) ? set.op : '';
-			output += set.num + set.type;
-			if(set.func) {
-				output += '{';
-				output += (set.func) ? set.func : '';
-				output += (set.args) ? set.args : '';
-				output += '}';
-			}
-		}
-
-		output += (this.constant) ? this.op+''+Math.abs(this.constant) : '';
-
-		if(this.result && this.result.length > 0) {
-			output += '@'+this.result.join(',');
-		}
-
-		if (this.boost > 1) {
-			output += ('!'.repeat((this.boost/4)));
-		}
-		return output;
-	}
-
-	addSet(amount, type, groupID = 0, groupLevel = 0, funcname = '', funcargs = '', operator = '+') {
-
-		let diceobj = teal.DiceFactory.get(type);
-		if (diceobj == null) { this.error = true; return; }
-
-		amount = Math.abs(parseInt(amount || 1));
-
-		// update a previous set if these match
-		// has the added bonus of combining duplicate
-		let setkey = operator+''+type+''+groupID+''+groupLevel+''+funcname+''+funcargs;
-		let update = (this.setkeys[setkey] != null);
-
-		let setentry = {};
-		if (update) {
-			setentry = this.set[(this.setkeys[setkey]-1)];
-		}
-		/* setentry = {
-			num: 0,
-			type: '',
-			gid: 0,
-			glvl: 0,
-			func: '',
-			arg: 0,
-			op: '',
-		} */
-		if (amount > 0) {
-
-			setentry.num = update ? (amount + setentry.num) : amount;
-			setentry.type = diceobj.type;
-			setentry.sid = this.setid;
-			setentry.gid = groupID;
-			setentry.glvl = groupLevel;
-			if (funcname) setentry.func = funcname;
-			if (funcargs) setentry.args = funcargs;
-			if (operator) setentry.op = operator;
-
-			if (!update)  {
-				this.setkeys[setkey] = this.set.push(setentry);
-			} else {
-				this.set[(this.setkeys[setkey]-1)] = setentry;
-			}
-		}
-
-		if (!update) ++this.setid;
-	}
-
-	test_notations(teststring = '') {
-
-		let teststrings = [];
-
-		if (teststring != '') {
-			teststrings.push(teststring);
-		} else {
-			teststrings = [
-				'8',
-				'10',
-				'100',
-				'8h1',
-				'10h1',
-				'100{h1}',
-				'8{h20}',
-				'10{h4000}',
-				'800{l098029384}@8,8,8,8,8',
-				'5ddif{hi4}',
-				'6dpro{hi234}',
-				'((6dpro{hi234}))',
-				'(5ddif{hi4}*6dpro{hi234})',
-				'(5ddif{hi4}*6dpro{hi234})+6dpro{hi234}/10d20+7',
-				'+7',
-				'+10',
-				'+100',
-				'1d4',
-				'1d4+8d6l+4dsex+7',
-				'10d4',
-				'10d20',
-				'10d20+7',
-				'8d4{h4}',
-				'8d4{h4}+7',
-				'10d4{l2}',
-				'10d20',
-				'10d20+7',
-				'4dsex',
-				'4dwww+',
-				'ddab',
-				'ddif',
-				'dpro',
-				'dcha',
-				'dfor',
-				'dboo',
-				'dset'
-			];
-		}
-
-		for(let i = 0, l = teststrings.length; i < l; i++){
-			console.log(i, teststrings[i]);
-
-			let parsed = this.parse_notation(teststrings[i]);
-			console.log('parse_notation', parsed);
-
-			let stringified = this.stringify_notation(parsed);
-			console.log('stringify_notation', stringified);
-		}
-	}
-
 }

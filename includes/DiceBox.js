@@ -9,6 +9,7 @@ const DiceBox = (element_container, vector2_dimensions, dice_factory) => {
 
 	let adaptive_timestep = false;
 	let last_time = 0;
+	let settle_time = 0;
 	let running = false;
 	let rolling = false;
 	let threadid;
@@ -45,7 +46,8 @@ const DiceBox = (element_container, vector2_dimensions, dice_factory) => {
 	let barrier_body_material = new CANNON.Material();
 	let sounds_table = {};
 	let sounds_dice = [];
-	let diceFunctions = {};
+	let rethrowFunctions = {};
+	let afterThrowFunctions = {};
 	let animstate = '';
 	let iteration;
 	let renderer;
@@ -100,14 +102,23 @@ const DiceBox = (element_container, vector2_dimensions, dice_factory) => {
 	public_interface['enableShadows'] = enableShadows;
 	public_interface['disableShadows'] = disableShadows;
 
-	const registerDiceFunction = (funcName, callback, helptext) => {
-		diceFunctions[funcName] = {
+	const registerRethrowFunction = (funcName, callback, helptext) => {
+		rethrowFunctions[funcName] = {
 			name: funcName,
 			help: helptext,
 			method: callback
 		};
 	}
-	public_interface['registerDiceFunction'] = registerDiceFunction;
+	public_interface['registerRethrowFunction'] = registerRethrowFunction;
+
+	const registerAfterThrowFunction = (funcName, callback, helptext) => {
+		afterThrowFunctions[funcName] = {
+			name: funcName,
+			help: helptext,
+			method: callback
+		};
+	}
+	public_interface['registerAfterThrowFunction'] = registerAfterThrowFunction;
 
 	const initialize = () => {
 
@@ -377,7 +388,7 @@ const DiceBox = (element_container, vector2_dimensions, dice_factory) => {
 		}
 
 		let values = diceobj.values;
-		let value = parseInt(dicemesh.result.value);
+		let value = parseInt(dicemesh.getLastValue().value);
 		result = parseInt(result);
 		
 		if (dicemesh.notation.type == 'd10' && value == 0) value = 10;
@@ -390,10 +401,6 @@ const DiceBox = (element_container, vector2_dimensions, dice_factory) => {
 
 		let valueindex = diceobj.values.indexOf(value);
 		let resultindex = diceobj.values.indexOf(result);
-
-		console.log('swapDiceFace: values', diceobj.values);
-		console.log('swapDiceFace: value', value, 'result', result);
-		console.log('swapDiceFace: valueindex', valueindex, 'resultindex', resultindex);
 
 		if (valueindex < 0 || resultindex < 0) return;
 		if (valueindex == resultindex) return;
@@ -415,8 +422,6 @@ const DiceBox = (element_container, vector2_dimensions, dice_factory) => {
 		let material_value = (valueindex+magic);
 		let material_result = (resultindex+magic);
 
-		console.log('swapDiceFace', material_value, material_result);
-
 		for (var i = 0, l = geom.faces.length; i < l; ++i) {
 			var matindex = geom.faces[i].materialIndex;
 
@@ -432,8 +437,6 @@ const DiceBox = (element_container, vector2_dimensions, dice_factory) => {
 
 		if (geomindex_value.length <= 0 || geomindex_result.length <= 0) return;
 
-		console.log('swapDiceFace: geomindex_value', geomindex_value, 'geomindex_result', geomindex_result);
-
 		//swap the materials
 		for(let i = 0, l = geomindex_result.length; i < l; i++) {
 			geom.faces[geomindex_result[i]].materialIndex = material_value;
@@ -443,6 +446,7 @@ const DiceBox = (element_container, vector2_dimensions, dice_factory) => {
 			geom.faces[geomindex_value[i]].materialIndex = material_result;
 		}
 
+		dicemesh.resultReason = 'forced';
 		dicemesh.geometry = geom;
 	}
 
@@ -455,22 +459,37 @@ const DiceBox = (element_container, vector2_dimensions, dice_factory) => {
 
 		var num = value - result;
 		var geom = dicemesh.geometry.clone();
+
+        console.log('value', value, 'result', result, 'num', num);
+
 		for (var i = 0, l = geom.faces.length; i < l; ++i) {
+
 			var matindex = geom.faces[i].materialIndex;
 			if (matindex == 0) continue;
+        
+            console.log('geom.faces[i].materialIndex', i, geom.faces[i].materialIndex);
 			matindex += num - 1;
+
 			while (matindex > 4) matindex -= 4;
 			while (matindex < 1) matindex += 4;
+
 			geom.faces[i].materialIndex = matindex + 1;
 		}
 		if (dicemesh.notation.type == 'd4' && num != 0) {
 			if (num < 0) num += 4;
 
-			//const diceobj = dicefactory.get(dicemesh.notation.type);
+            const diceobj = $t.DiceFactory.get(dice.dice_type);
+            console.log('num', num, 'diceobj.labels', diceobj.labels);
 
-			//dicemesh.material = dicefactory.createTextMaterial(diceobj, diceobj.labels[num]);
-			//dicemesh.material.needsUpdate = true;
+            let mat = new THREE.MeshPhongMaterial($t.DiceFactory.material_options);
+            mat.map = $t.DiceFactory.createTextMaterial(diceobj, diceobj.labels[num], num+2, $t.DiceFactory.baseScale / 2, $t.DiceFactory.baseScale * 2);
+            mat.needsUpdate = true;
+
+            //dice.material = mat;
+            console.log(dice.material);
 		}
+
+		dicemesh.resultReason = 'forced';
 		dicemesh.geometry = geom;
 	}
 
@@ -483,10 +502,11 @@ const DiceBox = (element_container, vector2_dimensions, dice_factory) => {
 		if(!dicemesh) return;
 
 		dicemesh.notation = vectordata;
-		dicemesh.result = {value: undefined,label:''};
-		dicemesh.stopped = false;
+		dicemesh.result = [];
+		dicemesh.stopped = 0;
 		dicemesh.castShadow = shadows;
 		dicemesh.body = new CANNON.Body({mass: diceobj.mass, shape: dicemesh.geometry.cannon_shape, material: dice_body_material});
+		dicemesh.body.type = CANNON.Body.DYNAMIC;
 		dicemesh.body.position.set(vectordata.pos.x, vectordata.pos.y, vectordata.pos.z);
 		dicemesh.body.quaternion.setFromAxisAngle(new CANNON.Vec3(vectordata.axis.x, vectordata.axis.y, vectordata.axis.z), vectordata.axis.a * Math.PI * 2);
 		dicemesh.body.angularVelocity.set(vectordata.angle.x, vectordata.angle.y, vectordata.angle.z);
@@ -534,7 +554,8 @@ const DiceBox = (element_container, vector2_dimensions, dice_factory) => {
 
 	//resets vectors on dice back to startign notation values for a roll after simulation.
 	const resetDice = (dicemesh, vectordata) => {
-		dicemesh.stopped = false;
+		dicemesh.stopped = 0;
+		dicemesh.body.type = CANNON.Body.DYNAMIC;
 		dicemesh.body.position.set(vectordata.pos.x, vectordata.pos.y, vectordata.pos.z);
 		dicemesh.body.quaternion.setFromAxisAngle(new CANNON.Vec3(vectordata.axis.x, vectordata.axis.y, vectordata.axis.z), vectordata.axis.a * Math.PI * 2);
 		dicemesh.body.angularVelocity.set(vectordata.angle.x, vectordata.angle.y, vectordata.angle.z);
@@ -559,18 +580,71 @@ const DiceBox = (element_container, vector2_dimensions, dice_factory) => {
 
 	const throwFinished = () => {
 		let stopped = 0;
+		let stoptimer = (framerate * 60) * 50; // 10 more iterations
+		if (iteration > 1000) return true;
 		if (iteration < (10 / framerate)) {
 
 			for (let i=0, len=diceList.length; i < len; ++i) {
 				let dicemesh = diceList[i];
 
-				if (dicemesh.stopped || solverBodyStopped(dicemesh.body)) {
+				// use a stoptimer to let the dice settle a bit before reading
+				if (solverBodyStopped(dicemesh.body)) {
 
-					++stopped;
-					let facedata = dicefactory.getValue(dicemesh);
-					dicemesh.result.value = facedata.value;
-					dicemesh.result.label = facedata.label;
-					dicemesh.stopped = true;
+					if (dicemesh.stopped == 0) {
+						dicemesh.stopped = iteration + stoptimer;
+					}
+
+					if(dicemesh.stopped < iteration) {
+						++stopped;
+
+						// store value and check for rerolls on second to last frae
+						// before declaring this dice as stopped
+						if (dicemesh.stopped == iteration-1) {
+
+							// all dice in a set/dice group will have the same function and arguments due to sorting beforehand
+							// this means the list passed in is the set of dice that need to be affected by this function
+							let diceFunc = (dicemesh.notation.func) ? dicemesh.notation.func.toLowerCase() : '';
+
+							dicemesh.storeRolledValue();
+
+							if (diceFunc != '') {
+
+								diceFunc = dicemesh.notation.func.toLowerCase();
+
+								let funcdata = rethrowFunctions[diceFunc];
+								console.log('funcdata', funcdata);	
+
+								let reroll = false;
+								if (funcdata && funcdata.method) {
+									let method = funcdata.method;
+
+									let diceFuncArgs = dicemesh.notation.args || '';
+									console.log('diceFuncArgs', dicemesh.notation.args);
+									reroll = funcdata.method(dicemesh, diceFuncArgs);
+								}
+
+								console.log('reroll', reroll);	
+
+
+								if (reroll) {
+									--stopped;
+									dicemesh.rerolls += 1;
+									dicemesh.resultReason = 'reroll';
+									dicemesh.body.angularVelocity = new CANNON.Vec3(25, 25, 25);
+									dicemesh.body.velocity = new CANNON.Vec3(0, 0, 3000);
+
+								// if not rerolling by now, freeze the physics
+								// this prevents rerolls from changing other dice
+								} else {
+
+									dicemesh.body.type = CANNON.Body.KINEMATIC;
+
+								}
+							}
+						}
+					}
+				} else {
+					dicemesh.stopped = 0;
 				}
 			}
 		}
@@ -579,12 +653,16 @@ const DiceBox = (element_container, vector2_dimensions, dice_factory) => {
 
 	const simulateThrow = () => {
 		iteration = 0;
+		settle_time = 0;
 		rolling = true;
+		console.log('stoptimer', (framerate * 60) * 50);
 
 		while (!throwFinished()) {
 			++iteration;
 			world.step(framerate);
 		}
+
+		console.log('simulation iterations: ', iteration);
 	}
 
 	const animateThrow = (threadid, callback, notationVectors) => {
@@ -654,36 +732,9 @@ const DiceBox = (element_container, vector2_dimensions, dice_factory) => {
 		if (rayvisual) rayvisual.setDirection(raycaster.ray.direction);
 		let intersects = raycaster.intersectObjects(diceList);
 		if ( intersects.length > 0 ) {
-
-			if ( selector.intersected != intersects[0].object ) {
-				
-				if ( selector.intersected ) {
-					for(let i = 0, l = selector.intersected.material.length; i < l; i++){
-						if (i == 0) continue;
-						selector.intersected.material[i].emissive.setHex( selector.intersected.currentHex );
-						selector.intersected.material[i].emissiveIntensity = selector.intersected.currentintensity;
-					}
-				}
-
-				selector.intersected = intersects[0].object;
-				selector.intersected.currentHex = selector.intersected.material[1].emissive.getHex();
-				selector.intersected.currentintensity = selector.intersected.material[1].emissiveIntensity;
-
-				for(let i = 0, l = selector.intersected.material.length; i < l; i++){
-					if (i == 0) continue;
-					selector.intersected.material[i].emissive.setHex( 0xffffff );
-					selector.intersected.material[i].emissiveIntensity = 0.5;
-				}
-			}
+			//setSelected(intersects[0].object);
 		} else {
-				if ( selector.intersected ) {
-					for(let i = 0, l = selector.intersected.material.length; i < l; i++){
-						if (i == 0) continue;
-						selector.intersected.material[i].emissive.setHex( selector.intersected.currentHex );
-						selector.intersected.material[i].emissiveIntensity = selector.intersected.currentintensity;
-					}
-				}
-				selector.intersected = null;
+			//setSelected();
 		}
 
 		last_time = time;
@@ -719,36 +770,9 @@ const DiceBox = (element_container, vector2_dimensions, dice_factory) => {
 		if (rayvisual) rayvisual.setDirection(raycaster.ray.direction);
 		let intersects = raycaster.intersectObjects(diceList);
 		if ( intersects.length > 0 ) {
-
-			if ( selector.intersected != intersects[0].object ) {
-				
-				if ( selector.intersected ) {
-					for(let i = 0, l = selector.intersected.material.length; i < l; i++){
-						if (i == 0) continue;
-						selector.intersected.material[i].emissive.setHex( selector.intersected.currentHex );
-						selector.intersected.material[i].emissiveIntensity = selector.intersected.currentintensity;
-					}
-				}
-
-				selector.intersected = intersects[0].object;
-				selector.intersected.currentHex = selector.intersected.material[1].emissive.getHex();
-				selector.intersected.currentintensity = selector.intersected.material[1].emissiveIntensity;
-
-				for(let i = 0, l = selector.intersected.material.length; i < l; i++){
-					if (i == 0) continue;
-					selector.intersected.material[i].emissive.setHex( 0xffffff );
-					selector.intersected.material[i].emissiveIntensity = 0.5;
-				}
-			}
+			setSelected(intersects[0].object);
 		} else {
-				if ( selector.intersected ) {
-					for(let i = 0, l = selector.intersected.material.length; i < l; i++){
-						if (i == 0) continue;
-						selector.intersected.material[i].emissive.setHex( selector.intersected.currentHex );
-						selector.intersected.material[i].emissiveIntensity = selector.intersected.currentintensity;
-					}
-				}
-				selector.intersected = null;
+			setSelected();
 		}
 
 		last_time = time;
@@ -779,6 +803,41 @@ const DiceBox = (element_container, vector2_dimensions, dice_factory) => {
 		if (intersects.length) return intersects[0].object.userData;
 	}
 	public_interface['getDiceAtMouse'] = getDiceAtMouse;
+
+	const setSelected = (dicemesh = null) => {
+
+		if ( dicemesh != null ) {
+
+			if ( selector.intersected ) {
+				for(let i = 0, l = selector.intersected.material.length; i < l; i++){
+					if (i == 0) continue;
+					selector.intersected.material[i].emissive.setHex( selector.intersected.currentHex );
+					selector.intersected.material[i].emissiveIntensity = selector.intersected.currentintensity;
+				}
+			}
+
+			selector.intersected = dicemesh;
+			selector.intersected.currentHex = selector.intersected.material[1].emissive.getHex();
+			selector.intersected.currentintensity = selector.intersected.material[1].emissiveIntensity;
+
+			for(let i = 0, l = selector.intersected.material.length; i < l; i++){
+				if (i == 0) continue;
+				selector.intersected.material[i].emissive.setHex( 0xffffff );
+				selector.intersected.material[i].emissiveIntensity = 0.5;
+			}
+		} else {
+			if ( selector.intersected ) {
+				for(let i = 0, l = selector.intersected.material.length; i < l; i++){
+					if (i == 0) continue;
+					selector.intersected.material[i].emissive.setHex( selector.intersected.currentHex );
+					selector.intersected.material[i].emissiveIntensity = selector.intersected.currentintensity;
+				}
+			}
+			selector.intersected = null;
+		}
+		
+	}
+	public_interface['setSelected'] = setSelected;
 
 	const showSelector = (alldice = false) => {
 		clearDice();
@@ -897,21 +956,30 @@ const DiceBox = (element_container, vector2_dimensions, dice_factory) => {
 		simulateThrow();
 		
 		iteration = 0;
+		settle_time = 0;
 
 		//check forced results, fix dice faces if necessary
 		if (notationVectors.result && notationVectors.result.length > 0) {
 			for (let i in notationVectors.result) {
 				let dicemesh = diceList[i];
-				if (dicemesh.result.value == notationVectors.result[i]) continue;
+				if (!dicemesh) continue;
+				if (dicemesh.getLastValue().value == notationVectors.result[i]) continue;
 				swapDiceFace(dicemesh, notationVectors.result[i]);
 			}
 		}
 
 		//reset dice vectors
 		for (let i=0, len=diceList.length; i < len; ++i) {
+			if (!diceList[i]) continue;
+
+			if (diceList[i].resultReason != 'forced') {
+				diceList[i].result = [];
+			}
+
 			resetDice(diceList[i], notationVectors.vectors[i]);
 		}
 
+		// animate the previously simulated roll
 		rolling = true;
 		running = (new Date()).getTime();
 		last_time = 0;
@@ -919,11 +987,6 @@ const DiceBox = (element_container, vector2_dimensions, dice_factory) => {
 
 	}
 	public_interface['rollDice'] = rollDice;
-
-	const rerollDice = (dicemeshList) => {
-		
-	}
-	public_interface['rerollDice'] = rerollDice;
 
 	const getDiceTotals = (notationVectors, array_dicemeshes) => {
 
@@ -1053,7 +1116,12 @@ const DiceBox = (element_container, vector2_dimensions, dice_factory) => {
 
 				let op = (groupid == 0) ? '' : resultsForGroup.op;
 
-				if (resultsForGroup.rolls.length > 0) resultsForLevel.rolls += op+'('+resultsForGroup.rolls+')';
+				if (len == 1) {
+					if (resultsForGroup.rolls.length > 0) resultsForLevel.rolls += op+resultsForGroup.rolls;
+				} else {
+					if (resultsForGroup.rolls.length > 0) resultsForLevel.rolls += op+'('+resultsForGroup.rolls+')';
+				}
+
 				if (resultsForGroup.labels.length > 0) resultsForLevel.labels += resultsForGroup.labels;
 				if (resultsForLevel.op == '') resultsForLevel.op = resultsForGroup.op;
 
@@ -1089,43 +1157,45 @@ const DiceBox = (element_container, vector2_dimensions, dice_factory) => {
 	// returns object: {rolls: String, labels: String, values: Int, op: String, gid: Int, glvl: Int}
 	const diceGroupCombine = (notationVectors, dicemeshList) => {
 
-		// known systems with preet rules
+		// known systems with preset rules
 		let swrpgdice = [];
 		let swarmadadice = [];
 		let xwingdice = [];
 		let legiondice = [];
 
-		// generic any other dice with display == 'labels'
-		let labeldicevalues = [];
-
 		// generic any dice with display == 'values'
-		let numberdicevalues = [];
-		let numberdiceoperators = [];
+		let numberdice = [];
 
+		// generic any other dice with display == 'labels'
+		let labeldice = [];
+
+		// all dice in a set/dice group will have the same function and arguments due to sorting beforehand
+		// this means the list passed in is the set of dice that need to be affected by this function
 		let diceFunc = '';
 		let diceFuncArgs = '';
-
 		if (diceFunc == '' && dicemeshList[0] && dicemeshList[0].notation && dicemeshList[0].notation.func) {
-				diceFunc = dicemeshList[0].notation.func.toLowerCase();
-				console.log('diceFunc', diceFunc);
-		}
-		if (diceFuncArgs == '' && dicemeshList[0] && dicemeshList[0].notation && dicemeshList[0].notation.args) {
-			diceFuncArgs = dicemeshList[0].notation.args;
-			console.log('diceFuncArgs', diceFuncArgs);
-		}
+			diceFunc = dicemeshList[0].notation.func.toLowerCase();
+			console.log('diceFunc', diceFunc);
 
-
-		console.log('diceFunctions', diceFunctions);
-		if (diceFunc != '') {
-			let funcdata = diceFunctions[diceFunc];
-
-			console.log('funcdata', funcdata);
-
-			if (funcdata && funcdata.method) {
-				let method = funcdata.method;
-				dicemeshList = funcdata.method(dicemeshList, diceFuncArgs);
+			if (diceFuncArgs == '' && dicemeshList[0] && dicemeshList[0].notation && dicemeshList[0].notation.args) {
+				diceFuncArgs = dicemeshList[0].notation.args;
+				console.log('diceFuncArgs', diceFuncArgs);
 			}
+
+			console.log('afterThrowFunctions', afterThrowFunctions);
+			if (diceFunc != '') {
+				let funcdata = afterThrowFunctions[diceFunc];
+
+				console.log('funcdata', funcdata);
+
+				if (funcdata && funcdata.method) {
+					let method = funcdata.method;
+					dicemeshList = funcdata.method(dicemeshList, diceFuncArgs);
+				}
+			}
+
 		}
+		
 
 		// split up results between known systems, symbol, and number dice
 		for(let i = 0; i < dicemeshList.length; i++){
@@ -1133,30 +1203,20 @@ const DiceBox = (element_container, vector2_dimensions, dice_factory) => {
 			let dicemesh = dicemeshList[i];
 			let diceobj =  $t.DiceFactory.get(dicemesh.notation.type);
 			let operator = dicemesh.notation.op;
-
-			if (diceFunc == '' && dicemesh.notation.func) {
-				diceFunc = dicemesh.notation.func.toLowerCase();
-				console.log('diceFunc', diceFunc);
-			}
-			if (diceFuncArgs == '') {
-				diceFuncArgs = dicemesh.notation.args;
-				console.log('diceFuncArgs', diceFuncArgs);
-			}
-
+			let result = dicemesh.getLastValue();
 
 			if (diceobj.system == 'swrpg') {
-				swrpgdice.push(dicemesh.result.label);
+				swrpgdice.push(dicemesh);
 			} else if (diceobj.system == 'swarmada') {
-				swarmadadice.push(dicemesh.result.label);
+				swarmadadice.push(dicemesh);
 			} else if (diceobj.system == 'xwing') {
-				xwingdice.push(dicemesh.result.label);
+				xwingdice.push(dicemesh);
 			} else if (diceobj.system == 'legion') {
-				legiondice.push(dicemesh.result.label);
+				legiondice.push(dicemesh);
 			} else if (diceobj.system == 'd20' || diceobj.display == 'values') {
-				numberdiceoperators.push(dicemesh.notation.op);
-				numberdicevalues.push(dicemesh.result.value);
+				numberdice.push(dicemesh);
 			} else if (diceobj.display == 'labels') {
-				labeldicevalues.push(dicemesh.result.label);
+				labeldice.push(dicemesh);
 			}
 		}
 
@@ -1181,7 +1241,7 @@ const DiceBox = (element_container, vector2_dimensions, dice_factory) => {
 
 			for(let i = 0; i < swrpgdice.length; i++){
 
-				let currentlabel = swrpgdice[i];
+				let currentlabel = swrpgdice[i].getLastValue().label;
 
 				success += (currentlabel.split('s').length - 1);
 				failure += (currentlabel.split('f').length - 1);
@@ -1235,7 +1295,7 @@ const DiceBox = (element_container, vector2_dimensions, dice_factory) => {
 
 			for(let i = 0; i < swarmadadice.length; i++){
 
-				let currentlabel = swarmadadice[i];
+				let currentlabel = swarmadadice[i].getLastValue().label;
 
 				hit += (currentlabel.split('F').length - 1);
 				critical += (currentlabel.split('E').length - 1);
@@ -1272,7 +1332,7 @@ const DiceBox = (element_container, vector2_dimensions, dice_factory) => {
 
 			for(let i = 0; i < xwingdice.length; i++){
 
-				let currentlabel = xwingdice[i];
+				let currentlabel = xwingdice[i].getLastValue().label;
 
 				hit += (currentlabel.split('d').length - 1);
 				critical += (currentlabel.split('c').length - 1);
@@ -1336,7 +1396,7 @@ const DiceBox = (element_container, vector2_dimensions, dice_factory) => {
 
 			for(let i = 0; i < legiondice.length; i++){
 
-				let currentlabel = legiondice[i];
+				let currentlabel = legiondice[i].getLastValue().label;
 
 				atk_hit += (currentlabel.split('h').length - 1);
 				atk_crit += (currentlabel.split('c').length - 1);
@@ -1370,19 +1430,35 @@ const DiceBox = (element_container, vector2_dimensions, dice_factory) => {
 		}
 
 		// labels only
-		if (labeldicevalues.length > 0) {
-			rolls += labeldicevalues.join('');
-			labels += labeldicevalues.join('');
+		if (labeldice.length > 0) {
+
+			let rolltext = [];
+			let resulttext = [];
+
+			for (let i = 0; i < labeldice.length; i++) {
+				let label = numberdice[i].getLastValue().label;
+
+				rolltext.push('<span class="diceresult" data-uuid="'+numberdice[i].uuid+'">'+label+'</span>');
+				resulttext.push(label);
+			}
+
+			rolls += rolltext.join('');
+			labels += resulttext.join('');
 		}
 
 		// numbers only
-		if (numberdicevalues.length > 0) {
-			values = 0;
-			rolls += numberdicevalues.join('+');
+		if (numberdice.length > 0) {
 
-			for(let i = 0; i < numberdicevalues.length; i++){
-				values = operate(values, numberdiceoperators[i], numberdicevalues[i]);
+			let rolltext = [];
+
+			for (let i = 0; i < numberdice.length; i++) {
+				let value = numberdice[i].getLastValue().value;
+
+				rolltext.push('<span class="diceresult" data-uuid="'+numberdice[i].uuid+'">'+value+'</span>');
+				values = operate(values, numberdice[i].notation.op, value);
 			}
+
+			rolls += rolltext.join('+');
 		}
 
 
