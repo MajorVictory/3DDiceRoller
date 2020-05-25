@@ -452,19 +452,21 @@ const DiceBox = (element_container, vector2_dimensions, dice_factory) => {
 
 	const swapDiceFace_D4 = (dicemesh, result) => {
 		const diceobj = dicefactory.get(dicemesh.notation.type);
-		let value = parseInt(dicemesh.result.value);
+		let value = parseInt(dicemesh.getLastValue().value);
 		result = parseInt(result);
 
 		if (!(value >= 1 && value <= 4)) return;
 
-		var num = value - result;
-		var geom = dicemesh.geometry.clone();
+		let num = value - result;
+		let geom = dicemesh.geometry.clone();
 
-        console.log('value', value, 'result', result, 'num', num);
+        console.log('value', value, 'result', result, 'num', num, 'diceobj', diceobj);
+        console.log('dicemesh', dicemesh);
 
-		for (var i = 0, l = geom.faces.length; i < l; ++i) {
+        
+		for (let i = 0, l = geom.faces.length; i < l; ++i) {
 
-			var matindex = geom.faces[i].materialIndex;
+			let matindex = geom.faces[i].materialIndex;
 			if (matindex == 0) continue;
         
             console.log('geom.faces[i].materialIndex', i, geom.faces[i].materialIndex);
@@ -473,25 +475,20 @@ const DiceBox = (element_container, vector2_dimensions, dice_factory) => {
 			while (matindex > 4) matindex -= 4;
 			while (matindex < 1) matindex += 4;
 
+            console.log('(matindex + 1)', (matindex + 1));
+
 			geom.faces[i].materialIndex = matindex + 1;
 		}
-		if (dicemesh.notation.type == 'd4' && num != 0) {
-			if (num < 0) num += 4;
+        if (num != 0) {
+            if (num < 0) num += 4;
 
-            const diceobj = $t.DiceFactory.get(dice.dice_type);
-            console.log('num', num, 'diceobj.labels', diceobj.labels);
-
-            let mat = new THREE.MeshPhongMaterial($t.DiceFactory.material_options);
-            mat.map = $t.DiceFactory.createTextMaterial(diceobj, diceobj.labels[num], num+2, $t.DiceFactory.baseScale / 2, $t.DiceFactory.baseScale * 2);
-            mat.needsUpdate = true;
-
-            //dice.material = mat;
-            console.log(dice.material);
-		}
+            dicemesh.material = dicefactory.createMaterials(diceobj, 0, 0, false, result);
+        }
 
 		dicemesh.resultReason = 'forced';
 		dicemesh.geometry = geom;
 	}
+	public_interface['swapDiceFace_D4'] = swapDiceFace_D4; //register as 'public'
 
 	//spawns one dicemesh object from a single vectordata object
 	const spawnDice = (vectordata) => {
@@ -840,6 +837,7 @@ const DiceBox = (element_container, vector2_dimensions, dice_factory) => {
 	public_interface['setSelected'] = setSelected;
 
 	const showSelector = (alldice = false) => {
+		if (rolling) return;
 		clearDice();
 		let step = display.containerWidth / 5;
 
@@ -963,6 +961,7 @@ const DiceBox = (element_container, vector2_dimensions, dice_factory) => {
 			for (let i in notationVectors.result) {
 				let dicemesh = diceList[i];
 				if (!dicemesh) continue;
+				console.log('dicemesh.getLastValue().value', dicemesh.getLastValue().value, 'notationVectors.result[i]', parseInt(notationVectors.result[i]));
 				if (dicemesh.getLastValue().value == notationVectors.result[i]) continue;
 				swapDiceFace(dicemesh, notationVectors.result[i]);
 			}

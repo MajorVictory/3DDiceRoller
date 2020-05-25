@@ -823,12 +823,12 @@ function login_initialize(container) {
 
 							if (dicemesh.uuid == diceid) {
 
-								for (let i=0, len=dicemesh.result.length; i < len; ++i) {
-									let historyresult = dicemesh.result[i];
+								for (let j=0, len=dicemesh.result.length; j < len; ++j) {
+									let historyresult = dicemesh.result[j];
 
-									let showvalue = (diceobj.display == 'value') ? historyresult.value : historyresult.label;
+									let showvalue = (diceobj.display == 'values') ? historyresult.value : historyresult.label;
 
-									rollhistory += 'Roll '+(i+1)+': '+showvalue+' ('+historyresult.reason+')<br>';
+									rollhistory += 'Roll '+(j+1)+': '+showvalue+' ('+historyresult.reason+')<br>';
 									
 								}
 							}

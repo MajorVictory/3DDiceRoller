@@ -407,7 +407,7 @@ class DiceFactory {
 		dicemesh.resultReason = 'natural';
 
 		dicemesh.getFaceValue = function() {
-
+			let reason = this.resultReason;
 			let vector = new THREE.Vector3(0, 0, this.shape == 'd4' ? -1 : 1);
 
 			let closest_face, closest_angle = Math.PI * 2;
@@ -422,14 +422,17 @@ class DiceFactory {
 			}
 			let matindex = closest_face.materialIndex - 1;
 
-			if (this.shape == 'd4') return {value: matindex, label: ''};
+			const diceobj = $t.DiceFactory.dice[this.shape];
+
+			if (this.shape == 'd4') {
+				console.log('matindex', matindex, 'diceobj.labels', diceobj.labels);
+				return {value: matindex, label: diceobj.labels[matindex-1], reason: reason};
+			}
 			if (this.shape == 'd10') matindex += 1;
 
-			const diceobj = $t.DiceFactory.dice[this.shape];
 			let value = diceobj.values[((matindex-1) % diceobj.values.length)];
 			let label = diceobj.labels[(((matindex-1) % (diceobj.labels.length-2))+2)];
-			let reason = this.resultReason;
-
+			
 			return {value: value, label: label, reason: reason};
 		}
 
@@ -470,19 +473,19 @@ class DiceFactory {
 		return this.geometries[type];
 	}
 
-	createMaterials(diceobj, size, margin) {
+	createMaterials(diceobj, size, margin, allowcache = true, d4specialindex = 0) {
 
-		var materials = [];
+		let materials = [];
 		let labels = diceobj.labels;
 		if (diceobj.shape == 'd4') {
-			labels = diceobj.labels[0];
+			labels = diceobj.labels[d4specialindex];
 			size = this.baseScale / 2;
 			margin = this.baseScale * 2;
 		}
 
 		for (var i = 0; i < labels.length; ++i) {
 			var mat = new THREE.MeshPhongMaterial(this.material_options);
-			mat.map = this.createTextMaterial(diceobj, labels, i, size, margin, this.dice_texture_rand, this.label_color_rand, this.label_outline_rand, this.dice_color_rand)
+			mat.map = this.createTextMaterial(diceobj, labels, i, size, margin, this.dice_texture_rand, this.label_color_rand, this.label_outline_rand, this.dice_color_rand, allowcache)
 			mat.opacity = 1;
 			mat.transparent = true;
 			mat.depthTest = false;
@@ -492,13 +495,14 @@ class DiceFactory {
 		return materials;
 	}
 
-	createTextMaterial(diceobj, labels, index, size, margin, texture, forecolor, outlinecolor, backcolor) {
+	createTextMaterial(diceobj, labels, index, size, margin, texture, forecolor, outlinecolor, backcolor, allowcache) {
 		if (labels[index] === undefined) return null;
 
         texture = texture || this.dice_texture_rand;
         forecolor = forecolor || this.label_color_rand;
         outlinecolor = outlinecolor || this.label_outline_rand;
         backcolor = backcolor || this.dice_color_rand;
+        allowcache = allowcache == undefined ? true : allowcache;
 
 		let text = labels[index];
 
@@ -507,7 +511,7 @@ class DiceFactory {
 		if (diceobj.shape == 'd4') {
 			cachestring = diceobj.type + text.join() + texture.name + forecolor + outlinecolor + backcolor;
 		}
-		if (this.materials_cache[cachestring] != null) {
+		if (allowcache && this.materials_cache[cachestring] != null) {
 			this.cache_hits++;
 			return this.materials_cache[cachestring];
 		}
@@ -625,12 +629,18 @@ class DiceFactory {
 				context.rotate(Math.PI * 2 / 3);
 				context.translate(-hw, -hh);
 			}
+
+			//debug side numbering
+			context.fillStyle = forecolor;
+			context.fillText(index, hw, hh);
 		}
 
 		var compositetexture = new THREE.CanvasTexture(canvas);
-		// cache new texture
-		this.cache_misses++;
-		this.materials_cache[cachestring] = compositetexture;
+		if (allowcache) {
+			// cache new texture
+			this.cache_misses++;
+			this.materials_cache[cachestring] = compositetexture;
+		}
 
 		return compositetexture;
 	}
