@@ -45,6 +45,7 @@ class DiceFactory {
 		};
 
 		let diceobj = new DicePreset('d1', 'd6');
+		diceobj.name = 'One-sided Dice';
 		diceobj.setLabels(['1']);
 		diceobj.setValues(1,1);
 		diceobj.scale = 0.9;
@@ -52,6 +53,7 @@ class DiceFactory {
 		this.register(diceobj);
 
 		diceobj = new DicePreset('d2', 'd6');
+		diceobj.name = 'Two-Sided Dice';
 		diceobj.setLabels(['1', '2']);
 		diceobj.setValues(1,2);
 		diceobj.scale = 0.9;
@@ -59,6 +61,7 @@ class DiceFactory {
 		this.register(diceobj);
 
 		diceobj = new DicePreset('d3', 'd6');
+		diceobj.name = 'Three-Sided Dice';
 		diceobj.setLabels(['1', '2', '3']);
 		diceobj.setValues(1,3);
 		diceobj.scale = 0.9;
@@ -66,6 +69,7 @@ class DiceFactory {
 		this.register(diceobj);
 
 		diceobj = new DicePreset('df', 'd6');
+		diceobj.name = 'Fudge Dice';
 		diceobj.setLabels(['-', '0', '+']);
 		diceobj.setValues(-1,1);
 		diceobj.scale = 0.9;
@@ -73,6 +77,7 @@ class DiceFactory {
 		this.register(diceobj);
 
 		diceobj = new DicePreset('d4');
+		diceobj.name = 'Four-Sided Dice';
 		diceobj.setLabels(['1', '2', '3', '4']);
 		diceobj.setValues(1,4);
 		diceobj.inertia = 5;
@@ -80,12 +85,14 @@ class DiceFactory {
 		this.register(diceobj);
 
 		diceobj = new DicePreset('d6');
+		diceobj.name = 'Six-Sided Dice (Numbers)';
 		diceobj.setLabels(['1', '2', '3', '4', '5', '6']);
 		diceobj.setValues(1,6);
 		diceobj.scale = 0.9;
 		this.register(diceobj);
 
 		diceobj = new DicePreset('dpip', 'd6');
+		diceobj.name = 'Six-Sided Dice (Pips)';
 		diceobj.setLabels([ '   \n ⬤ \n   ', '⬤  \n   \n  ⬤', '⬤  \n ⬤ \n  ⬤',
 							'⬤ ⬤\n   \n⬤ ⬤', '⬤ ⬤\n ⬤ \n⬤ ⬤', '⬤ ⬤\n⬤ ⬤\n⬤ ⬤']);
 		diceobj.setValues(1,6);
@@ -94,6 +101,7 @@ class DiceFactory {
 		this.register(diceobj);
 
 		diceobj = new DicePreset('dsex', 'd6');
+		diceobj.name = 'Sex-Sided Emoji Dice';
 		diceobj.setLabels(['🍆', '🍑', '👌', '💦', '🙏', '💥']);
 		diceobj.setValues(1,6);
 		diceobj.scale = 0.9;
@@ -102,11 +110,13 @@ class DiceFactory {
 		this.register(diceobj);
 
 		diceobj = new DicePreset('d8');
+		diceobj.name = 'Eight-Sided Dice';
 		diceobj.setLabels(['1', '2', '3', '4', '5', '6', '7', '8']);
 		diceobj.setValues(1,8);
 		this.register(diceobj);
 
 		diceobj = new DicePreset('d10');
+		diceobj.name = 'Ten-Sided Dice (Single Digit)';
 		diceobj.setLabels(['1', '2', '3', '4', '5', '6', '7', '8', '9', '0']);
 		diceobj.setValues(1,10);
 		diceobj.mass = 350;
@@ -115,6 +125,7 @@ class DiceFactory {
 		this.register(diceobj);
 
 		diceobj = new DicePreset('d100', 'd10');
+		diceobj.name = 'Ten-Sided Dice (Tens Digit)';
 		diceobj.setLabels(['10', '20', '30', '40', '50', '60', '70', '80', '90', '00']);
 		diceobj.setValues(10, 100, 10);
 		diceobj.mass = 350;
@@ -123,6 +134,7 @@ class DiceFactory {
 		this.register(diceobj);
 
 		diceobj = new DicePreset('d12');
+		diceobj.name = 'Twelve-Sided Dice';
 		diceobj.setLabels(['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12']);
 		diceobj.setValues(1,12);
 		diceobj.mass = 350;
@@ -131,6 +143,7 @@ class DiceFactory {
 		this.register(diceobj);
 
 		diceobj = new DicePreset('d20');
+		diceobj.name = 'Twenty-Sided Dice';
 		diceobj.setLabels(['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15', '16', '17', '18', '19', '20']);
 		diceobj.setValues(1,20);
 		diceobj.mass = 400;
@@ -140,6 +153,7 @@ class DiceFactory {
 		//star wars rpg dice
 		// Ability
 		diceobj = new DicePreset('dabi', 'd8');
+		diceobj.name = 'Star Wars RPG: Ability Dice';
 		diceobj.setLabels(['s','a',"s\na","s\ns",'a','s',"a\na",'']);
 		diceobj.setValues(1,8);
 		diceobj.setValueMap([]);
@@ -152,6 +166,7 @@ class DiceFactory {
 
 		// Difficulty
 		diceobj = new DicePreset('ddif', 'd8');
+		diceobj.name = 'Star Wars RPG: Difficulty Dice';
 		diceobj.setLabels(['t','f',"f\nt",'t','',"t\nt", "f\nf", 't']);
 		diceobj.setValues(1,8);
 		diceobj.font = 'SWRPG-Symbol-Regular';
@@ -163,6 +178,7 @@ class DiceFactory {
 
 		// Proficiency
 		diceobj = new DicePreset('dpro', 'd12');
+		diceobj.name = 'Star Wars RPG: Proficiency Dice';
 		diceobj.setLabels(["a\na",'a',"a\na",'x','s',"s\na",'s',"s\na","s\ns","s\na","s\ns",'']);
 		diceobj.setValues(1,12);
 		diceobj.mass = 350;
@@ -177,6 +193,7 @@ class DiceFactory {
 
 		// Challenge
 		diceobj = new DicePreset('dcha', 'd12');
+		diceobj.name = 'Star Wars RPG: Challenge Dice';
 		diceobj.setLabels(["t\nt",'t',"t\nt",'t',"t\nf",'f',"t\nf",'f',"f\nf",'y',"f\nf",'']);
 		diceobj.setValues(1,12);
 		diceobj.mass = 350;
@@ -191,6 +208,7 @@ class DiceFactory {
 
 		// Force
 		diceobj = new DicePreset('dfor', 'd12');
+		diceobj.name = 'Star Wars RPG: Force Dice';
 		diceobj.setLabels(['z',"Z\nZ",'z',"Z\nZ",'z',"Z\nZ",'z','Z','z','Z','z',"z\nz"]);
 		diceobj.setValues(1,12);
 		diceobj.mass = 350;
@@ -205,6 +223,7 @@ class DiceFactory {
 
 		// Boost
 		diceobj = new DicePreset('dboo', 'd6');
+		diceobj.name = 'Star Wars RPG: Boost Dice';
 		diceobj.setLabels(["s  \n  a","a  \n  a",'s','a','','']);
 		diceobj.setValues(1,6);
 		diceobj.scale = 0.9;
@@ -217,6 +236,7 @@ class DiceFactory {
 
 		// Setback
 		diceobj = new DicePreset('dset', 'd6');
+		diceobj.name = 'Star Wars RPG: Setback Dice';
 		diceobj.setLabels(['','t','f']);
 		diceobj.setValues(1,3);
 		diceobj.scale = 0.9;
@@ -230,6 +250,7 @@ class DiceFactory {
 		// star wars armada dice
 		// Attack Red
 		diceobj = new DicePreset('swar', 'd8');
+		diceobj.name = 'Star Wars Armada: Red Attack Dice';
 		diceobj.setLabels(['F','F','F\nF','E','E','G','','']);
 		diceobj.setValues(1,8);
 		diceobj.font = 'Armada-Symbol-Regular';
@@ -241,6 +262,7 @@ class DiceFactory {
 
 		// Attack Blue
 		diceobj = new DicePreset('swab', 'd8');
+		diceobj.name = 'Star Wars Armada: Blue Attack Dice';
 		diceobj.setLabels(['F','F','F','F','E','E','G','G']);
 		diceobj.setValues(1,8);
 		diceobj.font = 'Armada-Symbol-Regular';
@@ -252,6 +274,7 @@ class DiceFactory {
 
 		// Attack Black
 		diceobj = new DicePreset('swak', 'd8');
+		diceobj.name = 'Star Wars Armada: Black Attack Dice';
 		diceobj.setLabels(['F','F','F','F','F\nE','F\nE','','']);
 		diceobj.setValues(1,8);
 		diceobj.font = 'Armada-Symbol-Regular';
@@ -265,6 +288,7 @@ class DiceFactory {
 		// star wars x-wing
 		// Attack - Red
 		diceobj = new DicePreset('xwatk', 'd8');
+		diceobj.name = 'Star Wars X-Wing: Red Attack Dice';
 		diceobj.setLabels(['c','d','d','d','f','f','','']);
 		diceobj.setValues(1,8);
 		diceobj.font = 'XWing-Symbol-Regular';
@@ -276,6 +300,7 @@ class DiceFactory {
 
 		// Defense - Green
 		diceobj = new DicePreset('xwdef', 'd8');
+		diceobj.name = 'Star Wars X-Wing: Green Defense Dice';
 		diceobj.setLabels(['e','e','e','f','f','','','']);
 		diceobj.setValues(1,8);
 		diceobj.font = 'XWing-Symbol-Regular';
@@ -289,6 +314,7 @@ class DiceFactory {
 		// star wars legion
 		// Attack Red
 		diceobj = new DicePreset('swlar', 'd8');
+		diceobj.name = 'Star Wars Legion: Red Attack Dice';
 		diceobj.setLabels(['h','h','h','h','h','c','o','']);
 		diceobj.setValues(1,8);
 		diceobj.font = 'Legion-Symbol-Regular';
@@ -300,6 +326,7 @@ class DiceFactory {
 
 		// Attack Black
 		diceobj = new DicePreset('swlab', 'd8');
+		diceobj.name = 'Star Wars Legion: Black Attack Dice';
 		diceobj.setLabels(['h','h','h','','','c','o','']);
 		diceobj.setValues(1,8);
 		diceobj.font = 'Legion-Symbol-Regular';
@@ -311,6 +338,7 @@ class DiceFactory {
 
 		// Attack White
 		diceobj = new DicePreset('swlaw', 'd8');
+		diceobj.name = 'Star Wars Legion: White Attack Dice';
 		diceobj.setLabels(['h','','','','','c','o','']);
 		diceobj.setValues(1,8);
 		diceobj.font = 'Legion-Symbol-Regular';
@@ -322,6 +350,7 @@ class DiceFactory {
 
 		// Defense Red
 		diceobj = new DicePreset('swldr', 'd6');
+		diceobj.name = 'Star Wars Legion: Red Defense Dice';
 		diceobj.setLabels(['s','s','s','d','','']);
 		diceobj.setValues(1,6);
 		diceobj.scale = 0.9;
@@ -334,6 +363,7 @@ class DiceFactory {
 
 		// Defense White
 		diceobj = new DicePreset('swldw', 'd6');
+		diceobj.name = 'Star Wars Legion: White Defense Dice';
 		diceobj.setLabels(['s','','','d','','']);
 		diceobj.setValues(1,6);
 		diceobj.scale = 0.9;

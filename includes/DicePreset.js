@@ -7,6 +7,7 @@ class DicePreset {
 		shape = shape || type;
 
 		this.type = type;
+		this.name = '';
 		this.shape = shape || type;
 		this.scale = 1;
 		this.font = 'Arial';

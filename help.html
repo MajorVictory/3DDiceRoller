@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="keywords" content="DnD, dangeon and dragons, roleplay, dice, roller, 3D, RPG, wargame"/>
+<meta name="description" content="Online 3D dice roller"/>
+<title>Major's 3D Dice</title>
+<link rel="stylesheet" type="text/css" href="./includes/themes/default/style.css">
+<script type="text/javascript" src="https://code.jquery.com/jquery-3.5.0.min.js"></script>
+<script type="text/javascript" src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
+<script type="text/javascript" src="./includes/DicePreset.js"></script>
+<script type="text/javascript" src="./includes/DiceFactory.js"></script>
+<style type="text/css">
+
+	#dice_list {
+		display: flex;
+		flex-flow: row wrap;
+		border: 1px solid white;
+	}
+
+	dt {
+		flex-basis: 25%;
+		text-align: center;
+		color: white;
+		font-size: 135%;
+		padding: 2px 4px;
+		border-bottom: 1px dashed white;
+		background-color: rgba(0,0,0,0.25);
+	}
+
+	dd.dicename {
+		flex-basis: 70%;
+		flex-grow: 1;
+		padding: 2px 4px;
+		margin: 0px;
+		border-bottom: 1px dashed white;
+		text-align: right;
+		color: white;
+		font-size: 135%;
+		padding: 2px 4px;
+		background-color: rgba(0,0,0,0.25);
+
+	}
+
+	dd {
+		flex-basis: 25%;
+		flex-grow: 1;
+		padding: 2px 4px;
+		margin: 0px;
+		border-bottom: 1px solid white;
+	}
+
+	b {
+		font-weight: bold;
+		font-size: 110%;
+	}
+
+	#flex_container {
+		display: flex;
+		flex-flow: row wrap;
+	}
+
+	fieldset {
+		min-width: 25em;
+	}
+
+	.one_third {
+		max-width: 28%;
+		flex-basis: 28%;
+		flex-grow: 1;
+	}
+</style>
+
+</head>
+<body>
+	<div class="center_field">
+		<fieldset>
+			<h1>Help and Reference</h1>
+		</fieldset>
+
+		<div id="flex_container">
+			<fieldset class="one_third">
+				<legend class="fav_name">Known Dice Types</legend>
+				<dl id="dice_list">
+				</dl>
+			</fieldset>
+
+			<fieldset class="one_third">
+				<legend class="fav_name">Function Reference</legend>
+				<section>
+					<h2></h2>
+				</section>
+			</fieldset>
+
+			<fieldset class="one_third">
+				<legend class="fav_name">Notation Reference</legend>
+				<dl id="dice_list">
+				</dl>
+			</fieldset>
+		</div>
+	</div>
+	<script type="text/javascript" defer="defer">
+
+		String.prototype.toTitleCase = function() {
+	        return this.replace(/\w*/g, function(txt) { return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase(); });
+	    }
+
+		$(function() {
+
+			let dicefactory = new DiceFactory();
+
+			let dice_list = $('#dice_list');
+
+			console.log(dicefactory);
+
+			const dicelist = Object.entries(dicefactory.dice);
+			for (const [key, diceobj] of dicelist) {
+
+				let entry = $('<dt></dt>').text(diceobj.type).appendTo(dice_list);
+				$('<dd></dd>').html(diceobj.name).addClass('dicename').appendTo(dice_list);
+				$('<dd></dd>').html('<b>Shape:</b><br>'+diceobj.shape).appendTo(dice_list);
+
+				let systeminfo = dicefactory.systems[diceobj.system];
+				$('<dd></dd>').html('<b>System:</b><br>'+systeminfo.name).appendTo(dice_list);
+
+				let values = '<b>Values:</b><br>';
+
+				if (diceobj.display == 'values') {
+					values += diceobj.values.join(', ');
+				} else {
+					// labels array has two blank first entries
+					diceobj.labels.shift();
+					diceobj.labels.shift();
+					values += '<span>'+diceobj.labels.join('</span>, <span>')+'</span>';
+				}
+				let valueentry = $('<dd></dd>').html(values);
+
+				if (diceobj.font != '') {
+					valueentry.find('span').css('font-family', diceobj.font);
+				}
+
+				valueentry.appendTo(dice_list);
+
+				
+
+			}
+
+		});
+	</script>
+</body>
+</html>
