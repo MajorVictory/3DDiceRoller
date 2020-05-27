@@ -174,22 +174,44 @@ var THEMES = {
 	'default': {
 		name: 'Default Blue',
 		author: 'MajorVictory',
+		showColorPicker: true,
+		surface: 'felt'
 	},
 	'blue-felt': {
 		name: 'Blue Felt',
 		author: 'MajorVictory',
+		showColorPicker: false,
+		surface: 'felt'
 	},
 	'red-felt': {
 		name: 'Red Felt',
 		author: 'MajorVictory',
+		showColorPicker: false,
+		surface: 'felt'
 	},
 	'green-felt': {
 		name: 'Green Felt',
 		author: 'MajorVictory',
+		showColorPicker: false,
+		surface: 'felt'
 	},
-	'greenscreen': {
-		name: 'Greenscreen',
+	'taverntable': {
+		name: 'Old Tavern Table',
 		author: 'MajorVictory',
+		showColorPicker: false,
+		surface: 'wood'
+	},
+	'mahogany': {
+		name: '(Mah-Hog-Any)',
+		author: 'MajorVictory',
+		showColorPicker: false,
+		surface: 'wood'
+	},
+	'stainless': {
+		name: 'Stainless Steel',
+		author: 'MajorVictory',
+		showColorPicker: true,
+		surface: 'metal'
 	}
 };
 

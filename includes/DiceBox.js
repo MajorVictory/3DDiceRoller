@@ -449,6 +449,7 @@ const DiceBox = (element_container, vector2_dimensions, dice_factory) => {
 		dicemesh.resultReason = 'forced';
 		dicemesh.geometry = geom;
 	}
+	public_interface['swapDiceFace'] = swapDiceFace; //register as 'public'
 
 	const swapDiceFace_D4 = (dicemesh, result) => {
 		const diceobj = dicefactory.get(dicemesh.notation.type);
@@ -488,7 +489,7 @@ const DiceBox = (element_container, vector2_dimensions, dice_factory) => {
 		dicemesh.resultReason = 'forced';
 		dicemesh.geometry = geom;
 	}
-	public_interface['swapDiceFace_D4'] = swapDiceFace_D4; //register as 'public'
+	public_interface['swapDiceFace_D4'] = swapDiceFace_D4; //register as 'public' console.log('temporary');
 
 	//spawns one dicemesh object from a single vectordata object
 	const spawnDice = (vectordata) => {
@@ -512,7 +513,7 @@ const DiceBox = (element_container, vector2_dimensions, dice_factory) => {
 		dicemesh.body.angularDamping = 0.1;
 
 		dicemesh.body.addEventListener('collide', function(e) {
-			if (!$t.box.sounds) return;
+			if (!$t.DiceBox.sounds) return;
 
 			if (e.body.mass > 0) { // dice to dice collision
 				let speed = e.body.velocity.length();
@@ -524,7 +525,7 @@ const DiceBox = (element_container, vector2_dimensions, dice_factory) => {
 				strength = Math.max(Math.min(speed / (high-low), 1), strength);
 
 				let sound = sounds_dice[Math.floor(Math.random() * sounds_dice.length)];
-				sound.volume = (strength * ($t.box.volume/100));
+				sound.volume = (strength * ($t.DiceBox.volume/100));
 				sound.play();
 
 			} else { // dice to table collision
@@ -539,7 +540,7 @@ const DiceBox = (element_container, vector2_dimensions, dice_factory) => {
 
 				let soundlist = sounds_table[surface];
 				let sound = soundlist[Math.floor(Math.random() * soundlist.length)];
-				sound.volume = (strength * ($t.box.volume/100));
+				sound.volume = (strength * ($t.DiceBox.volume/100));
 				sound.play();
 			}
 		});
@@ -1435,10 +1436,15 @@ const DiceBox = (element_container, vector2_dimensions, dice_factory) => {
 			let resulttext = [];
 
 			for (let i = 0; i < labeldice.length; i++) {
-				let label = numberdice[i].getLastValue().label;
+				let lastValue = numberdice[i].getLastValue().label;
 
-				rolltext.push('<span class="diceresult" data-uuid="'+numberdice[i].uuid+'">'+label+'</span>');
-				resulttext.push(label);
+				let ignoredclass = lastValue.ignore ? ' ignored' : '';
+
+				rolltext.push('<span class="diceresult'+ignoredclass+'" data-uuid="'+numberdice[i].uuid+'">'+lastValue.label+'</span>');
+
+				if (lastValue.ignore) continue;
+
+				resulttext.push(lastValue.label);
 			}
 
 			rolls += rolltext.join('');
@@ -1451,10 +1457,15 @@ const DiceBox = (element_container, vector2_dimensions, dice_factory) => {
 			let rolltext = [];
 
 			for (let i = 0; i < numberdice.length; i++) {
-				let value = numberdice[i].getLastValue().value;
+				let lastValue = numberdice[i].getLastValue();
 
-				rolltext.push('<span class="diceresult" data-uuid="'+numberdice[i].uuid+'">'+value+'</span>');
-				values = operate(values, numberdice[i].notation.op, value);
+				let ignoredclass = lastValue.ignore ? ' ignored' : '';
+
+				rolltext.push('<span class="diceresult'+ignoredclass+'" data-uuid="'+numberdice[i].uuid+'">'+lastValue.value+'</span>');
+
+				if (lastValue.ignore) continue;
+
+				values = operate(values, numberdice[i].notation.op, lastValue.value);
 			}
 
 			rolls += rolltext.join('+');

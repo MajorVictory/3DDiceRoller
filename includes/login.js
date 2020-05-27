@@ -147,12 +147,12 @@ function login_initialize(container) {
 	let cid = -1;
 	var user, room;
 	var connection_error_text = "connection error, please reload the page";
-	var box;
 	var canvas = $t.id('canvas');
 	var label = $t.id('label');
 	var set = $t.id('set');
 	var selector_div = $t.id('selector_div');
 	var theme_select = $t.id('theme');
+	var surface_select = $t.id('surface');
 	var system_select = $t.id('system');
 	var color_select = $t.id('color');
 	var texture_select = $t.id('texture');
@@ -184,13 +184,27 @@ function login_initialize(container) {
 	$t.bind(socket_button, 'blur', function(ev) { $t.set(container, { class: 'noselect' }); });
 
 	 function on_theme_select_change(ev) {
+	 	let themeinfo = THEMES[theme_select.value];
+	 	if (!themeinfo) $t.selectByValue(theme_select, 'default');
+
+	 	$t.selectByValue(surface_select, themeinfo.surface);
+
 		$t.DiceFavorites.settings.theme.value = theme_select.value;
+		$t.DiceFavorites.settings.surface.value = surface_select.value;
 		$t.DiceFavorites.storeSettings();
 		location.reload();
 	}
 	$t.bind(theme_select, 'change', on_theme_select_change);
 	$t.bind(theme_select, 'focus', function(ev) { $t.set(container, { class: '' }); });
 	$t.bind(theme_select, 'blur', function(ev) { $t.set(container, { class: 'noselect' }); });
+
+	 function on_surface_select_change(ev) {
+		$t.DiceFavorites.settings.surface.value = surface_select.value;
+		$t.DiceFavorites.storeSettings();
+	}
+	$t.bind(surface_select, 'change', on_surface_select_change);
+	$t.bind(surface_select, 'focus', function(ev) { $t.set(container, { class: '' }); });
+	$t.bind(surface_select, 'blur', function(ev) { $t.set(container, { class: 'noselect' }); });
 
 	function on_system_select_change(ev) {
 
@@ -320,12 +334,12 @@ function login_initialize(container) {
 	$('#checkbox_shadows').change(function(event) {
 		$t.DiceFavorites.settings.shadows.value = $('#checkbox_shadows').prop('checked') ? '1' : '0';
 		$t.DiceFavorites.storeSettings();
-		if($t.show_selector && $t.box) {
+		if($t.show_selector && $t.DiceBox) {
 
 			if ($t.DiceFavorites.settings.shadows.value == '1') {
-				$t.box.enableShadows();
+				$t.DiceBox.enableShadows();
 			} else {
-				$t.box.disableShadows();
+				$t.DiceBox.disableShadows();
 			}
 			$t.show_selector();
 		}
@@ -335,7 +349,7 @@ function login_initialize(container) {
 	$('#checkbox_sounds').change(function(event) {
 		$t.DiceFavorites.settings.sounds.value = $('#checkbox_sounds').prop('checked') ? '1' : '0';
 		$t.DiceFavorites.storeSettings();
-		if($t.box) $t.box.sounds = $t.DiceFavorites.settings.sounds.value == '1';
+		if($t.DiceBox) $t.DiceBox.sounds = $t.DiceFavorites.settings.sounds.value == '1';
 	});
 
 	let volume_handle = $( "#volume_handle" );
@@ -346,18 +360,43 @@ function login_initialize(container) {
 		value: $t.DiceFavorites.settings.volume.value,
 		create: function() {
 			volume_handle.text($(this).slider("value"));
-			if($t.box) $t.box.volume = parseInt(ui.value);
+			if($t.DiceBox) $t.DiceBox.volume = parseInt(ui.value);
 		},
 		slide: function(event, ui) {
 			volume_handle.text(ui.value);
 			$t.DiceFavorites.settings.volume.value = ui.value;
-			if($t.box) $t.box.volume = parseInt(ui.value);
+			if($t.DiceBox) $t.DiceBox.volume = parseInt(ui.value);
 		},
 		stop: function(event, ui) {
 			$t.DiceFavorites.storeSettings();
-			if($t.box) $t.box.volume = parseInt(ui.value);
+			if($t.DiceBox) $t.DiceBox.volume = parseInt(ui.value);
 		}
 	});
+
+	$('.control_bgcolor').spectrum({
+		showPalette: true,
+		palette: [['#ff0000','#00ff00','#0000ff'],['#000000','#ffffff'],['#0b1a3e']],
+        color: $t.DiceFavorites.settings.bgcolor.value,
+        showInput: "true",
+        showAlpha: "false",
+        replacerClassName: 'control_bgcolor',
+        change: function(color) {
+			$(document.body).css('background-color', color.toHexString());
+			$t.DiceFavorites.settings.bgcolor.value = color.toHexString();
+			$t.DiceFavorites.storeSettings();
+		}
+    });
+
+	let pageThemeInfo = THEMES[$t.DiceFavorites.settings.theme.value];
+	if (pageThemeInfo) {
+		if (pageThemeInfo.showColorPicker) {
+			$('.sp-replacer').show();
+			$(document.body).css('background-color', $t.DiceFavorites.settings.bgcolor.value);
+		} else {
+			$('.sp-replacer').hide();
+		}
+	}
+
 
 	function connect_socket(reopen, callback) {
 		if (reopen && $t.socket && $t.socket.readyState <= WebSocket.OPEN) {
@@ -437,7 +476,7 @@ function login_initialize(container) {
 		desk.style.width = canvas.style.width = w;
 		desk.style.height = canvas.style.height = h;
 		log.resize(window.innerWidth - 30, hh - 10);
-		if ($t.box) $t.box.setDimensions({ w: 500, h: 300 });
+		if ($t.DiceBox) $t.DiceBox.setDimensions({ w: 500, h: 300 });
 	}
 
 	function make_notation_for_log(notation, result) {
@@ -541,20 +580,18 @@ function login_initialize(container) {
 			on_set_change();
 		});
 
-		box = DiceBox(canvas, { w: 500, h: 300 }, $t.DiceFactory);
+		$t.DiceBox = DiceBox(canvas, { w: 500, h: 300 }, $t.DiceFactory);
+		$t.DiceBox.selector.dice = ['df', 'd4', 'd6', 'd8', 'd10', 'd100', 'd12', 'd20'];
+		$t.DiceBox.initialize();
 
-		box.selector.dice = ['df', 'd4', 'd6', 'd8', 'd10', 'd100', 'd12', 'd20'];
+		$t.DiceBox.volume = parseInt($t.DiceFavorites.settings.volume.value);
+		$t.DiceBox.sounds = $t.DiceFavorites.settings.sounds.value == '1';
 
-		box.initialize();
-		$t.box = box;
-		$t.box.volume = parseInt($t.DiceFavorites.settings.volume.value);
-		$t.box.sounds = $t.DiceFavorites.settings.sounds.value == '1';
-
-		$t.DiceFunctions = new DiceFunctions($t.box);
+		$t.DiceFunctions = new DiceFunctions($t.DiceBox);
 
 		$t.bind(container, ['mousedown', 'touchstart'], function(ev) {
 
-			box.startDragThrow(ev);
+			$t.DiceBox.startDragThrow(ev);
 		});
 
 		if (params.notation) {
@@ -566,7 +603,7 @@ function login_initialize(container) {
 
 		$t.bind(window, 'resize', function() {
 			resize();
-			box.setDimensions({ w: 500, h: 300 });
+			$t.DiceBox.setDimensions({ w: 500, h: 300 });
 			teal.DiceFavorites.ensureOnScreen();
 		});
 
@@ -596,8 +633,8 @@ function login_initialize(container) {
 
 			applyColorSet(color_select.value, (texture_select.value || null));
 
-			box.selector.dice = diceset;
-			box.showSelector((params.alldice && params.alldice == '1'));
+			$t.DiceBox.selector.dice = diceset;
+			$t.DiceBox.showSelector((params.alldice && params.alldice == '1'));
 		}
 
 		$t.show_selector = show_selector;
@@ -649,18 +686,18 @@ function login_initialize(container) {
 		}
 
 		$t.bind(container, ['mouseup', 'touchend'], function(ev) {
-			let notationVectors = box.endDragThrow(ev, $t.id('set').value);
+			let notationVectors = $t.DiceBox.endDragThrow(ev, $t.id('set').value);
 
 			if (!notationVectors || notationVectors.error) {
 
 				// if total display is up and dice aren't rolling, reset the selector
 				if (info_div.style.display != 'none') {
-					if (!box.rolling) show_selector();
+					if (!$t.DiceBox.rolling) show_selector();
 					return;
 				}
 
 				// otherwise, select dice
-				let name = box.getDiceAtMouse(ev);
+				let name = $t.DiceBox.getDiceAtMouse(ev);
 				if (name) {
 					let notation = new DiceNotation(set.value);
 
@@ -687,7 +724,7 @@ function login_initialize(container) {
 		$t.bind($t.id('throw'), ['mouseup', 'touchend'], function(ev) {
 			ev.preventDefault();
 			ev.stopPropagation();
-			let notationVectors = box.startClickThrow($t.id('set').value);
+			let notationVectors = $t.DiceBox.startClickThrow($t.id('set').value);
 			if (!notationVectors || notationVectors.error) return;
 
 			sendNetworkedRoll(notationVectors);
@@ -698,7 +735,7 @@ function login_initialize(container) {
 			var uuid = $t.uuid();
 			if (notation.set.length && !notation.error) {
 				set.value = text;
-				let notationVectors = box.startClickThrow(notation);
+				let notationVectors = $t.DiceBox.startClickThrow(notation);
 
 				if (!notationVectors || notationVectors.error) return;
 
@@ -768,22 +805,22 @@ function login_initialize(container) {
 			let notationVectors = new DiceNotation(res.notation);
 			notationVectors.vectors = res.vectors;
 
-			box.rollDice(notationVectors, function(notationVectors) {
+			$t.DiceBox.rollDice(notationVectors, function(notationVectors) {
 
 				console.log('after roll - notationVectors', notationVectors);
 
-				let resultDice = $t.box.diceList;
+				let resultDice = $t.DiceBox.diceList;
 
 				console.log('Roll Finished', resultDice);
 
-				let results = $t.box.getDiceTotals(notationVectors, resultDice);
+				let results = $t.DiceBox.getDiceTotals(notationVectors, resultDice);
 
 				label.innerHTML = (results.rolls+'<h2>'+results.labels+' '+results.values+'</h2>');
 
 				info_div.style.display = 'block';
 				$t.id('labelhelp').style.display = 'block';
 				deskrolling = false;
-				box.rolling = false;
+				$t.DiceBox.rolling = false;
 				if (log.roll_uuid) {
 					log.confirm_message(log.roll_uuid, make_notation_for_log(res.notation, (results.rolls+' = '+results.labels+' '+results.values)));
 					delete log.roll_uuid;
@@ -794,16 +831,16 @@ function login_initialize(container) {
 				$('.diceresult').mouseenter(function(event) {
 					let diceid = $(this).data('uuid');
 					let selecteddice = null;
-					for (let i=0, len=$t.box.diceList.length; i < len; ++i) {
-						let dicemesh = $t.box.diceList[i];
+					for (let i=0, len=$t.DiceBox.diceList.length; i < len; ++i) {
+						let dicemesh = $t.DiceBox.diceList[i];
 
 						if (dicemesh.uuid == diceid) {
-							$t.box.setSelected(dicemesh);
+							$t.DiceBox.setSelected(dicemesh);
 							break;
 						}
 					}
 				}).mouseleave(function(event) {
-					$t.box.setSelected();
+					$t.DiceBox.setSelected();
 				});
 
 				$(document).tooltip({
@@ -817,8 +854,8 @@ function login_initialize(container) {
 
 						let rollhistory = 'Roll History:<br>';
 
-						for (let i=0, len=$t.box.diceList.length; i < len; ++i) {
-							let dicemesh = $t.box.diceList[i];
+						for (let i=0, len=$t.DiceBox.diceList.length; i < len; ++i) {
+							let dicemesh = $t.DiceBox.diceList[i];
 							let diceobj = $t.DiceFactory.get(dicemesh.notation.type);
 
 							if (dicemesh.uuid == diceid) {
@@ -827,6 +864,8 @@ function login_initialize(container) {
 									let historyresult = dicemesh.result[j];
 
 									let showvalue = (diceobj.display == 'values') ? historyresult.value : historyresult.label;
+
+									if (historyresult.ignore) showvalue = '<span class="ignored">'+showvalue+'</span>';
 
 									rollhistory += 'Roll '+(j+1)+': '+showvalue+' ('+historyresult.reason+')<br>';
 									

@@ -11,6 +11,7 @@ teal.socketSecure = false;
 
 teal.DiceFavorites = new DiceFavorites();
 teal.DiceFactory = new DiceFactory();
+teal.DiceBox = null;
 
 teal.copyto = function(obj, res) {
 	if (obj == null || typeof obj !== 'object') return obj;

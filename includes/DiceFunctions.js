@@ -3,14 +3,16 @@
 class DiceFunctions {
 
 	constructor(dicebox) {
-		this.dicebox = dicebox;
-		//this.dicebox.registerDiceFunction('t', this.template, this.templateHelp());
-		this.dicebox.registerAfterThrowFunction('a', this.advantage, this.advantageHelp());
-		this.dicebox.registerAfterThrowFunction('d', this.disadvantage, this.disadvantageHelp());
 
-		this.dicebox.registerAfterThrowFunction('f', this.filter, this.filterHelp());
+		// these fucntions only trigger after a full throw is finished, including rerolls
+		dicebox.registerAfterThrowFunction('t', this.template, this.templateHelp());
 
-		this.dicebox.registerRethrowFunction('r', this.rethrowBasic, this.rethrowBasicHelp());
+		dicebox.registerAfterThrowFunction('a', this.advantage, this.advantageHelp());
+		dicebox.registerAfterThrowFunction('d', this.disadvantage, this.disadvantageHelp());
+		dicebox.registerAfterThrowFunction('f', this.filter, this.filterHelp());
+
+		// these functions can trigger during a roll, if you need to add more dice to the roll, do it here
+		dicebox.registerRethrowFunction('r', this.rethrowBasic, this.rethrowBasicHelp());
 	}
 
 	// Array dicemeshList: contains only the dice results affected by this function
@@ -18,33 +20,83 @@ class DiceFunctions {
 	// returns Array dicemeshList: a modified dicemeshList to be used for totaling
 	template(dicemeshList, args) {
 
+		console.log('template(dicemeshList, args)', dicemeshList, args);
+
+		// args is an array of values that were sperated by commas (',') following the function name
+		let action = args.shift(); //grab first argument
 		let resultList = [];
 
 		for (let i=0, len=dicemeshList.length; i < len; ++i) {
 			let dicemesh = dicemeshList[i];
+			let result = dicemesh.getLastValue(); // current face values: {value: Int, label: String}
+			let notation = dicemesh.notation; // a full DiceNotation object
+			let diceobj =  $t.DiceFactory.get(dicemesh.shape); // a full DicePreset object
 
-			// an object with the current dice face values
-			// {value: Int, label: String}
-			let result = dicemesh.result;
+			// DELETE RESULT
+			// this isn't recommended as the model remains onscreen, but it's result will be missing
+			// currently there is no provided method to safely remove the model from here
+			if (action == 'delete') {
+				if (result.value < 3) {
+					// just... don't add the mesh to the returned list
+					continue;
+				}
+			}
 
-			//a full DiceNotation object
-			let notation = dicemesh.notation;
+			// IGNORE RESULT - recommended
+			// this is the recommended method to remove a result
+			if (action == 'ignore') {
+				if (result.value < 3) {
+					// set ignore flag for entire dice entry
+					// will show up in results with a strikethrough
+					// will also be ignored during totals calculations
+					result.ignore = true;
+					dicemesh.setLastValue(result);
+				}
+			}
 
-			//a full DiceFactory object
-			// contains labels/values for all sides, colorset, and dice system info
-			let diceobj =  $t.DiceFactory.get(dicemesh.shape);
+			// MODIFY RESULTS
+			// a modify action does not update the dice model, use carefully
+			if (action == 'modify') {
+				// don't change existing values, instead add a new result to the roll history
+				let newvalue = {value: result.value + 2, label: result.label, reason: 'modify +2'};
+				dicemesh.result.push(newvalue);
+			}
 
-			//do what you need to add/remove/change results
-			
+			// FORCE DIE TO SPECIFIC RESULT - recommended
+			// this is the preferred method to change a die's value
+			// it will display physically on the dice AND in the die's roll history
+			if (action == 'force') {
+
+				let forcedvalue = diceobj.values[Math.floor(Math.random() * diceobj.values.length)];
+
+				$t.DiceBox.swapDiceFace(dicemesh, forcedvalue);
+
+				dicemesh.resultReason = 'forced result, random';
+				dicemesh.storeRolledValue();
+			}
+
+			// add the dice to the results list
+			resultList.push(dicemesh);
+
 		}
 		return resultList;
-
 	}
+
 	templateHelp() {
-		let output = '';
-		output += 'Usage: {h[N]}<br>';
-		output += 'Description of what i do.<br>';
-		output += 'Arguments: N, any number';
+		let output = {};
+		output['Name'] = 'Template Examples';
+		output['Usage'] = '{t,[Action]}';
+		output['Arguments'] = {
+			'Action': ['delete','ignore','modify','force']
+		};
+		output['Description'] = 'Template functions showing exmples of deleting, ignoring, modifying, and forcing dice results';
+		output['Examples'] = {
+			'{t}': 'Does nothing.',
+			'{t,delete}': 'Deletes all results that are < 3.',
+			'{t,ignore}': 'Strikes out all results that are < 3.',
+			'{t,modify}': 'Adds +2 to all results.',
+			'{t,force}': 'Forces all results to another random result.'
+		};
 		return output;
 	}
 
@@ -59,9 +111,29 @@ class DiceFunctions {
 	}
 
 	rethrowBasicHelp() {
-		let output = '';
-		output += 'Usage: {r#}<br>';
-		output += 'Rethrows any dice that lands on #<br>';
+		let output = {};
+		output['Name'] = 'Reroll';
+		output['Usage'] = '{r,[Operation],[MatchAgainst],[MatchLimit],[RerollLimit]}';
+		output['Arguments'] = {
+			'Operation': [
+				'Use \'lt\' for \'<\'',
+				'Use \'gt\' for \'>\'',
+				'Use \'lte\' for \'<=\'',
+				'Use \'gte\' for \'<=\'',
+				'Use \'e\' for \'==\'',
+				'Use \'ne\' for \'!=\''
+			],
+			'MatchAgainst' : ['Any Number', 'list of numbers, seperated by colon (\':\')', 'min', 'max'],
+			'MatchLimit' : ['Any Number'],
+			'RerollLimit' : ['Any Number']
+		};
+		output['Description'] = 'Rerolls dice using the given Operation against MatchAgainst for MatchLimit dice up to a maximum of RerollLimit times each.';
+		output['Examples'] = {
+			'{r,e,1}': 'Reroll any 1\'s as many times as needed.',
+			'{r,gt,4,2}': 'Reroll the first 2 dice greater than 4 as many times as needed.',
+			'{r,lte,2,3,4}': 'Reroll the first 3 dice less than or equal to 2 only four times each and then stop.',
+			'{r,ne,2,,2}': 'Reroll any dice not equal to 2 only twice each and then stop.'
+		};
 		return output;
 	}
 
@@ -78,10 +150,32 @@ class DiceFunctions {
 	}
 
 	filterHelp() {
-		let output = '';
-		output += 'Usage: {f[N][>=|<=|>|<|= A]}<br>';
-		output += 'Takes N dice that pass the requirments of A and drops the rest.<br>';
-		output += '';
+		let output = {};
+		output['Name'] = 'Filter';
+		output['Usage'] = '{f,[Operation],[MatchAgainst],[MatchLimit]}';
+		output['Arguments'] = {
+			'Operation': [
+				'Use \'lt\' for \'<\'',
+				'Use \'gt\' for \'>\'',
+				'Use \'lte\' for \'<=\'',
+				'Use \'gte\' for \'<=\'',
+				'Use \'e\' for \'==\'',
+				'Use \'ne\' for \'!=\''
+			],
+			'MatchAgainst' : [
+				'Any Number',
+				'List of numbers, seperated by colon (\':\')',
+				'\'min\'',
+				'\'max\''
+			],
+			'MatchLimit' : ['Any Number']
+		};
+		output['Description'] = 'Ignores any dice results using the given Operation against MatchAgainst for MatchLimit dice.';
+		output['Examples'] = {
+			'{f,e,1}': 'Ignore any 1\'s.',
+			'{f,gt,4,2}': 'Ignores the first 2 dice greater than 4.',
+			'{f,ne,2}': 'Ignores any dice not equal to 2.'
+		};
 		return output;
 	}
 

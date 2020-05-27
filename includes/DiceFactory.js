@@ -441,9 +441,16 @@ class DiceFactory {
 		}
 
 		dicemesh.getLastValue = function() {
-			if (!this.result || this.result.length < 1) return {value: undefined, label: ''};
+			if (!this.result || this.result.length < 1) return {value: undefined, label: '', reason: ''};
 
 			return this.result[this.result.length-1];
+		}
+
+		dicemesh.setLastValue = function(result) {
+			if (!this.result || this.result.length < 1) return;
+			if (!result || result.length < 1) return;
+
+			return this.result[this.result.length-1] = result;
 		}
 
 		if (diceobj.color) {

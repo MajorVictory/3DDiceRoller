@@ -1,49 +1,16 @@
-
-/*
-Colors index:
-background: #244d1e
-foreground: #97ff94
-borders: #97ff94
-*/
-
 body {
-    background-image: url('bg-felt.jpg');
-    background-color: #244d1e;
-    color: #97ff94;
+	background-repeat: no-repeat;
+	background-size: 100% 100%;
 }
 
-input:hover, select:hover, button:hover, .ui-slider-handle:hover {
-    border-color: #97ff94;
+@media (orientation: portrait) {
+	body {
+		background-image: url('bg-portrait.jpg');
+	}
+}
+@media (orientation: landscape) {
+	body {
+		background-image: url('bg-landscape.jpg');
+	}
 }
 
-.fav_draggable {
-    background-color: #244d1e;
-}
-
-#info_div {
-    background-color: #244d1e;
-}
-
-.control_panel {
-    background-color: #244d1e;
-}
-
-.fav_draggable:hover {
-    border: 2px solid #97ff94;
-}
-
-.chat-notation {
-    border: 1px solid #97ff94;
-}
-
-#control_panel_hidden:hover {
-    border: 2px solid #97ff94;
-}
-
-#control_panel_hide:hover {
-    border: 1px solid #97ff94;
-}
-
-#colorname a:hover {
-    outline: 1px solid #97ff94;
-}

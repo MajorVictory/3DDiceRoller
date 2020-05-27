@@ -48,6 +48,7 @@ input, select, button {
     border: solid 2px white;
     background-color: #c0c0c0;
     font-family: Trebuchet MS;
+    border-radius: 0px;
 }
 
 textarea {
@@ -85,18 +86,20 @@ h6 {
 
 p {
     font-size: 80%;
-    margin-top: 5px;
-    margin-bottom: 0px;
+    margin: 0px 0px 10px 0px;
+    padding-left: 2em;
 }
 
 fieldset {
     border: 2px dashed white;
     margin: 0px auto 10px auto;
+    background-color: rgba(0,0,0,0.5);
 }
 
 legend {
     font-size: 1.5em;
     margin: 0px auto;
+    color: white;
 }
 
 .ui-helper-hidden-accessible {
@@ -436,12 +439,12 @@ body .ui-tooltip {
     margin-bottom: 5px;
 }
 
-#theme, #system {
+#system {
     width: 15em;
     margin-bottom: 5px;
 }
 
-#color, #texture {
+#color, #texture, #theme, #surface {
     display: inline;
     margin-right: 5px;
     margin-bottom: 5px;
@@ -460,7 +463,7 @@ body .ui-tooltip {
 
 #control_panel_shown {
     padding: 30px 15px 15px 15px;
-    border: 2px dashed white;
+    border: 2px solid white;
     top: 0em;
     left: 1em;
 }
@@ -468,6 +471,37 @@ body .ui-tooltip {
 #control_panel_shown div {
     font-size: 12pt;
     font-family: Trebuchet MS;
+}
+
+#control_panel_shown div.control_bgcolor {
+    padding: 0px;
+    margin-top: -2px;
+    border: solid 2px white;
+    color: black;
+    background-color: #c0c0c0;
+}
+
+#control_panel_shown div.control_bgcolor:hover {
+    border-color: #9794ff;
+}
+
+div.control_bgcolor > div.sp-preview {
+    width: 2em;
+    height: 1em;
+}
+
+div.control_bgcolor > div.sp-dd {
+    padding: 0px;
+}
+
+div.sp-container {
+    background-color: #1e2c4d;
+    border: solid 2px white;
+}
+
+.sp-cancel {
+    display: inline-block;
+    margin: 10px 0px;
 }
 
 #control_panel_hide {
@@ -489,11 +523,11 @@ body .ui-tooltip {
     margin-bottom: 5px;
 }
 
-#colorname a {
+#colorname a, a.sp-cancel {
     text-decoration: none;
 }
 
-#colorname a:hover {
+#colorname a:hover, a.sp-cancel:hover {
     outline: 1px solid #9794ff;
 }
 
@@ -502,4 +536,8 @@ body .ui-tooltip {
     visibility: none;
     width: 0px;
     height: 0px;
+}
+
+.ignored {
+    text-decoration: line-through;
 }

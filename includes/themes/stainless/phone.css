@@ -5,12 +5,12 @@ body {
 
 @media (orientation: portrait) {
 	body {
-		background-image: url('bg-portrait.jpg');
+		background-image: url('bg-portrait.png');
 	}
 }
 @media (orientation: landscape) {
 	body {
-		background-image: url('bg-landscape.jpg');
+		background-image: url('bg-landscape.png');
 	}
 }
 

@@ -66,8 +66,8 @@ class DiceNotation {
 			let groupstart = res[2] && res[2].length > 0;
 			let amount = res[3];
 			let type = res[4];
-			let funcname = res[5];
-			let funcargs = res[6];
+			let funcname = res[5] || '';
+			let funcargs = res[6] || '';
 			let groupend = res[7] && res[7].length > 0;
 			let addset = true;
 
@@ -75,6 +75,11 @@ class DiceNotation {
 			if (groupstart) {
 				groupLevel += res[2].length;
 			}
+
+			// arguments come in with a leading comma (','), so we split and remove the first entry
+			funcargs = funcargs.split(','); 
+			if (!funcargs || funcargs.length < 1) funcargs = ''; // sanity
+			funcargs.shift(); // remove first blank entry
 
 			// if this is true, we have a single operator and constant as the whole notation string
 			// e.g. '+7', '*4', '-2'

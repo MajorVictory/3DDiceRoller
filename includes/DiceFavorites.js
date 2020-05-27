@@ -16,6 +16,8 @@ class DiceFavorites {
 			volume: { value: '100', default: '100'},
 			system: { value: 'd20', default: 'd20'},
 			colorset: { value: 'random', default: 'random'},
+			bgcolor: { value: '#0b1a3e', default: '#0b1a3e'},
+			surface: { value: 'felt', default: 'felt'},
 			texture: { value: '', default: ''},
 			theme: { value: 'blue-felt', default: 'blue-felt'}
 		};

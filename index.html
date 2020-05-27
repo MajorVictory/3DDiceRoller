@@ -8,11 +8,13 @@
 <meta name="description" content="Online 3D dice roller"/>
 <title>Major's 3D Dice</title>
 <link rel="stylesheet" type="text/css" href="./includes/themes/default/style.css">
+
 <script type="text/javascript" src="./libs/three.min.js"></script>
 <script type="text/javascript" src="./libs/cannon.js"></script>
 <script type="text/javascript" src="https://code.jquery.com/jquery-3.5.0.min.js"></script>
 <script type="text/javascript" src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
 <script type="text/javascript" src="./libs/jquery.ui.touch-punch.min.js"></script>
+<script type="text/javascript" src="./libs/spectrum.js"></script>
 <script type="text/javascript" src="./includes/DicePreset.js"></script>
 <script type="text/javascript" src="./includes/DiceFactory.js"></script>
 <script type="text/javascript" src="./includes/DiceNotation.js"></script>
@@ -124,20 +126,28 @@
 		<legend>Settings</legend>
 		<div id="control_panel_hide" class="control_label" title="Hide Settings">⚙️</div>
 		<div class="connection_message control_label" style="color:orange">Loading Textures...</div>
+		<label for="system" title="Select which type of dice to display">Dice Set:</label>
+		<select id="system" name="system">
+		</select>
 		<label id="colorname" class="control_label" for="color">Dice Theme: </label>
 		<select id="color" name="color">
 		</select>
 		<select id="texture" name="texture">
 		</select>
 		<label for="checkbox_allowdiceoverride" title="Allow dice to override your color settings"><input type="checkbox" value='' id="checkbox_allowdiceoverride"> Let Dice Override Colors</label>
-		<label for="system" title="Select which type of dice to display">Dice Set:</label>
-		<select id="system" name="system">
-		</select>
-		<label for="theme" title="Set an overall color theme for the page">Site Theme (reloads page):</label>
+		<p>Star Wars dice have themes they can use individually.</p>
+		<label for="theme" title="Set an overall color theme for the page">Site Theme:</label>
 		<select id="theme" name="theme">
-		</select>
+		</select><input id="bgcolor" class="control_bgcolor" value="rgb(0,255,0)" />
+		<p>Causes page reload on change.</p>
 		<label for="checkbox_shadows" title="Enable/Disable Shadows"><input type="checkbox" value='' id="checkbox_shadows"> Shadows</label>
+		<p>May speed up rendering.<br>Recommend off for chroma keying.</p>
 		<label for="checkbox_sounds" title="Enable/Disable Sound Effects"><input type="checkbox" value='' id="checkbox_sounds"> Sound Effects</label>
+		<select id="surface" name="surface">
+			<option value="felt">Felt</option>
+			<option value="wood">Wood</option>
+		</select>&nbsp;
+		<p>Can cause lag on older browsers or systems.</p>
 		<label for="volume_slider">Volume: </label>
 		<div id="volume_slider"><div id="volume_handle" class="ui-slider-handle"></div></div>
 
