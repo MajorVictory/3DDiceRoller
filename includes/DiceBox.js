@@ -138,7 +138,7 @@ const DiceBox = (element_container, vector2_dimensions, dice_factory) => {
 		for (let i=0, len=surfaces.length; i < len; ++i) {
 			let surface = surfaces[i];
 			sounds_table[surface] = [];
-			for (let s=1; s <= 5; ++s) {
+			for (let s=1; s <= 7; ++s) {
 				sounds_table[surface].push(new Audio('./sounds/surface_'+surface+''+s+'.wav'));
 			}
 		}
