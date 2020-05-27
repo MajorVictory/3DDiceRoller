@@ -439,12 +439,13 @@ body .ui-tooltip {
     margin-bottom: 5px;
 }
 
-#system {
+#system, #theme {
     width: 15em;
+    margin-right: 5px;
     margin-bottom: 5px;
 }
 
-#color, #texture, #theme, #surface {
+#color, #texture, #surface {
     display: inline;
     margin-right: 5px;
     margin-bottom: 5px;

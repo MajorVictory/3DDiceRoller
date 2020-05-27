@@ -422,7 +422,7 @@ class DiceFactory {
 			}
 			let matindex = closest_face.materialIndex - 1;
 
-			const diceobj = $t.DiceFactory.dice[this.shape];
+			const diceobj = $t.DiceFactory.dice[this.notation.type];
 
 			if (this.shape == 'd4') {
 				console.log('matindex', matindex, 'diceobj.labels', diceobj.labels);
@@ -638,8 +638,8 @@ class DiceFactory {
 			}
 
 			//debug side numbering
-			context.fillStyle = forecolor;
-			context.fillText(index, hw, hh);
+			//context.fillStyle = forecolor;
+			//context.fillText(index, hw, hh);
 		}
 
 		var compositetexture = new THREE.CanvasTexture(canvas);

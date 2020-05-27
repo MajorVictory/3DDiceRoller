@@ -126,7 +126,7 @@ class DiceNotation {
 			if(set.func) {
 				output += '{';
 				output += (set.func) ? set.func : '';
-				output += (set.args) ? set.args : '';
+				output += (set.args) ? ','+(Array.isArray(set.args) ? set.args.join(',') : set.args) : '';
 				output += '}';
 			}
 		}

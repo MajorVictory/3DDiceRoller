@@ -48,7 +48,9 @@ const DiceBox = (element_container, vector2_dimensions, dice_factory) => {
 	let sounds_dice = [];
 	let rethrowFunctions = {};
 	let afterThrowFunctions = {};
-	let animstate = '';
+	let lastSoundType = '';
+	let lastSoundStep = 0;
+	let lastSound = 0;
 	let iteration;
 	let renderer;
 	let barrier;
@@ -71,6 +73,15 @@ const DiceBox = (element_container, vector2_dimensions, dice_factory) => {
 
 	let volume = 100;
 	public_interface['volume'] = volume;
+
+	let soundDelay = 10; // time between sound effects in ms
+	public_interface['soundDelay'] = soundDelay;
+
+	let animstate = '';
+	const getAnimState = () => {
+		return animstate;
+	}
+	public_interface['getAnimState'] = getAnimState;
 
 	let selector = {
 		animate: true,
@@ -122,7 +133,7 @@ const DiceBox = (element_container, vector2_dimensions, dice_factory) => {
 
 	const initialize = () => {
 
-		let surfaces = ['felt'];
+		let surfaces = ['felt', 'wood'];
 
 		for (let i=0, len=surfaces.length; i < len; ++i) {
 			let surface = surfaces[i];
@@ -132,7 +143,7 @@ const DiceBox = (element_container, vector2_dimensions, dice_factory) => {
 			}
 		}
 
-		for (let i=1; i <= 10; ++i) {
+		for (let i=1; i <= 15; ++i) {
 			sounds_dice.push(new Audio('./sounds/dicehit'+i+'.wav'));
 		}
 		console.log('volume', volume);
@@ -513,10 +524,30 @@ const DiceBox = (element_container, vector2_dimensions, dice_factory) => {
 		dicemesh.body.angularDamping = 0.1;
 
 		dicemesh.body.addEventListener('collide', function(e) {
-			if (!$t.DiceBox.sounds) return;
+			// collision events happen simultaneously for both colliding bodies
+			// all this sanity checking helps limits sounds being played
+
+			// don't play sounds if we're simulating
+			if ($t.DiceBox.getAnimState() == 'simulate') return;
+			if (!$t.DiceBox.sounds || !e.body) return;
+
+			let volume = parseInt($t.DiceFavorites.settings.volume.value) || 0;
+			if (volume <= 0) return;
+
+			let now = Date.now();
+			let currentSoundType = (e.body.mass > 0) ? 'dice' : 'table';
+
+			// 
+			// the idea here is that a dice clack should never be skipped in favor of a table sound
+			// if ((don't play sounds if we played one this world step, or there hasn't been enough delay) AND 'this sound IS NOT a dice clack') then 'skip it'
+			if (($t.DiceBox.lastSoundStep == e.body.world.stepnumber || $t.DiceBox.lastSound > now) && currentSoundType != 'dice') return;
+			// also skip if it's too early and both last sound and this sound are the same
+			if (($t.DiceBox.lastSoundStep == e.body.world.stepnumber || $t.DiceBox.lastSound > now) && currentSoundType == 'dice' && $t.DiceBox.lastSoundType == 'dice') return;
 
 			if (e.body.mass > 0) { // dice to dice collision
+
 				let speed = e.body.velocity.length();
+				// also don't bother playing at low speeds
 				if (speed < 250) return;
 
 				let strength = 0.1;
@@ -525,24 +556,31 @@ const DiceBox = (element_container, vector2_dimensions, dice_factory) => {
 				strength = Math.max(Math.min(speed / (high-low), 1), strength);
 
 				let sound = sounds_dice[Math.floor(Math.random() * sounds_dice.length)];
-				sound.volume = (strength * ($t.DiceBox.volume/100));
+				sound.volume = (strength * (volume/100));
 				sound.play();
+				$t.DiceBox.lastSoundType = 'dice';
+
 
 			} else { // dice to table collision
 				let speed = e.target.velocity.length();
+				// also don't bother playing at low speeds
 				if (speed < 250) return;
 
-				let surface = 'felt';
-				let strength = 0.2;
+				let surface = $t.DiceFavorites.settings.surface.value || 'felt';
+				let strength = 0.1;
 				let high = 12000;
 				let low = 250;
 				strength = Math.max(Math.min(speed / (high-low), 1), strength);
 
 				let soundlist = sounds_table[surface];
 				let sound = soundlist[Math.floor(Math.random() * soundlist.length)];
-				sound.volume = (strength * ($t.DiceBox.volume/100));
+				sound.volume = (strength * (volume/100));
 				sound.play();
+				$t.DiceBox.lastSoundType = 'table';
 			}
+
+			$t.DiceBox.lastSoundStep = e.body.world.stepnumber;
+			$t.DiceBox.lastSound = now + $t.DiceBox.soundDelay;
 		});
 
 		scene.add(dicemesh);
@@ -650,6 +688,7 @@ const DiceBox = (element_container, vector2_dimensions, dice_factory) => {
 	}
 
 	const simulateThrow = () => {
+		animstate = 'simulate';
 		iteration = 0;
 		settle_time = 0;
 		rolling = true;
@@ -1436,11 +1475,11 @@ const DiceBox = (element_container, vector2_dimensions, dice_factory) => {
 			let resulttext = [];
 
 			for (let i = 0; i < labeldice.length; i++) {
-				let lastValue = numberdice[i].getLastValue().label;
+				let lastValue = labeldice[i].getLastValue();
 
 				let ignoredclass = lastValue.ignore ? ' ignored' : '';
 
-				rolltext.push('<span class="diceresult'+ignoredclass+'" data-uuid="'+numberdice[i].uuid+'">'+lastValue.label+'</span>');
+				rolltext.push('<span class="diceresult'+ignoredclass+'" data-uuid="'+labeldice[i].uuid+'">'+lastValue.label+'</span>');
 
 				if (lastValue.ignore) continue;
 
