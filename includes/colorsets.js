@@ -175,7 +175,7 @@ var THEMES = {
 		name: 'Default Blue',
 		author: 'MajorVictory',
 		showColorPicker: true,
-		surface: 'felt'
+		surface: 'wood_tray'
 	},
 	'blue-felt': {
 		name: 'Blue Felt',
@@ -199,13 +199,13 @@ var THEMES = {
 		name: 'Old Tavern Table',
 		author: 'MajorVictory',
 		showColorPicker: false,
-		surface: 'wood'
+		surface: 'wood_table'
 	},
 	'mahogany': {
 		name: '(Mah-Hog-Any)',
 		author: 'MajorVictory',
 		showColorPicker: false,
-		surface: 'wood'
+		surface: 'wood_table'
 	},
 	'stainless': {
 		name: 'Stainless Steel',

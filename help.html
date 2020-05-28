@@ -8,10 +8,18 @@
 <meta name="description" content="Online 3D dice roller"/>
 <title>Major's 3D Dice</title>
 <link rel="stylesheet" type="text/css" href="./includes/themes/default/style.css">
+<script type="text/javascript" src="./libs/three.min.js"></script>
+<script type="text/javascript" src="./libs/cannon.js"></script>
 <script type="text/javascript" src="https://code.jquery.com/jquery-3.5.0.min.js"></script>
 <script type="text/javascript" src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
 <script type="text/javascript" src="./includes/DicePreset.js"></script>
 <script type="text/javascript" src="./includes/DiceFactory.js"></script>
+<script type="text/javascript" src="./includes/DiceNotation.js"></script>
+<script type="text/javascript" src="./includes/DiceFavorites.js"></script>
+<script type="text/javascript" src="./includes/DiceBox.js"></script>
+<script type="text/javascript" src="./includes/DiceFunctions.js"></script>
+<script type="text/javascript" src="./includes/teal.js"></script>
+<script type="text/javascript" src="./includes/colorsets.js"></script>
 <style type="text/css">
 
 	#dice_list {
@@ -71,6 +79,33 @@
 		flex-basis: 28%;
 		flex-grow: 1;
 	}
+
+	section {
+		margin-top: 3em;
+		padding: 5px;
+		text-align: left;
+		border: 1px solid white;
+	}
+
+	section > h2 {
+		position: relative;
+		top: -1.5em;
+		display: inline-block;
+		border-width: 1px 1px 0px 1px;
+		border-color: white;
+		border-style: solid;
+		margin: -9px -6px;
+		padding: 5px;
+	}
+
+	section > div {
+		position: relative;
+		top: -1em;
+	}
+
+	ul {
+		margin: 0px;
+	}
 </style>
 
 </head>
@@ -87,17 +122,49 @@
 				</dl>
 			</fieldset>
 
+			<fieldset id="rooms_list" class="one_third">
+				<legend class="fav_name">Rooms List</legend>
+				<div id="message" style="color:orange">Not Connected</div>
+				<button id="connect">Get Rooms List</button>
+				<div id="room_template" style="display:none; visibility:hidden;">
+					<section>
+						<h2>{@name}</h2>
+						<div>
+							Owner: <span class="room_owner">{@owner}</span><br>
+							Created: <span class="room_created">{@created_verbose}</span><br>
+							Last Activity: <span class="room_activity">{@lastactivity_verbose}</span><br>
+							Has Password: <span class="room_password">{@password}</span><br>
+							Players:
+							<ul class="room_users">{@players}</ul>
+						</div>
+					</section>
+				</div>
+			</fieldset>
+
 			<fieldset class="one_third">
 				<legend class="fav_name">Function Reference</legend>
-				<section>
-					<h2></h2>
-				</section>
+				<div id="function_template" style="display:none; visibility:hidden;">
+					<section>
+						<h2>{{@Name},{@Arguments}}</h2>
+						<div>
+							<h3>{@Usage}</h3>
+							{@Description}
+							<ul>{@Examples}</ul>
+						</div>
+					</section>
+				</div>
 			</fieldset>
 
 			<fieldset class="one_third">
 				<legend class="fav_name">Notation Reference</legend>
-				<dl id="dice_list">
-				</dl>
+				<section>
+					<h2>{{@Name},{@Arguments}}</h2>
+					<div>
+						<h3>{@Usage}</h3>
+						{@Description}
+						<ul>{@Examples}</ul>
+					</div>
+				</section>
 			</fieldset>
 		</div>
 	</div>
@@ -107,22 +174,135 @@
 	        return this.replace(/\w*/g, function(txt) { return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase(); });
 	    }
 
+
+		function set_connection_message(text, color = 'orange') {
+			$('#message').each(function() {
+				$(this).text(text).css({color: color});
+			});
+		}
+
+		function getRoomsList() {
+			if ($t.socket && $t.socket.readyState <= WebSocket.OPEN) {
+				
+				$t.rpc({method:'roomlist'});
+
+			} else {
+				set_connection_message("Connecting...");
+				$t.openSocket();
+			}
+
+			$t.socket.onerror = function(event) {
+				set_connection_message("Connection Error", 'red', true);
+				$t.offline = true;
+			}
+
+			$t.socket.onopen = function(event) {
+				set_connection_message("Connected", 'green');
+				$t.offline = false;
+				$t.rpc({method:'roomlist'});
+			}
+
+			$t.socket.onclose = function(event) {
+				if (event.wasClean) {
+					set_connection_message("Connection Ended");
+				} else {
+					set_connection_message("Connection Failed", 'red', true);    
+				}
+				$t.offline = true;
+			}
+
+			$t.socket.onmessage = function(message) {
+				if (message && message.data) {
+					var data = JSON.parse(message.data);
+
+					if (data.error) {
+						set_connection_message(data.error, 'red');
+					}
+
+					if(!data.action || data.action.length < 1) return;
+
+					if (data.action == 'roomlist') {
+						console.log(data.list);
+
+						$('.room_entry').remove();
+
+						for (let i=0, len=data.list.length; i < len; ++i) {
+							createRoomListing(data.list[i]);
+						}
+
+					}
+				}
+			}
+		}
+
+		function createRoomListing(data = {}) {
+
+	       var content = $('#room_template').html();
+
+    		const itemprops = Object.entries(data);
+	    	for (var [key, value] of itemprops) {
+
+                if (key == 'players') {
+                	value = '<li>'+value.join('</li><li>')+'</li>';
+                }
+
+	    		content = content.split('{@'+key+'}').join(value);
+	    	}
+
+    	    let newentry = $(content).addClass('room_entry');
+    	    newentry.appendTo('#rooms_list').show();
+	    }
+
+		function createFunctionListing(data = {}) {
+
+	       var content = $('#function_template').html();
+
+    		const itemprops = Object.entries(data);
+	    	for (var [key, value] of itemprops) {
+
+                if (key == 'Examples') {
+                	value = '<li>'+value.join('</li><li>')+'</li>';
+                }
+
+	    		content = content.split('{@'+key+'}').join(value);
+	    	}
+
+    	    let newentry = $(content).addClass('room_entry');
+    	    newentry.appendTo('#rooms_list').show();
+	    }
+
 		$(function() {
 
-			let dicefactory = new DiceFactory();
+			var params = $t.get_url_params();
+
+			if (params.server) {
+				$t.socketAddress = params.server;
+				$t.socketSecure = params.secure;
+			} else {
+				$t.socketAddress = 'dnd.majorsplace.com:32400';
+				$t.socketSecure = false;
+			}
+
+			set_connection_message("Ready", 'green');
+
+			$('#connect').click(function () {
+				getRoomsList();
+			});
+
+
+			$t.DiceBox = DiceBox(document.body, {w:0,h:0}, $t.DiceFactory);
+
 
 			let dice_list = $('#dice_list');
 
-			console.log(dicefactory);
-
-			const dicelist = Object.entries(dicefactory.dice);
+			const dicelist = Object.entries($t.DiceFactory.dice);
 			for (const [key, diceobj] of dicelist) {
 
 				let entry = $('<dt></dt>').text(diceobj.type).appendTo(dice_list);
 				$('<dd></dd>').html(diceobj.name).addClass('dicename').appendTo(dice_list);
 				$('<dd></dd>').html('<b>Shape:</b><br>'+diceobj.shape).appendTo(dice_list);
 
-				let systeminfo = dicefactory.systems[diceobj.system];
+				let systeminfo = $t.DiceFactory.systems[diceobj.system];
 				$('<dd></dd>').html('<b>System:</b><br>'+systeminfo.name).appendTo(dice_list);
 
 				let values = '<b>Values:</b><br>';
@@ -142,10 +322,11 @@
 				}
 
 				valueentry.appendTo(dice_list);
-
-				
-
 			}
+
+
+			let rethrowfunctions = $t.DiceBox.getRethrowFunctions();
+			let afterthrowfunctions = $t.DiceBox.getAfterThrowFunctions();
 
 		});
 	</script>

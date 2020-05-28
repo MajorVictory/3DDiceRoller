@@ -46,8 +46,6 @@ const DiceBox = (element_container, vector2_dimensions, dice_factory) => {
 	let barrier_body_material = new CANNON.Material();
 	let sounds_table = {};
 	let sounds_dice = [];
-	let rethrowFunctions = {};
-	let afterThrowFunctions = {};
 	let lastSoundType = '';
 	let lastSoundStep = 0;
 	let lastSound = 0;
@@ -113,6 +111,19 @@ const DiceBox = (element_container, vector2_dimensions, dice_factory) => {
 	public_interface['enableShadows'] = enableShadows;
 	public_interface['disableShadows'] = disableShadows;
 
+
+	let rethrowFunctions = {};
+	const getRethrowFunctions = () => {
+		return rethrowFunctions;
+	}
+	public_interface['getRethrowFunctions'] = getRethrowFunctions;
+
+	let afterThrowFunctions = {};
+	const getAfterThrowFunctions = () => {
+		return afterThrowFunctions;
+	}
+	public_interface['getAfterThrowFunctions'] = getAfterThrowFunctions;
+
 	const registerRethrowFunction = (funcName, callback, helptext) => {
 		rethrowFunctions[funcName] = {
 			name: funcName,
@@ -133,27 +144,27 @@ const DiceBox = (element_container, vector2_dimensions, dice_factory) => {
 
 	const initialize = () => {
 
-		let surfaces = ['felt', 'wood'];
+		let surfaces = [
+			['felt', 7],
+			['wood_table', 7],
+			['wood_tray', 7],
+			['metal', 9]
+		];
 
-		for (let i=0, len=surfaces.length; i < len; ++i) {
-			let surface = surfaces[i];
+		for (const [surface, numsounds] of surfaces) {
 			sounds_table[surface] = [];
-			for (let s=1; s <= 7; ++s) {
-				sounds_table[surface].push(new Audio('./sounds/surface_'+surface+''+s+'.wav'));
+			for (let s=1; s <= numsounds; ++s) {
+				sounds_table[surface].push(new Audio('./sounds/'+surface+'/surface_'+surface+''+s+'.wav'));
 			}
 		}
 
 		for (let i=1; i <= 15; ++i) {
 			sounds_dice.push(new Audio('./sounds/dicehit'+i+'.wav'));
 		}
-		console.log('volume', volume);
-		console.log('$t.DiceFavorites.settings.volume.value', $t.DiceFavorites.settings.volume.value);
 
 		sounds = $t.DiceFavorites.settings.sounds.value == '1';
 		volume = parseInt($t.DiceFavorites.settings.volume.value);
 		shadows = $t.DiceFavorites.settings.shadows.value == '1';
-
-		console.log('volume', volume);
 
 		renderer = window.WebGLRenderingContext
 			? new THREE.WebGLRenderer({ antialias: true, alpha: true })
