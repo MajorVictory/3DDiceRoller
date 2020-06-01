@@ -143,13 +143,10 @@ class DiceFavorites {
 
 		draggable.draggable({
 			scroll: false,
-			snap: true,
-			stack: '.fav_draggable',
+			snap: '.fav_draggable, #selector_div, #log, #control_panel',
+			stack: '.fav_draggable, #control_panel',
 			containment: 'window',
 			snapTolerance: 10,
-			start: function () {
-				//console.log('start drag');
-			},
 			stop: function() {
 				teal.DiceFavorites.ensureOnScreen();
 				teal.DiceFavorites.store();
@@ -164,20 +161,20 @@ class DiceFavorites {
 
 	ensureOnScreen() {
 
-		$('.fav_draggable').each(function(index, el) {
+		$('.fav_draggable, #control_panel').each(function(index, el) {
 
-				let pos = $(this).offset();
-				if (!pos) return;
+			let pos = $(this).offset();
+			if (!pos) return;
 
-				if (pos.left + $(this).width() > window.innerWidth) {
-					pos.left = window.innerWidth - $(this).width();
-				}
+			if (pos.left + $(this).width() > window.innerWidth) {
+				pos.left = window.innerWidth - $(this).width();
+			}
 
-				if (pos.top + $(this).height() > window.innerHeight) {
-					pos.top = window.innerHeight - $(this).height();
-				}
+			if (pos.top + $(this).height() > window.innerHeight) {
+				pos.top = window.innerHeight - $(this).height();
+			}
 
-				$(this).offset(pos);
+			$(this).offset(pos);
 		});
 
 	}

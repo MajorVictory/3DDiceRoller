@@ -248,30 +248,26 @@ function login_initialize(container) {
 	$t.bind(texture_select, 'focus', function(ev) { $t.set(container, { class: '' }); });
 	$t.bind(texture_select, 'blur', function(ev) { $t.set(container, { class: 'noselect' }); });
 
-	var control_panel_hide = $t.id('control_panel_hide');
-
-	function on_control_panel_hide(ev) {
-		if (ev) ev.stopPropagation();
-		$t.hidden($t.id('control_panel_hidden'), false);
-		$t.hidden($t.id('control_panel_shown'), true);
-		if (ev) ev.preventDefault();
-	}
-	on_control_panel_hide();
-	$t.bind(control_panel_hide, 'click', on_control_panel_hide);
-	$t.bind(control_panel_hide, 'focus', function(ev) { $t.set(container, { class: '' }); });
-	$t.bind(control_panel_hide, 'blur', function(ev) { $t.set(container, { class: 'noselect' }); });
-
-	var control_panel_show = $t.id('control_panel_show');
-
 	function on_control_panel_show(ev) {
 		if (ev) ev.stopPropagation();
-		$t.hidden($t.id('control_panel_shown'), false);
-		$t.hidden($t.id('control_panel_hidden'), true);
+
+		if ($('#control_panel').css('display') == 'none') {
+			$('#control_panel').show();
+		} else {
+			$('#control_panel').hide();
+		}
 		if (ev) ev.preventDefault();
 	}
+
+	var control_panel_show = $t.id('cp_showsettings');
+	var control_panel_hide = $t.id('cp_hidesettings');
+
 	$t.bind(control_panel_show, 'click', on_control_panel_show);
+	$t.bind(control_panel_hide, 'click', on_control_panel_show);
 	$t.bind(control_panel_show, 'focus', function(ev) { $t.set(container, { class: '' }); });
+	$t.bind(control_panel_hide, 'focus', function(ev) { $t.set(container, { class: '' }); });
 	$t.bind(control_panel_show, 'blur', function(ev) { $t.set(container, { class: 'noselect' }); });
+	$t.bind(control_panel_hide, 'blur', function(ev) { $t.set(container, { class: 'noselect' }); });
 
 	var toggle_selector = $t.id('toggle_selector');
 
@@ -396,6 +392,28 @@ function login_initialize(container) {
 			$('.sp-replacer').hide();
 		}
 	}
+
+	$('#control_panel').draggable({
+		scroll: false,
+		snap: '.fav_draggable, #selector_div, #log, #control_panel',
+		stack: '.fav_draggable, #control_panel',
+		containment: 'window',
+		snapTolerance: 10,
+		stop: function() {
+			let pos = $(this).offset();
+			if (!pos) return;
+
+			if (pos.left + $(this).width() > window.innerWidth) {
+				pos.left = window.innerWidth - $(this).width();
+			}
+
+			if (pos.top + $(this).height() > window.innerHeight) {
+				pos.top = window.innerHeight - $(this).height();
+			}
+
+			$(this).offset(pos);
+		}
+	});
 
 
 	function connect_socket(reopen, callback) {
@@ -856,6 +874,7 @@ function login_initialize(container) {
 
 						for (let i=0, len=$t.DiceBox.diceList.length; i < len; ++i) {
 							let dicemesh = $t.DiceBox.diceList[i];
+							if (!dicemesh || !dicemesh.notation) continue;
 							let diceobj = $t.DiceFactory.get(dicemesh.notation.type);
 
 							if (dicemesh.uuid == diceid) {

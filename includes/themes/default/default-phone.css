@@ -215,7 +215,7 @@ body .ui-tooltip {
     padding: 3px 0px;
 }
 
-#clear, #save, #throw, #rage {
+#clear, #save, #throw, #rage, #cp_showsettings, #cp_showhelp {
     display: inline;
     font-size: 1em;
     cursor: pointer;
@@ -428,15 +428,30 @@ body .ui-tooltip {
     border-bottom: 2px dashed white;
 }
 
-.control_panel {
+#control_panel_buttons {
     position: absolute;
-    margin: 10px;
-    background-color: #1e2c4d;
+    top: 2em;
+    left: 2em;
+    padding: 10px;
 }
 
-.control_panel label, .control_panel button, #system {
-    display: block;
+#control_panel_buttons button {
+    padding: 3px 0px;
+    margin-bottom: 0px;
+}
+
+#cp_hidesettings {
+    display: inline;
+    position: absolute;
+    bottom: 1em;
+    right: 1em;
+    font-size: 1em;
+    cursor: pointer;
+    line-height: 1em;
     margin-bottom: 5px;
+    margin-right: 5px;
+    padding: 3px 0px;
+    width: 2em;
 }
 
 #system, #theme {
@@ -451,30 +466,27 @@ body .ui-tooltip {
     margin-bottom: 5px;
 }
 
-#control_panel_hidden {
-    padding: 5px;
-    top: 1em;
-    left: 1em;
-}
-
-#control_panel_hidden:hover {
-    padding: 5px;
-    border: 2px solid #9794ff;
-}
-
-#control_panel_shown {
-    padding: 30px 15px 15px 15px;
-    border: 2px solid white;
+#control_panel {
+    position: absolute;
     top: 0em;
     left: 1em;
+    margin: 10px;
+    padding: 30px 15px 15px 15px;
+    border: 2px dashed white;
+    background-color: #1e2c4d;
 }
 
-#control_panel_shown div {
+#control_panel:hover {
+    border: 2px solid #9794ff;
+    cursor: move;
+}
+
+#control_panel div {
     font-size: 12pt;
     font-family: Trebuchet MS;
 }
 
-#control_panel_shown div.control_bgcolor {
+#control_panel div.control_bgcolor {
     padding: 0px;
     margin-top: -2px;
     border: solid 2px white;
@@ -482,8 +494,13 @@ body .ui-tooltip {
     background-color: #c0c0c0;
 }
 
-#control_panel_shown div.control_bgcolor:hover {
+#control_panel div.control_bgcolor:hover {
     border-color: #9794ff;
+}
+
+#control_panel label, #control_panel button, #system {
+    display: block;
+    margin-bottom: 5px;
 }
 
 div.control_bgcolor > div.sp-preview {
@@ -503,21 +520,6 @@ div.sp-container {
 .sp-cancel {
     display: inline-block;
     margin: 10px 0px;
-}
-
-#control_panel_hide {
-    position: absolute;
-    top: -0.5em;
-    left: 0.5em;
-    cursor: pointer;
-}
-
-#control_panel_show {
-    cursor: pointer;
-}
-
-#control_panel_hide:hover {
-    border: 1px solid #9794ff;
 }
 
 #colorname {

@@ -122,12 +122,14 @@
 		</fieldset>
 	</div>
 
-	<fieldset id="control_panel_hidden" class="control_panel noselect">
-		<div id="control_panel_show" class="control_label" title="Show Settings">⚙️</div>
+	<fieldset id="control_panel_buttons" class="noselect">
+		<button id="cp_showsettings" title="Show Settings Panel">⚙️</button>
+		<button id="cp_showhelp" title="View Help Page">❔</button>
 	</fieldset>
-	<fieldset id="control_panel_shown" class="control_panel noselect" style="display:none;visibility:hidden;">
+
+	<fieldset id="control_panel" class="noselect" style="display:none;">
 		<legend>Settings</legend>
-		<div id="control_panel_hide" class="control_label" title="Hide Settings">⚙️</div>
+		<button id="cp_hidesettings" title="Close Settings Panel">✔️</button>
 		<div class="connection_message control_label" style="color:orange">Loading Textures...</div>
 		<label for="system" title="Select which type of dice to display">Dice Set:</label>
 		<select id="system" name="system"></select>
