@@ -1,6 +1,6 @@
 "use strict"
 
-class DicePreset {
+export class DicePreset {
 
 	constructor(type, shape = '') {
 

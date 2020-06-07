@@ -1,9 +1,11 @@
-"use strict"
+"use strict";
 
-class DiceNotation {
+export class DiceNotation {
 
 	constructor(notation) {
 
+		// this is here for when the server sends us a notation object
+		// the object sent has no methods, so we must reinit the object
 		if (typeof notation == 'object') {
 			notation = notation.notation;
 		}

@@ -1,6 +1,6 @@
-"use strict"
-
-class DiceFactory {
+"use strict";
+import {DicePreset} from './DicePreset.js';
+export class DiceFactory {
 
 	constructor() {
 		this.dice = {};
@@ -393,7 +393,7 @@ class DiceFactory {
 		}
 		if (!geom) return null;
 
-		if (diceobj.colorset && $t.DiceFavorites.settings.allowDiceOverride.value == '1') {
+		if (diceobj.colorset && DiceFavorites.settings.allowDiceOverride.value == '1') {
 			this.setMaterialInfo(diceobj.colorset);
 		} else {
 			this.setMaterialInfo();
@@ -618,7 +618,7 @@ class DiceFactory {
 			context.font =  ((ts - margin) / 1.5)+'pt '+diceobj.font;
 
 			//draw the numbers
-			for (var i in text) {
+			for (let i=0;i<text.length;i++) {
 
 				// attempt to outline the text with a meaningful color
 				if (outlinecolor != 'none') {
@@ -788,7 +788,7 @@ class DiceFactory {
 	}
 
 	create_d10_geometry(radius) {
-		var a = Math.PI * 2 / 10, k = Math.cos(a), h = 0.105, v = -1;
+		var a = Math.PI * 2 / 10, h = 0.105, v = -1;
 		var vertices = [];
 		for (var i = 0, b = 0; i < 10; ++i, b += a) {
 			vertices.push([Math.cos(b), Math.sin(b), h * (i % 2 ? 1 : -1)]);
@@ -796,11 +796,19 @@ class DiceFactory {
 		vertices.push([0, 0, -1]);
 		vertices.push([0, 0, 1]);
 		
-		var faces = [[5, 7, 11, 0], [4, 2, 10, 1], [1, 3, 11, 2], [0, 8, 10, 3], [7, 9, 11, 4],
-				[8, 6, 10, 5], [9, 1, 11, 6], [2, 0, 10, 7], [3, 5, 11, 8], [6, 4, 10, 9],
-				[1, 0, 2, v], [1, 2, 3, v], [3, 2, 4, v], [3, 4, 5, v], [5, 4, 6, v],
-				[5, 6, 7, v], [7, 6, 8, v], [7, 8, 9, v], [9, 8, 0, v], [9, 0, 1, v]];
-		return this.create_geom(vertices, faces, radius, 0, Math.PI * 6 / 5, 0.945);
+		var faces = [
+            [5, 6, 7, 11, 0],
+            [4, 3, 2, 10, 1],
+            [1, 2, 3, 11, 2],
+            [0, 9, 8, 10, 3],
+            [7, 8, 9, 11, 4],
+            [8, 7, 6, 10, 5],
+            [9, 0, 1, 11, 6],
+            [2, 1, 0, 10, 7],
+            [3, 4, 5, 11, 8],
+            [6, 5, 4, 10, 9]
+        ];
+        return this.create_geom(vertices, faces, radius, 0.3, Math.PI, 0.945);
 	}
 
 	create_d12_geometry(radius) {
@@ -879,6 +887,49 @@ class DiceFactory {
 		return geom;
 	}
 
+	make_d10_geom(vertices, faces, radius, tab, af) {
+        var geom = new THREE.Geometry();
+        for (var i = 0; i < vertices.length; ++i) {
+            var vertex = vertices[i].multiplyScalar(radius);
+            vertex.index = geom.vertices.push(vertex) - 1;
+        }
+        for (var i = 0; i < faces.length; ++i) {
+            var ii = faces[i], fl = ii.length - 1;
+            var aa = Math.PI * 2 / fl;
+            var v0 = 1 - 1*0.8;
+            var v1 = 1 - (0.895/1.105)*0.8;
+            var v2 = 1;
+            for (var j = 0; j < fl - 2; ++j) {
+                geom.faces.push(new THREE.Face3(ii[0], ii[j + 1], ii[j + 2], [geom.vertices[ii[0]],
+                            geom.vertices[ii[j + 1]], geom.vertices[ii[j + 2]]], 0, ii[fl] + 1));
+                if(faces[i][faces[i].length-1] == -1 || j >= 2){
+                    geom.faceVertexUvs[0].push([
+                        new THREE.Vector2((Math.cos(af) + 1 + tab) / 2 / (1 + tab),
+                            (Math.sin(af) + 1 + tab) / 2 / (1 + tab)),
+                        new THREE.Vector2((Math.cos(aa * (j + 1) + af) + 1 + tab) / 2 / (1 + tab),
+                            (Math.sin(aa * (j + 1) + af) + 1 + tab) / 2 / (1 + tab)),
+                        new THREE.Vector2((Math.cos(aa * (j + 2) + af) + 1 + tab) / 2 / (1 + tab),
+                            (Math.sin(aa * (j + 2) + af) + 1 + tab) / 2 / (1 + tab))]);
+                } else if(j==0) {
+                    geom.faceVertexUvs[0].push([
+                        new THREE.Vector2(0, v1),
+                        new THREE.Vector2(0.5, v0),
+                        new THREE.Vector2(1, v1)
+                    ]);
+                } else if(j==1) {
+                    geom.faceVertexUvs[0].push([
+                        new THREE.Vector2(0, v1),
+                        new THREE.Vector2(1, v1),
+                        new THREE.Vector2(0.5, v2)
+                    ]);
+                }
+            }
+        }
+        geom.computeFaceNormals();
+        geom.boundingSphere = new THREE.Sphere(new THREE.Vector3(), radius);
+        return geom;
+    }
+
 	chamfer_geom(vectors, faces, chamfer) {
 		var chamfer_vectors = [], chamfer_faces = [], corner_faces = new Array(vectors.length);
 		for (var i = 0; i < vectors.length; ++i) corner_faces[i] = [];
@@ -945,7 +996,10 @@ class DiceFactory {
 			vectors[i] = (new THREE.Vector3).fromArray(vertices[i]).normalize();
 		}
 		var cg = this.chamfer_geom(vectors, faces, chamfer);
+		if(faces.length != 10)
 		var geom = this.make_geom(cg.vectors, cg.faces, radius, tab, af);
+		else
+			var geom = this.make_d10_geom(cg.vectors, cg.faces, radius, tab, af);
 		//var geom = make_geom(vectors, faces, radius, tab, af); // Without chamfer
 		geom.cannon_shape = this.create_shape(vectors, faces, radius);
 		return geom;

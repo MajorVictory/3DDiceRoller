@@ -1,6 +1,6 @@
 "use strict";
 
-class DiceFavorites {
+export class DiceFavorites {
 
 	constructor() {
 		this.favtemplate = null;

@@ -1,34 +1,7 @@
+"use strict";
+import {Teal} from './Teal.js';
 
-
-var diceTextures = {};
-
-function ImageLoader(sources, callback) {
-	let images = {};
-	let loadedImages = 0;
-
-	let itemprops = Object.entries(sources);
-	let numImages = itemprops.length;
-	for (const [key, value] of itemprops) {
-
-	//for (var src in sources) {
-
-		if(value.source == '') {
-			++loadedImages
-			continue;
-		}
-
-		images[key] = new Image();
-		images[key].onload = function() {
-
-			if (++loadedImages >= numImages) {
-				callback(images);
-			}
-		};
-		images[key].src = value.source;
-	}
-}
-
-const TEXTURELIST = {
+export const TEXTURELIST = {
 	'cloudy': {
 		name: 'Clouds',
 		composite: 'destination-in',
@@ -135,42 +108,7 @@ const TEXTURELIST = {
 	}
 };
 
-function getTexture(texturename) {
-
-	if (Array.isArray(texturename)) {
-
-		let textures = [];
-		for(let i = 0, l = texturename.length; i < l; i++){
-			if (typeof texturename[i] == 'string') {
-				textures.push(getTexture(texturename[i]));
-			}
-		}
-		return textures;
-	}
-
-	if (!texturename || texturename == '') {
-		return {name:'',texture:''};
-	}
-
-	if (texturename == 'none') {
-		return {name:'none',texture:'',};
-	}
-
-	if(texturename == 'random') {
-		let names = Object.keys(diceTextures);
-		// add 'none' for possibility of no texture
-		names.pop(); //remove 'random' from this list
-
-		return getTexture(names[Math.floor(Math.random() * names.length)]);
-	}
-
-	if (diceTextures[texturename] != null) {
-		return { name: texturename, texture: diceTextures[texturename], composite: TEXTURELIST[texturename].composite };
-	}
-	return {name:'',texture:''};
-}
-
-var THEMES = {
+export const THEMES = {
 	'default': {
 		name: 'Default Blue',
 		author: 'MajorVictory',
@@ -215,7 +153,7 @@ var THEMES = {
 	}
 };
 
-var COLORSETS = {
+export const COLORSETS = {
 	'radiant': {
 		name: 'Radiant',
 		category: 'Damage Types',
@@ -650,7 +588,7 @@ var COLORSETS = {
 
 };
 
-const COLORCATEGORIES = [
+export const COLORCATEGORIES = [
 	'Custom Sets',
 	'Damage Types',
 	'Colors',
@@ -661,97 +599,163 @@ const COLORCATEGORIES = [
 	'Star Wars™ Legion',
 ];
 
-function randomColor() {
-	// random colors
-	let rgb=[];
-	rgb[0] = Math.floor(Math.random() * 254);
-	rgb[1] = Math.floor(Math.random() * 254);
-	rgb[2] = Math.floor(Math.random() * 254);
+export class DiceColors {
 
-	// this is an attempt to make the foregroudn color stand out from the background color
-	// it sometimes produces ok results
-	let brightness = ((parseInt(rgb[0]) * 299) + (parseInt(rgb[1]) * 587) +  (parseInt(rgb[2]) * 114)) / 1000;
-	let foreground = (brightness > 126) ? 'rgb(30,30,30)' : 'rgb(230,230,230)'; // high brightness = dark text, else bright text
-	let background = 'rgb(' + rgb[0] + ',' + rgb[1] + ',' + rgb[2] + ')';
-
-	return {background: background, foreground: foreground };
-}
-
-function initColorSets() {
-
-	let sets = Object.entries(COLORSETS);
-	for (const [name, data] of sets) {
-		COLORSETS[name].id = name;
-		COLORSETS[name].texture = getTexture(data.texture);
+	constructor() {
+		this.textures = {};
 	}
 
-	// generate the colors and textures for the random set
-	for (let i = 0; i < 10; i++) {
-		let randcolor = randomColor();
-		let randtex = getTexture('random');
+	static ImageLoader(sources, callback) {
+		let images = {};
+		let loadedImages = 0;
+	
+		let itemprops = Object.entries(sources);
+		let numImages = itemprops.length;
+		for (const [key, value] of itemprops) {
+	
+			if(value.source == '') {
+				++loadedImages
+				continue;
+			}
+	
+			images[key] = new Image();
+			images[key].onload = function() {
+	
+				if (++loadedImages >= numImages) {
+					callback(images);
+				}
+			};
+			images[key].src = value.source;
+		}
+	}
+		
+	static randomColor = function() {
+		// random colors
+		let rgb=[];
+		rgb[0] = Math.floor(Math.random() * 254);
+		rgb[1] = Math.floor(Math.random() * 254);
+		rgb[2] = Math.floor(Math.random() * 254);
 
-		if (randtex.name != '') {
-			COLORSETS['random'].foreground.push(randcolor.foreground); 
-			COLORSETS['random'].background.push(randcolor.background);
-			COLORSETS['random'].outline.push(randcolor.background);
-			COLORSETS['random'].texture.push(randtex);
+		// this is an attempt to make the foregroudn color stand out from the background color
+		// it sometimes produces ok results
+		let brightness = ((parseInt(rgb[0]) * 299) + (parseInt(rgb[1]) * 587) +  (parseInt(rgb[2]) * 114)) / 1000;
+		let foreground = (brightness > 126) ? 'rgb(30,30,30)' : 'rgb(230,230,230)'; // high brightness = dark text, else bright text
+		let background = 'rgb(' + rgb[0] + ',' + rgb[1] + ',' + rgb[2] + ')';
+
+		return {background: background, foreground: foreground };
+	}
+
+	static getColorSet(colorsetname) {
+		let colorset = COLORSETS[colorsetname] || COLORSETS['random'];
+		return colorset;
+	}
+	
+	getTexture(texturename) {
+
+	    if (Array.isArray(texturename)) {
+
+	        let textures = [];
+	        for(let i = 0, l = texturename.length; i < l; i++){
+	            if (typeof texturename[i] == 'string') {
+	                textures.push(this.getTexture(texturename[i]));
+	            }
+	        }
+	        return textures;
+	    }
+
+	    if (!texturename || texturename == '') {
+	        return {name:'',texture:''};
+	    }
+
+	    if (texturename == 'none') {
+	        return {name:'none',texture:''};
+	    }
+
+	    if(texturename == 'random') {
+	        let names = Object.keys(this.textures);
+	        // add 'none' for possibility of no texture
+	        names.pop(); //remove 'random' from this list
+
+	        return this.getTexture(names[Math.floor(Math.random() * names.length)]);
+	    }
+
+	    if (this.textures[texturename] != null) {
+	        return { name: texturename, texture: this.textures[texturename] };
+	    }
+	    return {name:'',texture:''};
+	}
+
+	initColorSets = function() {
+
+		let sets = Object.entries(COLORSETS);
+		for (const [name, data] of sets) {
+			COLORSETS[name].id = name;
+				COLORSETS[name].texture = this.getTexture(data.texture);
+		}
+
+		// generate the colors and textures for the random set
+		for (let i = 0; i < 10; i++) {
+				let randcolor = DiceColors.randomColor();
+				let randtex = this.getTexture('random');
+
+			if (randtex.name != '') {
+				COLORSETS['random'].foreground.push(randcolor.foreground); 
+				COLORSETS['random'].background.push(randcolor.background);
+				COLORSETS['random'].outline.push(randcolor.background);
+				COLORSETS['random'].texture.push(randtex);
+			} else {
+				COLORSETS['random'].foreground.push(randcolor.foreground); 
+				COLORSETS['random'].background.push(randcolor.background);
+				COLORSETS['random'].outline.push('black');
+				COLORSETS['random'].texture.push('');
+			}
+		}
+	}
+
+	applyColorSet(colorset, texture = null, update = true) {
+
+		var urlargs = [];
+			var colordata = DiceColors.getColorSet(colorset);
+
+		if (colorset && colorset.length > 0) {
+
+			DiceRoller.DiceFactory.applyColorSet(colordata);
+
+			urlargs.push('colorset='+colorset);
+
+			if (update) {
+				Teal.selectByValue(Teal.id('color'), colorset);
+				DiceRoller.DiceFavorites.settings.colorset.value = colorset;
+			}
+		}
+
+		if (texture || (colordata.texture && !Array.isArray(colordata.texture))) {
+
+			var texturedata = this.getTexture((texture || colordata.texture.name));
+
+			let tex = Array.isArray(texturedata) ? '' : texturedata;
+
+			if (texturedata.name) {
+				DiceRoller.DiceFactory.applyTexture(texturedata);
+			}
+
+			urlargs.push('texture='+tex.name);
+
+			if (update) {
+				Teal.selectByValue(Teal.id('texture'), tex.name);
+				DiceRoller.DiceFavorites.settings.texture.value = tex.name;
+			}
 		} else {
-			COLORSETS['random'].foreground.push(randcolor.foreground); 
-			COLORSETS['random'].background.push(randcolor.background);
-			COLORSETS['random'].outline.push('black');
-			COLORSETS['random'].texture.push('');
-		}
-	}
-}
-
-function getColorSet(colorsetname) {
-	let colorset = COLORSETS[colorsetname] || COLORSETS['random'];
-	return colorset;
-}
-
-function applyColorSet(colorset, texture = null, update = true) {
-
-	var urlargs = [];
-	var colordata = getColorSet(colorset);
-
-	if (colorset && colorset.length > 0) {
-
-		$t.DiceFactory.applyColorSet(colordata);
-
-		urlargs.push('colorset='+colorset);
-
-		if (update) {
-			$t.selectByValue($t.id('color'), colorset);
-			$t.DiceFavorites.settings.colorset.value = colorset;
-		}
-	}
-
-	if (texture || (colordata.texture && !Array.isArray(colordata.texture))) {
-
-		var texturedata = getTexture((texture || colordata.texture.name));
-
-		let tex = Array.isArray(texturedata) ? '' : texturedata;
-
-		if (texturedata.name) {
-			$t.DiceFactory.applyTexture(texturedata);
+			if (update) {
+				Teal.selectByValue(Teal.id('texture'), '');
+				DiceRoller.DiceFavorites.settings.texture.value = '';
+			}
 		}
 
-		urlargs.push('texture='+tex.name);
-
-		if (update) {
-			$t.selectByValue($t.id('texture'), tex.name);
-			$t.DiceFavorites.settings.texture.value = tex.name;
+		if (update && urlargs.length > 0) {
+			Teal.empty(Teal.id('colorname'));
+			Teal.id('colorname').innerHTML = 'Dice Theme: '+colordata.description+' - <a href="?'+urlargs.join('&')+'">🔗</a>';
+			DiceRoller.DiceFavorites.storeSettings();
 		}
-	} else {
-		if (update) {
-			$t.selectByValue($t.id('texture'), '');
-			$t.DiceFavorites.settings.texture.value = '';
-		}
-	}
-
-	if (update && urlargs.length > 0) {
-		$t.empty($t.id('colorname'));
-		$t.id('colorname').innerHTML = 'Dice Theme: '+colordata.description+' - <a href="?'+urlargs.join('&')+'">🔗</a>';
-		$t.DiceFavorites.storeSettings();
 	}
 }

@@ -1,6 +1,6 @@
-"use strict"
+"use strict";
 
-class DiceFunctions {
+export class DiceFunctions {
 
 	constructor(dicebox) {
 
@@ -30,7 +30,7 @@ class DiceFunctions {
 			let dicemesh = dicemeshList[i];
 			let result = dicemesh.getLastValue(); // current face values: {value: Int, label: String}
 			let notation = dicemesh.notation; // a full DiceNotation object
-			let diceobj =  $t.DiceFactory.get(dicemesh.shape); // a full DicePreset object
+			let diceobj =  DiceFactory.get(dicemesh.shape); // a full DicePreset object
 
 			// DELETE RESULT
 			// this isn't recommended as the model remains onscreen, but it's result will be missing
@@ -143,7 +143,7 @@ class DiceFunctions {
 			let dicemesh = dicemeshList[i];
 			let result = dicemesh.result;
 			let notation = dicemesh.notation;
-			let diceobj =  $t.DiceFactory.get(dicemesh.shape);
+			let diceobj =  DiceFactory.get(dicemesh.shape);
 			
 		}
 		return resultList;

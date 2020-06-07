@@ -9,21 +9,13 @@
 <title>Major's 3D Dice</title>
 <link rel="stylesheet" type="text/css" href="./includes/themes/default/style.css">
 
+<script type="module" src="./includes/Teal.js"></script>
 <script type="text/javascript" src="./libs/three.min.js"></script>
 <script type="text/javascript" src="./libs/cannon.js"></script>
 <script type="text/javascript" src="https://code.jquery.com/jquery-3.5.0.min.js"></script>
 <script type="text/javascript" src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
 <script type="text/javascript" src="./libs/jquery.ui.touch-punch.min.js"></script>
 <script type="text/javascript" src="./libs/spectrum.js"></script>
-<script type="text/javascript" src="./includes/DicePreset.js"></script>
-<script type="text/javascript" src="./includes/DiceFactory.js"></script>
-<script type="text/javascript" src="./includes/DiceNotation.js"></script>
-<script type="text/javascript" src="./includes/DiceFavorites.js"></script>
-<script type="text/javascript" src="./includes/DiceBox.js"></script>
-<script type="text/javascript" src="./includes/DiceFunctions.js"></script>
-<script type="text/javascript" src="./includes/teal.js"></script>
-<script type="text/javascript" src="./includes/teal.chat.js"></script>
-<script type="text/javascript" src="./includes/colorsets.js"></script>
 </head>
 <body>
 	<input type="hidden" id="parent_notation" value="">
@@ -157,24 +149,6 @@
 		<!-- <button id="reconnect">Reconnect</button>-->
 		<button id="logout" title="Leave Room and Refresh">Logout</button>
 	</fieldset>
-
-	<script type="text/javascript" src="./includes/login.js"></script>
-	<script type="text/javascript" defer="defer">
-		
-		preload_and_init();
-
-		window.addEventListener("message", receiveMessage, false);
-
-		function receiveMessage(event) {
-			console.log(event);
-			//if (event.origin !== "https://www.improved-initiative.com" &&
-			//	event.origin !== "https://files.majorsplace.com" &&
-			//	event.origin !== "https://rand.majorsplace.com" &&
-			//	event.origin !== "https://dnd.majorsplace.com") return;
-
-			$('#set').val(event.data);
-			$t.raise_event($t.id('throw'), 'mouseup');
-		}
-	</script>
+	<script type="module" src="./includes/DiceRoller.js"></script>
 </body>
 </html>

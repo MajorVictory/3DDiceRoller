@@ -1,148 +1,122 @@
-"use strict"
+"use strict";
+import {DiceNotation} from './DiceNotation.js';
+import {DiceColors} from './DiceColors.js';
+export class DiceBox {
 
-const DiceBox = (element_container, vector2_dimensions, dice_factory) => {
+	constructor(element_container, vector2_dimensions, dice_factory, dice_favorites) {
+		//private variables
+		this.container = element_container;
+		this.dimensions = vector2_dimensions;
+		this.dicefactory = dice_factory;
+		this.dicefavorites = dice_favorites;
 
-	//private variables
-	let container = element_container;
-	let dimensions = vector2_dimensions;
-	let dicefactory = dice_factory;
+		this.adaptive_timestep = false;
+		this.last_time = 0;
+		this.settle_time = 0;
+		this.running = false;
+		this.rolling = false;
+		this.threadid;
 
-	let adaptive_timestep = false;
-	let last_time = 0;
-	let settle_time = 0;
-	let running = false;
-	let rolling = false;
-	let threadid;
+		this.display = {
+			currentWidth: null,
+			currentHeight: null,
+			containerWidth: null,
+			containerHeight: null,
+			aspect: null,
+			scale: null
+		};
 
-	let display = {
-		currentWidth: null,
-		currentHeight: null,
-		containerWidth: null,
-		containerHeight: null,
-		aspect: null,
-		scale: null
-	};
+		this.mouse = {
+			pos: new THREE.Vector2(),
+			startDrag: undefined,
+			startDragTime: undefined
+		}
 
-	let mouse = {
-		pos: new THREE.Vector2(),
-		startDrag: undefined,
-		startDragTime: undefined
+		this.cameraHeight = {
+			max: null,
+			close: null,
+			medium: null,
+			far: null
+		};
+
+		this.scene = new THREE.Scene();
+		this.world = new CANNON.World();
+		this.raycaster = new THREE.Raycaster();
+		this.rayvisual = null;
+		this.showdebugtracer = false;
+		this.dice_body_material = new CANNON.Material();
+		this.desk_body_material = new CANNON.Material();
+		this.barrier_body_material = new CANNON.Material();
+		this.sounds_table = {};
+		this.sounds_dice = [];
+		this.lastSoundType = '';
+		this.lastSoundStep = 0;
+		this.lastSound = 0;
+		this.iteration;
+		this.renderer;
+		this.barrier;
+		this.camera;
+		this.light;
+		this.desk;
+		this.pane;
+
+		//public variables
+		this.diceList = []; //'private' variable
+		this.framerate = (1/60);
+		this.sounds = true;
+		this.volume = 100;
+		this.soundDelay = 10; // time between sound effects in ms
+		this.animstate = '';
+
+		this.selector = {
+			animate: true,
+			rotate: true,
+			intersected: null,
+			dice: []
+		};
+
+		this.colors = {
+			ambient:  0xf0f5fb,
+			spotlight: 0xefdfd5
+		};
+
+		this.shadows = true;
+
+		this.rethrowFunctions = {};
+		this.afterThrowFunctions = {};
 	}
 
-	let cameraHeight = {
-		max: null,
-		close: null,
-		medium: null,
-		far: null
-	};
 
-	let scene = new THREE.Scene();
-	let world = new CANNON.World();
-	let raycaster = new THREE.Raycaster();
-	let rayvisual = null;
-	let showdebugtracer = false;
-	let dice_body_material = new CANNON.Material();
-	let desk_body_material = new CANNON.Material();
-	let barrier_body_material = new CANNON.Material();
-	let sounds_table = {};
-	let sounds_dice = [];
-	let lastSoundType = '';
-	let lastSoundStep = 0;
-	let lastSound = 0;
-	let iteration;
-	let renderer;
-	let barrier;
-	let camera;
-	let light;
-	let desk;
-	let pane;
-
-	//public variables
-	let public_interface = {};
-
-	let diceList = []; //'private' variable
-	public_interface['diceList'] = diceList; //register as 'public'
-
-	let framerate = (1/60);
-	public_interface['framerate'] = framerate;
-
-	let sounds = true;
-	public_interface['sounds'] = sounds;
-
-	let volume = 100;
-	public_interface['volume'] = volume;
-
-	let soundDelay = 10; // time between sound effects in ms
-	public_interface['soundDelay'] = soundDelay;
-
-	let animstate = '';
-	const getAnimState = () => {
-		return animstate;
+	enableShadows(){
+		this.shadows = true;
+		if (this.renderer) this.renderer.shadowMap.enabled = this.shadows;
+		if (this.light) this.light.castShadow = this.shadows;
+		if (this.desk) this.desk.receiveShadow = this.shadows;
 	}
-	public_interface['getAnimState'] = getAnimState;
-
-	let selector = {
-		animate: true,
-		rotate: true,
-		intersected: null,
-		dice: []
-	};
-	public_interface['selector'] = selector;
-
-	let colors = {
-		ambient:  0xf0f5fb,
-		spotlight: 0xefdfd5
-	};
-	public_interface['colors'] = colors;
-
-	let shadows = true;
-	const enableShadows = () => {
-		shadows = true;
-		if (renderer) renderer.shadowMap.enabled = shadows;
-		if (light) light.castShadow = shadows;
-		if (desk) desk.receiveShadow = shadows;
+	disableShadows() {
+		this.shadows = false;
+		if (this.renderer) this.renderer.shadowMap.enabled = this.shadows;
+		if (this.light) this.light.castShadow = this.shadows;
+		if (this.desk) this.desk.receiveShadow = this.shadows;
 	}
-	const disableShadows = () => {
-		shadows = false;
-		if (renderer) renderer.shadowMap.enabled = shadows;
-		if (light) light.castShadow = shadows;
-		if (desk) desk.receiveShadow = shadows;
-	}
-	public_interface['enableShadows'] = enableShadows;
-	public_interface['disableShadows'] = disableShadows;
 
-
-	let rethrowFunctions = {};
-	const getRethrowFunctions = () => {
-		return rethrowFunctions;
-	}
-	public_interface['getRethrowFunctions'] = getRethrowFunctions;
-
-	let afterThrowFunctions = {};
-	const getAfterThrowFunctions = () => {
-		return afterThrowFunctions;
-	}
-	public_interface['getAfterThrowFunctions'] = getAfterThrowFunctions;
-
-	const registerRethrowFunction = (funcName, callback, helptext) => {
-		rethrowFunctions[funcName] = {
+	registerRethrowFunction(funcName, callback, helptext){
+		this.rethrowFunctions[funcName] = {
 			name: funcName,
 			help: helptext,
 			method: callback
 		};
 	}
-	public_interface['registerRethrowFunction'] = registerRethrowFunction;
 
-	const registerAfterThrowFunction = (funcName, callback, helptext) => {
-		afterThrowFunctions[funcName] = {
+	registerAfterThrowFunction(funcName, callback, helptext) {
+		this.afterThrowFunctions[funcName] = {
 			name: funcName,
 			help: helptext,
 			method: callback
 		};
 	}
-	public_interface['registerAfterThrowFunction'] = registerAfterThrowFunction;
 
-	const initialize = () => {
+	initialize() {
 
 		let surfaces = [
 			['felt', 7],
@@ -152,172 +126,168 @@ const DiceBox = (element_container, vector2_dimensions, dice_factory) => {
 		];
 
 		for (const [surface, numsounds] of surfaces) {
-			sounds_table[surface] = [];
+			this.sounds_table[surface] = [];
 			for (let s=1; s <= numsounds; ++s) {
-				sounds_table[surface].push(new Audio('./sounds/'+surface+'/surface_'+surface+''+s+'.wav'));
+				this.sounds_table[surface].push(new Audio('./sounds/'+surface+'/surface_'+surface+''+s+'.wav'));
 			}
 		}
 
 		for (let i=1; i <= 15; ++i) {
-			sounds_dice.push(new Audio('./sounds/dicehit'+i+'.wav'));
+			this.sounds_dice.push(new Audio('./sounds/dicehit'+i+'.wav'));
 		}
 
-		sounds = $t.DiceFavorites.settings.sounds.value == '1';
-		volume = parseInt($t.DiceFavorites.settings.volume.value);
-		shadows = $t.DiceFavorites.settings.shadows.value == '1';
+		this.sounds = this.dicefavorites.settings.sounds.value == '1';
+		this.volume = parseInt(this.dicefavorites.settings.volume.value);
+		this.shadows = this.dicefavorites.settings.shadows.value == '1';
 
-		renderer = window.WebGLRenderingContext
+		this.renderer = window.WebGLRenderingContext
 			? new THREE.WebGLRenderer({ antialias: true, alpha: true })
 			: new THREE.CanvasRenderer({ antialias: true, alpha: true });
-		container.appendChild(renderer.domElement);
-		renderer.shadowMap.enabled = shadows;
-		renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-		renderer.setClearColor(0x000000, 0);
+		this.container.appendChild(this.renderer.domElement);
+		this.renderer.shadowMap.enabled = this.shadows;
+		this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+		this.renderer.setClearColor(0x000000, 0);
 
-		setDimensions(dimensions);
+		this.setDimensions(this.dimensions);
 
-		world.gravity.set(0, 0, -9.8 * 800);
-		world.broadphase = new CANNON.NaiveBroadphase();
-		world.solver.iterations = 14;
+		this.world.gravity.set(0, 0, -9.8 * 800);
+		this.world.broadphase = new CANNON.NaiveBroadphase();
+		this.world.solver.iterations = 14;
+		this.world.allowSleep = true;
 
-		scene.add(new THREE.AmbientLight(colors.ambient, 1));
+		this.scene.add(new THREE.AmbientLight(this.colors.ambient, 1));
 
-		world.addContactMaterial(new CANNON.ContactMaterial( desk_body_material, dice_body_material, {friction: 0.01, restitution: 0.5}));
-		world.addContactMaterial(new CANNON.ContactMaterial( barrier_body_material, dice_body_material, {friction: 0, restitution: 1.0}));
-		world.addContactMaterial(new CANNON.ContactMaterial( dice_body_material, dice_body_material, {friction: 0, restitution: 0.5}));
-		world.add(new CANNON.Body({mass: 0, shape: new CANNON.Plane(), material: desk_body_material}));
+		this.world.addContactMaterial(new CANNON.ContactMaterial( this.desk_body_material, this.dice_body_material, {friction: 0.01, restitution: 0.5}));
+		this.world.addContactMaterial(new CANNON.ContactMaterial( this.barrier_body_material, this.dice_body_material, {friction: 0, restitution: 1.0}));
+		this.world.addContactMaterial(new CANNON.ContactMaterial( this.dice_body_material, this.dice_body_material, {friction: 0, restitution: 0.5}));
+		this.world.add(new CANNON.Body({allowSleep: false, mass: 0, shape: new CANNON.Plane(), material: this.desk_body_material}));
 		
-		barrier = new CANNON.Body({mass: 0, shape: new CANNON.Plane(), material: barrier_body_material});
+		let barrier = new CANNON.Body({allowSleep: false, mass: 0, shape: new CANNON.Plane(), material: this.barrier_body_material});
 		barrier.quaternion.setFromAxisAngle(new CANNON.Vec3(1, 0, 0), Math.PI / 2);
-		barrier.position.set(0, display.containerHeight * 0.93, 0);
-		world.add(barrier);
+		barrier.position.set(0, this.display.containerHeight * 0.93, 0);
+		this.world.add(barrier);
 
-		barrier = new CANNON.Body({mass: 0, shape: new CANNON.Plane(), material: barrier_body_material});
+		barrier = new CANNON.Body({allowSleep: false, mass: 0, shape: new CANNON.Plane(), material: this.barrier_body_material});
 		barrier.quaternion.setFromAxisAngle(new CANNON.Vec3(1, 0, 0), -Math.PI / 2);
-		barrier.position.set(0, -display.containerHeight * 0.93, 0);
-		world.add(barrier);
+		barrier.position.set(0, -this.display.containerHeight * 0.93, 0);
+		this.world.add(barrier);
 
-		barrier = new CANNON.Body({mass: 0, shape: new CANNON.Plane(), material: barrier_body_material});
+		barrier = new CANNON.Body({allowSleep: false, mass: 0, shape: new CANNON.Plane(), material: this.barrier_body_material});
 		barrier.quaternion.setFromAxisAngle(new CANNON.Vec3(0, 1, 0), -Math.PI / 2);
-		barrier.position.set(display.containerWidth * 0.93, 0, 0);
-		world.add(barrier);
+		barrier.position.set(this.display.containerWidth * 0.93, 0, 0);
+		this.world.add(barrier);
 
-		barrier = new CANNON.Body({mass: 0, shape: new CANNON.Plane(), material: barrier_body_material});
+		barrier = new CANNON.Body({allowSleep: false, mass: 0, shape: new CANNON.Plane(), material: this.barrier_body_material});
 		barrier.quaternion.setFromAxisAngle(new CANNON.Vec3(0, 1, 0), Math.PI / 2);
-		barrier.position.set(-display.containerWidth * 0.93, 0, 0);
-		world.add(barrier);
+		barrier.position.set(-this.display.containerWidth * 0.93, 0, 0);
+		this.world.add(barrier);
 
-		if (showdebugtracer) {
+		if (this.showdebugtracer) {
 			//raycaster.setFromCamera( this.mouse.pos, this.camera );
-			rayvisual = new THREE.ArrowHelper(raycaster.ray.direction, camera.position, 1000, 0xff0000);
-			rayvisual.headWidth = rayvisual.headLength * 0.005;
-			scene.add(rayvisual);
+			this.rayvisual = new THREE.ArrowHelper(this.raycaster.ray.direction, this.camera.position, 1000, 0xff0000);
+			this.rayvisual.headWidth = this.rayvisual.headLength * 0.005;
+			this.scene.add(this.rayvisual);
 		}
 
-		renderer.render(scene, camera);
-
-		document.addEventListener('mousemove', onMouseMove, false);
+		this.renderer.render(this.scene, this.camera);
 	}
-	public_interface['initialize'] = initialize; //register as 'public'
 
-	const onMouseMove = (event) => {
+	onMouseMove(event) {
 		event.preventDefault();
 
 		let clientX = (event.changedTouches && event.changedTouches.length) ? event.changedTouches[0].clientX : event.clientX;
 		let clientY = (event.changedTouches && event.changedTouches.length) ? event.changedTouches[0].clientY : event.clientY;
 
-		let xpercent = ( clientX / (display.currentWidth * 2) );
-		let ypercent = ( clientY / (display.currentHeight * 2));
+		let xpercent = ( clientX / (this.display.currentWidth * 2) );
+		let ypercent = ( clientY / (this.display.currentHeight * 2));
 
 		if (xpercent <= 0.5) {
-			mouse.pos.x = ((0.5-xpercent) * 2) *-1;
+			this.mouse.pos.x = ((0.5-xpercent) * 2) *-1;
 		} else {
-			mouse.pos.x = (xpercent-0.5) * 2;
+			this.mouse.pos.x = (xpercent-0.5) * 2;
 		}
 		if (ypercent <= 0.5) {
-			mouse.pos.y = (0.5-ypercent) * 2;
+			this.mouse.pos.y = (0.5-ypercent) * 2;
 		} else {
-			mouse.pos.y = ((ypercent-0.5) * 2) *-1;
+			this.mouse.pos.y = ((ypercent-0.5) * 2) *-1;
 		}
 
-		if (raycaster && showdebugtracer) {
-			raycaster.setFromCamera(mouse.pos, camera);
-			rayvisual.setDirection(raycaster.ray.direction);
+		if (this.raycaster && this.showdebugtracer) {
+			this.raycaster.setFromCamera(this.mouse.pos, this.camera);
+			this.rayvisual.setDirection(this.raycaster.ray.direction);
 		}
 	}
-	public_interface['onMouseMove'] = onMouseMove; //register as 'public'
 
-	const setDimensions = (dimensions) => {
-		display.currentWidth = container.clientWidth / 2;
-		display.currentHeight = container.clientHeight / 2;
+	setDimensions(dimensions) {
+		this.display.currentWidth = this.container.clientWidth / 2;
+		this.display.currentHeight = this.container.clientHeight / 2;
 		if (dimensions) {
-			display.containerWidth = dimensions.w;
-			display.containerHeight = dimensions.h;
+			this.display.containerWidth = dimensions.w;
+			this.display.containerHeight = dimensions.h;
 		} else {
-			display.containerWidth = display.currentWidth;
-			display.containerHeight = display.currentHeight;
+			this.display.containerWidth = this.display.currentWidth;
+			this.display.containerHeight = this.display.currentHeight;
 		}
-		display.aspect = Math.min(display.currentWidth / display.containerWidth, display.currentHeight / display.containerHeight);
-		display.scale = Math.sqrt(display.containerWidth * display.containerWidth + display.containerHeight * display.containerHeight) / 13;
+		this.display.aspect = Math.min(this.display.currentWidth / this.display.containerWidth, this.display.currentHeight / this.display.containerHeight);
+		this.display.scale = Math.sqrt(this.display.containerWidth * this.display.containerWidth + this.display.containerHeight * this.display.containerHeight) / 13;
 
-		renderer.setSize(display.currentWidth * 2, display.currentHeight * 2);
+		this.renderer.setSize(this.display.currentWidth * 2, this.display.currentHeight * 2);
 
-		cameraHeight.max = display.currentHeight / display.aspect / Math.tan(10 * Math.PI / 180);
+		this.cameraHeight.max = this.display.currentHeight / this.display.aspect / Math.tan(10 * Math.PI / 180);
 
-		cameraHeight.medium = cameraHeight.max / 1.5;
-		cameraHeight.far = cameraHeight.max;
-		cameraHeight.close = cameraHeight.max / 2;
+		this.cameraHeight.medium = this.cameraHeight.max / 1.5;
+		this.cameraHeight.far = this.cameraHeight.max;
+		this.cameraHeight.close = this.cameraHeight.max / 2;
 
-		if (camera) scene.remove(camera);
-		camera = new THREE.PerspectiveCamera(20, display.currentWidth / display.currentHeight, 1, cameraHeight.max * 1.3);
+		if (this.camera) this.scene.remove(this.camera);
+		this.camera = new THREE.PerspectiveCamera(20, this.display.currentWidth / this.display.currentHeight, 1, this.cameraHeight.max * 1.3);
 
-		switch (animstate) {
+		switch (this.animstate) {
 			case 'selector':
-				camera.position.z = selector.dice.length > 9 ? cameraHeight.far : (selector.dice.length < 6 ? cameraHeight.close : cameraHeight.medium);
+				this.camera.position.z = this.selector.dice.length > 9 ? this.cameraHeight.far : (this.selector.dice.length < 6 ? this.cameraHeight.close : this.cameraHeight.medium);
 				break;
-			case 'throw': case 'afterthrow': default: camera.position.z = cameraHeight.far;
+			case 'throw': case 'afterthrow': default: this.camera.position.z = this.cameraHeight.far;
 
 		}
 
-		camera.lookAt(new THREE.Vector3(0,0,0));
+		this.camera.lookAt(new THREE.Vector3(0,0,0));
 		
-		var maxwidth = Math.max(display.containerWidth, display.containerHeight);
+		const maxwidth = Math.max(this.display.containerWidth, this.display.containerHeight);
 
-		if (light) scene.remove(light);
-		light = new THREE.SpotLight(colors.spotlight, 1.0);
-		light.position.set(-maxwidth / 2, maxwidth / 2, maxwidth * 2);
-		light.target.position.set(0, 0, 0);
-		light.distance = maxwidth * 5;
-		light.castShadow = shadows;
-		light.shadow.camera.near = maxwidth / 10;
-		light.shadow.camera.far = maxwidth * 5;
-		light.shadow.camera.fov = 50;
-		light.shadow.bias = 0.001;
-		light.shadow.mapSize.width = 1024;
-		light.shadow.mapSize.height = 1024;
-		scene.add(light);
+		if (this.light) this.scene.remove(this.light);
+		this.light = new THREE.SpotLight(this.colors.spotlight, 1.0);
+		this.light.position.set(-maxwidth / 2, maxwidth / 2, maxwidth * 2);
+		this.light.target.position.set(0, 0, 0);
+		this.light.distance = maxwidth * 5;
+		this.light.castShadow = this.shadows;
+		this.light.shadow.camera.near = maxwidth / 10;
+		this.light.shadow.camera.far = maxwidth * 5;
+		this.light.shadow.camera.fov = 50;
+		this.light.shadow.bias = 0.001;
+		this.light.shadow.mapSize.width = 1024;
+		this.light.shadow.mapSize.height = 1024;
+		this.scene.add(this.light);
 
-		if (desk) scene.remove(desk);
+		if (this.desk) this.scene.remove(this.desk);
 		let shadowplane = new THREE.ShadowMaterial();
 		shadowplane.opacity = 0.5;
-		desk = new THREE.Mesh(new THREE.PlaneGeometry(display.containerWidth * 6, display.containerHeight * 6, 1, 1), shadowplane);
-		desk.receiveShadow = shadows;
-		scene.add(desk);
+		this.desk = new THREE.Mesh(new THREE.PlaneGeometry(this.display.containerWidth * 6, this.display.containerHeight * 6, 1, 1), shadowplane);
+		this.desk.receiveShadow = this.shadows;
+		this.scene.add(this.desk);
 
-		if (rayvisual && showdebugtracer) {
-			rayvisual = new THREE.ArrowHelper(raycaster.ray.direction, raycaster.ray.origin, 1000, 0xff0000);
-			scene.add(rayvisual);
+		if (this.rayvisual && this.showdebugtracer) {
+			this.rayvisual = new THREE.ArrowHelper(this.raycaster.ray.direction, this.raycaster.ray.origin, 1000, 0xff0000);
+			this.scene.add(this.rayvisual);
 		}
 
-		renderer.render(scene, camera);
+		this.renderer.render(this.scene, this.camera);
 	}
-	public_interface['setDimensions'] = setDimensions; //register as 'public'
 
-	const vectorRand = (vector) => {
+	vectorRand({x, y}) {
 		let angle = Math.random() * Math.PI / 5 - Math.PI / 5 / 2;
 		let vec = {
-			x: vector.x * Math.cos(angle) - vector.y * Math.sin(angle),
-			y: vector.x * Math.sin(angle) + vector.y * Math.cos(angle)
+			x: x * Math.cos(angle) - y * Math.sin(angle),
+			y: x * Math.sin(angle) + y * Math.cos(angle)
 		};
 		if (vec.x == 0) vec.x = 0.01;
 		if (vec.y == 0) vec.y = 0.01;
@@ -325,13 +295,13 @@ const DiceBox = (element_container, vector2_dimensions, dice_factory) => {
 	}
 
 	//returns an array of vectordata objects
-	const getNotationVectors = (notation, vector, boost, dist) => {
+	getNotationVectors(notation, vector, boost, dist){
 
 		let notationVectors = new DiceNotation(notation);
 
 		for (let i in notationVectors.set) {
 
-			const diceobj = dicefactory.get(notationVectors.set[i].type);
+			const diceobj = this.dicefactory.get(notationVectors.set[i].type);
 			let numdice = notationVectors.set[i].num;
 			let operator = notationVectors.set[i].op;
 			let sid = notationVectors.set[i].sid;
@@ -342,14 +312,14 @@ const DiceBox = (element_container, vector2_dimensions, dice_factory) => {
 
 			for(let k = 0; k < numdice; k++){
 
-				let vec = vectorRand(vector);
+				let vec = this.vectorRand(vector);
 
 				vec.x /= dist;
 				vec.y /= dist;
 
 				let pos = {
-					x: display.containerWidth * (vec.x > 0 ? -1 : 1) * 0.9,
-					y: display.containerHeight * (vec.y > 0 ? -1 : 1) * 0.9,
+					x: this.display.containerWidth * (vec.x > 0 ? -1 : 1) * 0.9,
+					y: this.display.containerHeight * (vec.y > 0 ? -1 : 1) * 0.9,
 					z: Math.random() * 200 + 200
 				};
 
@@ -357,7 +327,7 @@ const DiceBox = (element_container, vector2_dimensions, dice_factory) => {
 				if (projector > 1.0) pos.y /= projector; else pos.x *= projector;
 
 
-				let velvec = vectorRand(vector);
+				let velvec = this.vectorRand(vector);
 
 				velvec.x /= dist;
 				velvec.y /= dist;
@@ -400,12 +370,11 @@ const DiceBox = (element_container, vector2_dimensions, dice_factory) => {
 	}
 
 	// swaps dice faces to match desired result
-	const swapDiceFace = (dicemesh, result) => {
-
-		const diceobj = dicefactory.get(dicemesh.notation.type);
+	swapDiceFace(dicemesh, result){
+		const diceobj = this.dicefactory.get(dicemesh.notation.type);
 
 		if (diceobj.shape == 'd4') {
-			swapDiceFace_D4(dicemesh, result);
+			this.swapDiceFace_D4(dicemesh, result);
 			return;
 		}
 
@@ -437,7 +406,7 @@ const DiceBox = (element_container, vector2_dimensions, dice_factory) => {
 
 		// it's magic but not really
 		// the mesh's materials start at index 2
-		var magic = 2;
+		let magic = 2;
 		// except on d10 meshes
 		if (diceobj.shape == 'd10') magic = 1;
 
@@ -445,7 +414,7 @@ const DiceBox = (element_container, vector2_dimensions, dice_factory) => {
 		let material_result = (resultindex+magic);
 
 		for (var i = 0, l = geom.faces.length; i < l; ++i) {
-			var matindex = geom.faces[i].materialIndex;
+			const matindex = geom.faces[i].materialIndex;
 
 			if (matindex == material_value) {
 				geomindex_value.push(i);
@@ -471,10 +440,9 @@ const DiceBox = (element_container, vector2_dimensions, dice_factory) => {
 		dicemesh.resultReason = 'forced';
 		dicemesh.geometry = geom;
 	}
-	public_interface['swapDiceFace'] = swapDiceFace; //register as 'public'
 
-	const swapDiceFace_D4 = (dicemesh, result) => {
-		const diceobj = dicefactory.get(dicemesh.notation.type);
+	swapDiceFace_D4(dicemesh, result) {
+		const diceobj = this.dicefactory.get(dicemesh.notation.type);
 		let value = parseInt(dicemesh.getLastValue().value);
 		result = parseInt(result);
 
@@ -483,49 +451,41 @@ const DiceBox = (element_container, vector2_dimensions, dice_factory) => {
 		let num = value - result;
 		let geom = dicemesh.geometry.clone();
 
-        console.log('value', value, 'result', result, 'num', num, 'diceobj', diceobj);
-        console.log('dicemesh', dicemesh);
-
-        
 		for (let i = 0, l = geom.faces.length; i < l; ++i) {
 
 			let matindex = geom.faces[i].materialIndex;
 			if (matindex == 0) continue;
         
-            console.log('geom.faces[i].materialIndex', i, geom.faces[i].materialIndex);
 			matindex += num - 1;
 
 			while (matindex > 4) matindex -= 4;
 			while (matindex < 1) matindex += 4;
-
-            console.log('(matindex + 1)', (matindex + 1));
 
 			geom.faces[i].materialIndex = matindex + 1;
 		}
         if (num != 0) {
             if (num < 0) num += 4;
 
-            dicemesh.material = dicefactory.createMaterials(diceobj, 0, 0, false, result);
+            dicemesh.material = this.dicefactory.createMaterials(diceobj, 0, 0, false, num);
         }
 
 		dicemesh.resultReason = 'forced';
 		dicemesh.geometry = geom;
 	}
-	public_interface['swapDiceFace_D4'] = swapDiceFace_D4; //register as 'public' console.log('temporary');
 
 	//spawns one dicemesh object from a single vectordata object
-	const spawnDice = (vectordata) => {
-		const diceobj = dicefactory.get(vectordata.type);
+	spawnDice(vectordata) {
+		const diceobj = this.dicefactory.get(vectordata.type);
 		if(!diceobj) return;
 
-		let dicemesh = dicefactory.create(diceobj.type);
+		let dicemesh = this.dicefactory.create(diceobj.type);
 		if(!dicemesh) return;
 
 		dicemesh.notation = vectordata;
 		dicemesh.result = [];
 		dicemesh.stopped = 0;
-		dicemesh.castShadow = shadows;
-		dicemesh.body = new CANNON.Body({mass: diceobj.mass, shape: dicemesh.geometry.cannon_shape, material: dice_body_material});
+		dicemesh.castShadow = this.shadows;
+		dicemesh.body = new CANNON.Body({allowSleep: true, mass: diceobj.mass, shape: dicemesh.geometry.cannon_shape, material: this.dice_body_material});
 		dicemesh.body.type = CANNON.Body.DYNAMIC;
 		dicemesh.body.position.set(vectordata.pos.x, vectordata.pos.y, vectordata.pos.z);
 		dicemesh.body.quaternion.setFromAxisAngle(new CANNON.Vec3(vectordata.axis.x, vectordata.axis.y, vectordata.axis.z), vectordata.axis.a * Math.PI * 2);
@@ -534,30 +494,37 @@ const DiceBox = (element_container, vector2_dimensions, dice_factory) => {
 		dicemesh.body.linearDamping = 0.1;
 		dicemesh.body.angularDamping = 0.1;
 
-		dicemesh.body.addEventListener('collide', function(e) {
+		dicemesh.body.addEventListener('collide', this.eventCollide);
+
+		this.scene.add(dicemesh);
+		this.diceList.push(dicemesh);
+		this.world.add(dicemesh.body);
+	}
+
+	eventCollide({body, target}) {
 			// collision events happen simultaneously for both colliding bodies
 			// all this sanity checking helps limits sounds being played
 
 			// don't play sounds if we're simulating
-			if ($t.DiceBox.getAnimState() == 'simulate') return;
-			if (!$t.DiceBox.sounds || !e.body) return;
+		if (this.animstate == 'simulate') return;
+		if (!this.sounds || !body) return;
 
-			let volume = parseInt($t.DiceFavorites.settings.volume.value) || 0;
+		let volume = parseInt(this.dicefavorites.settings.volume.value) || 0;
 			if (volume <= 0) return;
 
 			let now = Date.now();
-			let currentSoundType = (e.body.mass > 0) ? 'dice' : 'table';
+		let currentSoundType = (body.mass > 0) ? 'dice' : 'table';
 
 			// 
 			// the idea here is that a dice clack should never be skipped in favor of a table sound
 			// if ((don't play sounds if we played one this world step, or there hasn't been enough delay) AND 'this sound IS NOT a dice clack') then 'skip it'
-			if (($t.DiceBox.lastSoundStep == e.body.world.stepnumber || $t.DiceBox.lastSound > now) && currentSoundType != 'dice') return;
+		if ((this.lastSoundStep == body.world.stepnumber || this.lastSound > now) && currentSoundType != 'dice') return;
 			// also skip if it's too early and both last sound and this sound are the same
-			if (($t.DiceBox.lastSoundStep == e.body.world.stepnumber || $t.DiceBox.lastSound > now) && currentSoundType == 'dice' && $t.DiceBox.lastSoundType == 'dice') return;
+		if ((this.lastSoundStep == body.world.stepnumber || this.lastSound > now) && currentSoundType == 'dice' && this.lastSoundType == 'dice') return;
 
-			if (e.body.mass > 0) { // dice to dice collision
+		if (body.mass > 0) { // dice to dice collision
 
-				let speed = e.body.velocity.length();
+			let speed = body.velocity.length();
 				// also don't bother playing at low speeds
 				if (speed < 250) return;
 
@@ -566,52 +533,52 @@ const DiceBox = (element_container, vector2_dimensions, dice_factory) => {
 				let low = 250;
 				strength = Math.max(Math.min(speed / (high-low), 1), strength);
 
-				let sound = sounds_dice[Math.floor(Math.random() * sounds_dice.length)];
+			let sound = this.sounds_dice[Math.floor(Math.random() * this.sounds_dice.length)];
 				sound.volume = (strength * (volume/100));
 				sound.play();
-				$t.DiceBox.lastSoundType = 'dice';
+			this.lastSoundType = 'dice';
 
 
 			} else { // dice to table collision
-				let speed = e.target.velocity.length();
+			let speed = target.velocity.length();
 				// also don't bother playing at low speeds
 				if (speed < 250) return;
 
-				let surface = $t.DiceFavorites.settings.surface.value || 'felt';
+			let surface = this.dicefavorites.settings.surface.value || 'felt';
 				let strength = 0.1;
 				let high = 12000;
 				let low = 250;
 				strength = Math.max(Math.min(speed / (high-low), 1), strength);
 
-				let soundlist = sounds_table[surface];
+			let soundlist = this.sounds_table[surface];
 				let sound = soundlist[Math.floor(Math.random() * soundlist.length)];
 				sound.volume = (strength * (volume/100));
 				sound.play();
-				$t.DiceBox.lastSoundType = 'table';
+			this.lastSoundType = 'table';
 			}
 
-			$t.DiceBox.lastSoundStep = e.body.world.stepnumber;
-			$t.DiceBox.lastSound = now + $t.DiceBox.soundDelay;
-		});
-
-		scene.add(dicemesh);
-		diceList.push(dicemesh);
-		world.add(dicemesh.body);
+		this.lastSoundStep = body.world.stepnumber;
+		this.lastSound = now + this.soundDelay;
 	}
 
 	//resets vectors on dice back to startign notation values for a roll after simulation.
-	const resetDice = (dicemesh, vectordata) => {
+	resetDice(dicemesh, {pos, axis, angle, velocity}) {
 		dicemesh.stopped = 0;
+		this.world.remove(dicemesh.body);
+		dicemesh.body = new CANNON.Body({allowSleep: true, mass: dicemesh.body.mass, shape: dicemesh.geometry.cannon_shape, material: this.dice_body_material});
 		dicemesh.body.type = CANNON.Body.DYNAMIC;
-		dicemesh.body.position.set(vectordata.pos.x, vectordata.pos.y, vectordata.pos.z);
-		dicemesh.body.quaternion.setFromAxisAngle(new CANNON.Vec3(vectordata.axis.x, vectordata.axis.y, vectordata.axis.z), vectordata.axis.a * Math.PI * 2);
-		dicemesh.body.angularVelocity.set(vectordata.angle.x, vectordata.angle.y, vectordata.angle.z);
-		dicemesh.body.velocity.set(vectordata.velocity.x, vectordata.velocity.y, vectordata.velocity.z);
+		dicemesh.body.position.set(pos.x, pos.y, pos.z);
+		dicemesh.body.quaternion.setFromAxisAngle(new CANNON.Vec3(axis.x, axis.y, axis.z), axis.a * Math.PI * 2);
+		dicemesh.body.angularVelocity.set(angle.x, angle.y, angle.z);
+		dicemesh.body.velocity.set(velocity.x, velocity.y, velocity.z);
 		dicemesh.body.linearDamping = 0.1;
 		dicemesh.body.angularDamping = 0.1;
+		dicemesh.body.addEventListener('collide', this.eventCollide);
+		this.world.add(dicemesh.body);
+		dicemesh.body.sleepState = 0;
 	}
 
-	const solverBodyStopped = (physicsbody) => {
+	solverBodyStopped(physicsbody) {
 		let errorMargin = 6;
 		let angular = physicsbody.angularVelocity;
 		let velocity = physicsbody.velocity;
@@ -625,7 +592,7 @@ const DiceBox = (element_container, vector2_dimensions, dice_factory) => {
 		);
 	}
 
-	const throwFinished = () => {
+	throwFinished() {
 		let stopped = 0;
 		let stoptimer = (framerate * 60) * 50; // 10 more iterations
 		if (iteration > 1000) return true;
@@ -635,7 +602,7 @@ const DiceBox = (element_container, vector2_dimensions, dice_factory) => {
 				let dicemesh = diceList[i];
 
 				// use a stoptimer to let the dice settle a bit before reading
-				if (solverBodyStopped(dicemesh.body)) {
+				if (this.solverBodyStopped(dicemesh.body)) {
 
 					if (dicemesh.stopped == 0) {
 						dicemesh.stopped = iteration + stoptimer;
@@ -698,108 +665,99 @@ const DiceBox = (element_container, vector2_dimensions, dice_factory) => {
 		return stopped == diceList.length;
 	}
 
-	const simulateThrow = () => {
-		animstate = 'simulate';
-		iteration = 0;
-		settle_time = 0;
-		rolling = true;
-		console.log('stoptimer', (framerate * 60) * 50);
-
-		while (!throwFinished()) {
-			++iteration;
-			world.step(framerate);
+	simulateThrow() {
+		this.animstate = 'simulate';
+		this.iteration = 0;
+		this.settle_time = 0;
+		this.rolling = true;
+		let steps = 0;
+		while (!this.throwFinished()) {
+			++this.iteration;
+			steps++;
+			this.world.step(this.framerate);
 		}
-
-		console.log('simulation iterations: ', iteration);
+		console.log(steps);
 	}
 
-	const animateThrow = (threadid, callback, notationVectors) => {
-		animstate = 'throw';
+	animateThrow(me, threadid, callback, notationVectors){
+		me.animstate = 'throw';
 		let time = (new Date()).getTime();
-		let time_diff = (time - last_time) / 1000;
-		if (time_diff > 3) time_diff = framerate;
-		++iteration;
+		me.last_time = me.last_time || time - (me.framerate*1000);
+		let time_diff = (time - me.last_time) / 1000;
+		++me.iteration;
+		let neededSteps = Math.floor(time_diff / me.framerate);
 
-		// use optional adaptive timestep
-		// for singleplayer use only
-		// this method desyncs whe networked
-		if (adaptive_timestep) {
-			while (time_diff > framerate * 1.1) {
-				world.step(framerate);
-				time_diff -= framerate;
+		for(let i =0; i < neededSteps; i++) {
+			me.world.step(me.framerate);
+			me.steps++;
 			}
-			world.step(time_diff);
-		} else {
-			world.step(framerate);
-		}
 
 		// update physics interactions visually
-		for (let i in scene.children) {
-			let interact = scene.children[i];
+		for (let i in me.scene.children) {
+			let interact = me.scene.children[i];
 			if (interact.body != undefined) {
 				interact.position.copy(interact.body.position);
 				interact.quaternion.copy(interact.body.quaternion);
 			}
 		}
 
-		renderer.render(scene, camera);
-		last_time = last_time ? time : (new Date()).getTime();
+		me.renderer.render(me.scene, me.camera);
+		me.last_time = me.last_time + neededSteps*me.framerate*1000;
 
 		// roll finished
-		if (running == threadid && throwFinished()) {
-			running = false;
-			rolling = false;
+		if (me.running == threadid && me.throwFinished()) {
+			me.running = false;
+			me.rolling = false;
+			console.log(me.steps);
 			if(callback) callback(notationVectors);
 
 			
-			running = (new Date()).getTime();
-			animateAfterThrow(running);
+			me.running = (new Date()).getTime();
+			me.animateAfterThrow(me,me.running);
 			return;
 		}
 
 		// roll not finished, keep animating
-		if (running == threadid) {
-			(function(call, tid, at, aftercall, vecs) {
-				if (!at && time_diff < framerate) {
-					setTimeout(function() { requestAnimationFrame(function() { call(tid, aftercall, vecs); }); }, (framerate - time_diff) * 1000);
+		if (me.running == threadid) {
+			((call, tid, at, aftercall, vecs) => {
+				if (!at && time_diff < me.framerate) {
+					setTimeout(() => { requestAnimationFrame(() => { call(me,tid, aftercall, vecs); }); }, (me.framerate - time_diff) * 1000);
 				} else {
-					requestAnimationFrame(function() { call(tid, aftercall, vecs); });
+					requestAnimationFrame(() => { call(me,tid, aftercall, vecs); });
 				}
-			})(animateThrow, threadid, adaptive_timestep, callback, notationVectors);
+			})(me.animateThrow, threadid, me.adaptive_timestep, callback, notationVectors);
 		}
 	}
-	public_interface['animateThrow'] = animateThrow;
 
-	const animateAfterThrow = (threadid) => {
-		animstate = 'afterthrow';
+	animateAfterThrow(me,threadid) {
+		me.animstate = 'afterthrow';
 		let time = (new Date()).getTime();
-		let time_diff = (time - last_time) / 1000;
-		if (time_diff > 3) time_diff = framerate;
+		let time_diff = (time - me.last_time) / 1000;
+		if (time_diff > 3) time_diff = me.framerate;
 
-		raycaster.setFromCamera( mouse.pos, camera );
-		if (rayvisual) rayvisual.setDirection(raycaster.ray.direction);
-		let intersects = raycaster.intersectObjects(diceList);
+		me.raycaster.setFromCamera( me.mouse.pos, me.camera );
+		if (me.rayvisual) me.rayvisual.setDirection(me.raycaster.ray.direction);
+		let intersects = me.raycaster.intersectObjects(me.diceList);
 		if ( intersects.length > 0 ) {
 			//setSelected(intersects[0].object);
 		} else {
 			//setSelected();
 		}
 
-		last_time = time;
-		renderer.render(scene, camera);
-		if (running == threadid) {
-			(function(call, tid, at) {
-				if (!at && time_diff < framerate) {
-					setTimeout(function() { requestAnimationFrame(function() { call(tid); }); }, (framerate - time_diff) * 1000);
+		me.last_time = time;
+		me.renderer.render(me.scene, me.camera);
+		if (me.running == threadid) {
+			((call, tid, at) => {
+				if (!at && time_diff < me.framerate) {
+					setTimeout(() => { requestAnimationFrame(() => { call(me,tid); }); }, (me.framerate - time_diff) * 1000);
 				} else {
-					requestAnimationFrame(function() { call(tid); });
+					requestAnimationFrame(() => { call(me,tid); });
 				}
-			})(animateAfterThrow, threadid, adaptive_timestep);
+			})(me.animateAfterThrow, threadid, me.adaptive_timestep);
 		}
 	}
-	public_interface['animateAfterThrow'] = animateAfterThrow;
 
-	const animateSelector = (threadid) => {
+	animateSelector(threadid) {
 		animstate = 'selector';
 		let time = (new Date()).getTime();
 		let time_diff = (time - last_time) / 1000;
@@ -835,10 +793,9 @@ const DiceBox = (element_container, vector2_dimensions, dice_factory) => {
 			})(animateSelector, threadid, adaptive_timestep);
 		}
 	}
-	public_interface['animateSelector'] = animateSelector;
 
 	//returns a dicemesh under the mouse using raytracing
-	const getDiceAtMouse = (event) => {
+	getDiceAtMouse(event) {
 		if (rolling) return;
 		if (event) onMouseMove(event);
 
@@ -850,9 +807,8 @@ const DiceBox = (element_container, vector2_dimensions, dice_factory) => {
 
 		if (intersects.length) return intersects[0].object.userData;
 	}
-	public_interface['getDiceAtMouse'] = getDiceAtMouse;
 
-	const setSelected = (dicemesh = null) => {
+	setSelected(dicemesh = null) {
 
 		if ( dicemesh != null ) {
 
@@ -885,9 +841,8 @@ const DiceBox = (element_container, vector2_dimensions, dice_factory) => {
 		}
 		
 	}
-	public_interface['setSelected'] = setSelected;
 
-	const showSelector = (alldice = false) => {
+	showSelector(alldice = false) {
 		if (rolling) return;
 		clearDice();
 		let step = display.containerWidth / 5;
@@ -934,9 +889,8 @@ const DiceBox = (element_container, vector2_dimensions, dice_factory) => {
 		else renderer.render(scene, camera);
 
 	}
-	public_interface['showSelector'] = showSelector;
 
-	const startClickThrow = (notation) => {
+	startClickThrow(notation) {
 		if (rolling) return;
 
 		let vector = { x: (Math.random() * 2 - 1) * display.currentWidth, y: -(Math.random() * 2 - 1) * display.currentHeight };
@@ -945,16 +899,14 @@ const DiceBox = (element_container, vector2_dimensions, dice_factory) => {
 
 		return getNotationVectors(notation, vector, boost, dist);
 	}
-	public_interface['startClickThrow'] = startClickThrow;
 
-	const startDragThrow = (event) => {
+	startDragThrow(event) {
 		event.preventDefault();
 		mouse.startDragTime = (new Date()).getTime();
 		mouse.startDrag = $t.get_mouse_coords(event);
 	}
-	public_interface['startDragThrow'] = startDragThrow;
 
-	const endDragThrow = (event, notation) => {
+	endDragThrow (event, notation) {
 		if (rolling) return;
 		if (mouse.startDrag == undefined) return;
 		if (mouse.startDrag && event.changedTouches && event.changedTouches.length == 0) {
@@ -973,72 +925,73 @@ const DiceBox = (element_container, vector2_dimensions, dice_factory) => {
 		
 		return getNotationVectors(notation, vector, boost, dist);
 	}
-	public_interface['endDragThrow'] = endDragThrow;
 
-	const clearDice = () => {
-		running = false;
+	clearDice() {
+		this.running = false;
 		let dice;
-		while (dice = diceList.pop()) {
-			scene.remove(dice); 
-			if (dice.body) world.remove(dice.body);
+		while (dice = this.diceList.pop()) {
+			this.scene.remove(dice); 
+			if (dice.body) this.world.remove(dice.body);
 		}
-		if (pane) scene.remove(pane);
-		renderer.render(scene, camera);
+		if (this.pane) this.scene.remove(this.pane);
+		this.renderer.render(this.scene, this.camera);
 
-		setTimeout(function() { renderer.render(scene, camera); }, 100);
+		setTimeout(() => { this.renderer.render(this.scene, this.camera); }, 100);
 	}
-	public_interface['clearDice'] = clearDice;
 
-	const rollDice = (notationVectors, callback) => {
+	rollDice(notationVectors, callback){
 
 		if (notationVectors.error) {
 			callback();
 			return;
 		}
 
-		camera.position.z = cameraHeight.far;
-		clearDice();
+		this.camera.position.z = this.cameraHeight.far;
+		this.clearDice();
 
 		for (let i=0, len=notationVectors.vectors.length; i < len; ++i) {
-			spawnDice(notationVectors.vectors[i]);
+			this.spawnDice(notationVectors.vectors[i]);
 		}
-		simulateThrow();
+		this.simulateThrow();
+		this.steps = 0;
+		this.iteration = 0;
+		this.settle_time = 0;
 		
-		iteration = 0;
-		settle_time = 0;
+		//reset dice vectors
+		for (let i=0, len=this.diceList.length; i < len; ++i) {
+			if (!this.diceList[i]) continue;
+
+			this.resetDice(this.diceList[i], notationVectors.vectors[i]);
+		}
 
 		//check forced results, fix dice faces if necessary
 		if (notationVectors.result && notationVectors.result.length > 0) {
-			for (let i in notationVectors.result) {
-				let dicemesh = diceList[i];
+			for (let i=0;i<notationVectors.result.length;i++) {
+				let dicemesh = this.diceList[i];
 				if (!dicemesh) continue;
-				console.log('dicemesh.getLastValue().value', dicemesh.getLastValue().value, 'notationVectors.result[i]', parseInt(notationVectors.result[i]));
 				if (dicemesh.getLastValue().value == notationVectors.result[i]) continue;
-				swapDiceFace(dicemesh, notationVectors.result[i]);
+				this.swapDiceFace(dicemesh, notationVectors.result[i]);
 			}
 		}
 
-		//reset dice vectors
-		for (let i=0, len=diceList.length; i < len; ++i) {
-			if (!diceList[i]) continue;
+		//reset the result
+		for (let i=0, len=this.diceList.length; i < len; ++i) {
+			if (!this.diceList[i]) continue;
 
-			if (diceList[i].resultReason != 'forced') {
-				diceList[i].result = [];
+			if (this.diceList[i].resultReason != 'forced') {
+				this.diceList[i].result = [];
 			}
-
-			resetDice(diceList[i], notationVectors.vectors[i]);
 		}
 
 		// animate the previously simulated roll
-		rolling = true;
-		running = (new Date()).getTime();
-		last_time = 0;
-		animateThrow(running, callback, notationVectors);
+		this.rolling = true;
+		this.running = (new Date()).getTime();
+		this.last_time = 0;
+		this.animateThrow(this,this.running, callback, notationVectors);
 
 	}
-	public_interface['rollDice'] = rollDice;
 
-	const getDiceTotals = (notationVectors, array_dicemeshes) => {
+	getDiceTotals(notationVectors, array_dicemeshes) {
 
 		let valueSets = [];
 		let labelSets = [];
@@ -1205,7 +1158,7 @@ const DiceBox = (element_container, vector2_dimensions, dice_factory) => {
 	}
 
 	// returns object: {rolls: String, labels: String, values: Int, op: String, gid: Int, glvl: Int}
-	const diceGroupCombine = (notationVectors, dicemeshList) => {
+	diceGroupCombine(notationVectors, dicemeshList) {
 
 		// known systems with preset rules
 		let swrpgdice = [];
@@ -1530,9 +1483,8 @@ const DiceBox = (element_container, vector2_dimensions, dice_factory) => {
 		return {rolls: rolls, labels: labels, values: values, op: op, gid: gid, glvl: glvl};
 		
 	}
-	public_interface['getDiceTotals'] = getDiceTotals;
 
-	function operate(valuea, operator, valueb) {
+	operate(valuea, operator, valueb) {
 		switch (operator) {
 			case '^': valuea = Math.pow(valuea, valueb); break;
 			case '%': valuea = valuea % valueb; break;
@@ -1544,5 +1496,4 @@ const DiceBox = (element_container, vector2_dimensions, dice_factory) => {
 		return valuea;
 	}
 
-	return public_interface;
 }
