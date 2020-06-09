@@ -1,5 +1,6 @@
 "use strict";
 import {DicePreset} from './DicePreset.js';
+import {DiceColors} from './DiceColors.js';
 export class DiceFactory {
 
 	constructor() {
@@ -422,7 +423,7 @@ export class DiceFactory {
 			}
 			let matindex = closest_face.materialIndex - 1;
 
-			const diceobj = $t.DiceFactory.dice[this.notation.type];
+			const diceobj = window.DiceFactory.dice[this.notation.type];
 
 			if (this.shape == 'd4') {
 				console.log('matindex', matindex, 'diceobj.labels', diceobj.labels);
@@ -652,7 +653,14 @@ export class DiceFactory {
 		return compositetexture;
 	}
 
-	applyColorSet(colordata) {
+	applyColorSet(colordata, texture) {
+
+		if (typeof colordata === 'string') {
+			colordata = DiceColors.getColorSet(colordata);
+		}
+
+		texture = texture || colordata.texture;
+
 		this.colordata = colordata;
 		this.label_color = colordata.foreground;
 		this.dice_color = colordata.background;
@@ -669,7 +677,7 @@ export class DiceFactory {
 		let prevcolordata = this.colordata;
 
 		if (colorset) {
-			let colordata = getColorSet(colorset);
+			let colordata = DiceColors.getColorSet(colorset);
 
 			if (this.colordata.id != colordata.id) {
 				this.applyColorSet(colordata);

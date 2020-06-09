@@ -147,7 +147,7 @@ export class DiceNotation {
 
 	addSet(amount, type, groupID = 0, groupLevel = 0, funcname = '', funcargs = '', operator = '+') {
 
-		let diceobj = teal.DiceFactory.get(type);
+		let diceobj = window.DiceFactory.get(type);
 		if (diceobj == null) { this.error = true; return; }
 
 		amount = Math.abs(parseInt(amount || 1));

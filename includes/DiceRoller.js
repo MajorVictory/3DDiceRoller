@@ -1,6 +1,5 @@
 "use strict";
 import {Teal} from './Teal.js';
-import {DiceBox} from './DiceBox.js';
 import {DiceRoom} from './DiceRoom.js';
 import {DiceFactory} from './DiceFactory.js';
 import {DiceFavorites} from './DiceFavorites.js';
@@ -15,20 +14,19 @@ export class DiceRoller {
 
 		this.DiceFavorites = new DiceFavorites();
 		this.DiceFavorites.favtemplate = $('.fav_draggable');
+		window.DiceFavorites = this.DiceFavorites;
 
         this.DiceFactory = new DiceFactory();
+		window.DiceFactory = this.DiceFactory;
 
         this.DiceColors = new DiceColors(this);
 		this.DiceColors.textures = imagesList;
 		this.DiceColors.initColorSets();
-
-		this.DiceBox = null;
-
-		// init colorset textures
+		window.DiceColors = this.DiceColors;
 
 		this.DiceRoom = null;
 
-		this.connection_error_text = "connection error, please reload the page";
+		this.cid = -1;
 		this.control_panel_show = Teal.id('cp_showsettings');
 		this.control_panel_hide = Teal.id('cp_hidesettings');
 		this.selector_div = Teal.id('selector_div');
@@ -45,17 +43,12 @@ export class DiceRoller {
 		this.deskrolling = false;
 
 		//possibly only needed for DiceRoom
-		this.cid = -1;
-		this.user;
-		this.room;
-		this.canvas = Teal.id('canvas');
-		this.label = Teal.id('label');
 		this.set = Teal.id('set');
-		this.info_div = Teal.id('info_div');
 		this.diceset = [];
 
 		window.addEventListener('message', this.on_receivePostMessage, false);
 		window.addEventListener('resize', this.on_window_resize, false);
+		window.addEventListener('beforeunload', this.close_socket, false);
 		window.addEventListener('beforeunload', this.close_socket, false);
 		window.DiceRoller = this;
 
@@ -185,13 +178,15 @@ export class DiceRoller {
 		Teal.bind(Teal.id('button_join'), 'click', this.button_join_press);
 
 		Teal.bind(Teal.id('button_single'), 'click', this.button_single_press);
+		
+		Teal.bind(Teal.id('logout'), 'click', this.close_socket);
 
 		$('#checkbox_allowdiceoverride').prop('checked', this.DiceFavorites.settings.allowDiceOverride.value == '1');
 		$('#checkbox_allowdiceoverride').change(function(event) {
 			let DiceRoller = window.DiceRoller;
 			DiceRoller.DiceFavorites.settings.allowDiceOverride.value = $('#checkbox_allowdiceoverride').prop('checked') ? '1' : '0';
 			DiceRoller.DiceFavorites.storeSettings();
-			if(DiceRoller.show_selector) DiceRoller.show_selector();
+			if (DiceRoller.DiceRoom) DiceRoller.DiceRoom.show_selector();
 		});
 
 		$('#checkbox_shadows').prop('checked', this.DiceFavorites.settings.shadows.value == '1');
@@ -199,14 +194,13 @@ export class DiceRoller {
 			let DiceRoller = window.DiceRoller;
 			DiceRoller.DiceFavorites.settings.shadows.value = $('#checkbox_shadows').prop('checked') ? '1' : '0';
 			DiceRoller.DiceFavorites.storeSettings();
-			if(DiceRoller.show_selector && DiceRoller.DiceBox) {
-
+			if (DiceRoller.DiceRoom) {
 				if (DiceRoller.DiceFavorites.settings.shadows.value == '1') {
-					DiceRoller.DiceBox.enableShadows();
+					DiceRoller.DiceRoom.DiceBox.enableShadows();
 				} else {
-					DiceRoller.DiceBox.disableShadows();
+					DiceRoller.DiceRoom.DiceBox.disableShadows();
 				}
-				DiceRoller.show_selector();
+				DiceRoller.DiceRoom.show_selector();
 			}
 		});
 
@@ -215,7 +209,7 @@ export class DiceRoller {
 			let DiceRoller = window.DiceRoller;
 			DiceRoller.DiceFavorites.settings.sounds.value = $('#checkbox_sounds').prop('checked') ? '1' : '0';
 			DiceRoller.DiceFavorites.storeSettings();
-			if(DiceRoller.DiceBox) DiceRoller.DiceBox.sounds = DiceRoller.DiceFavorites.settings.sounds.value == '1';
+			if (DiceRoller.DiceRoom) DiceRoller.DiceRoom.DiceBox.sounds = (DiceRoller.DiceFavorites.settings.sounds.value == '1');
 		});
 
 		let volume_handle = $( "#volume_handle" );
@@ -227,18 +221,18 @@ export class DiceRoller {
 			create: function() {
 				let DiceRoller = window.DiceRoller;
 				volume_handle.text($(this).slider("value"));
-				if(DiceRoller.DiceBox) DiceRoller.DiceBox.volume = parseInt(ui.value);
+				if(DiceRoller.DiceRoom) DiceRoller.DiceRoom.DiceBox.volume = parseInt(ui.value);
 			},
 			slide: function(event, ui) {
 				let DiceRoller = window.DiceRoller;
 				volume_handle.text(ui.value);
 				DiceRoller.DiceFavorites.settings.volume.value = ui.value;
-				if(DiceRoller.DiceBox) DiceRoller.DiceBox.volume = parseInt(ui.value);
+				if(DiceRoller.DiceRoom) DiceRoller.DiceRoom.DiceBox.volume = parseInt(ui.value);
 			},
 			stop: function(event, ui) {
 				let DiceRoller = window.DiceRoller;
 				DiceRoller.DiceFavorites.storeSettings();
-				if(DiceRoller.DiceBox) DiceRoller.DiceBox.volume = parseInt(ui.value);
+				if(DiceRoller.DiceRoom) DiceRoller.DiceRoom.DiceBox.volume = parseInt(ui.value);
 			}
 		});
 
@@ -296,12 +290,15 @@ export class DiceRoller {
 		let hh = Math.floor(window.innerHeight * 0.24);
 		let h = window.innerHeight - hh + 'px';
 
-		DiceRoller.desk.style.width = DiceRoller.canvas.style.width = w;
-		DiceRoller.desk.style.height = DiceRoller.canvas.style.height = h;
+		DiceRoller.desk.style.width = w;
+		DiceRoller.desk.style.height = h;
 
 		if (DiceRoller.DiceRoom) {
-			DiceRoller.DiceRoom.setDimensions({ w: 500, h: 300 });
+			DiceRoller.DiceRoom.DiceBox.setDimensions({ w: 500, h: 300 });
 			DiceRoller.DiceRoom.TealChat.resize(window.innerWidth - 30, hh - 10);
+			DiceRoller.DiceRoom.canvas.style.width = w;
+			DiceRoller.DiceRoom.canvas.style.height = h;
+			DiceRoller.DiceRoom.show_selector();
 		}
 
 		DiceRoller.DiceFavorites.ensureOnScreen();
@@ -330,21 +327,11 @@ export class DiceRoller {
 	}
 
 	on_system_select_change(ev) {
-		let DiceRoller = window.DiceRoller;
-
-		let systemid = DiceRoller.system_select.value;
-		let alldice = (systemid == 'all');
-
-		if (!alldice) {
-			DiceRoller.diceset = DiceRoller.DiceFactory.systems[systemid].dice;
-		} else {
-			DiceRoller.diceset = Object.keys(DiceRoller.DiceFactory.dice);
-		}
-
-		DiceRoller.DiceFavorites.settings.system.value = systemid;
+		let DiceRoller = window.DiceRoller;		
+		DiceRoller.DiceFavorites.settings.system.value = DiceRoller.system_select.value;
 		DiceRoller.DiceFavorites.storeSettings();
 
-		if(DiceRoller.show_selector) DiceRoller.show_selector(alldice);
+		if(DiceRoller.DiceRoom) DiceRoller.DiceRoom.show_selector();
 	}
 
 	on_color_select_change(ev) {
@@ -358,7 +345,7 @@ export class DiceRoller {
 		DiceRoller.DiceFavorites.settings.texture.value = DiceRoller.texture_select.value;
 		DiceRoller.DiceFavorites.storeSettings();
 
-		if(DiceRoller.show_selector) DiceRoller.show_selector();
+		if(DiceRoller.DiceRoom) DiceRoller.DiceRoom.show_selector();
 	}
 
 	on_texture_select_change(ev) {
@@ -369,7 +356,7 @@ export class DiceRoller {
 		DiceRoller.DiceFavorites.settings.texture.value = DiceRoller.texture_select.value;
 		DiceRoller.DiceFavorites.storeSettings();
 
-		if(DiceRoller.show_selector) DiceRoller.show_selector();
+		if(DiceRoller.DiceRoom) DiceRoller.DiceRoom.show_selector();
 	}
 
 	on_control_panel_show(ev) {
@@ -426,11 +413,9 @@ export class DiceRoller {
 		DiceRoller.Teal.offline = true;
 
 		DiceRoller.DiceRoom = new DiceRoom('Yourself', -1);
-
 		DiceRoller.show_waitform(false);
 		requestAnimationFrame(function() {});
-
-		DiceRoller.DiceRoom.actions['login']({user: 'Yourself'});
+		DiceRoller.DiceRoom.actions['login'].call(DiceRoller.DiceRoom, ({user: 'Yourself'}));
 	}
 
 	show_waitform(show) {
@@ -513,7 +498,7 @@ export class DiceRoller {
 
 				if (data.method == 'join' && data.action == 'login') {
 
-					DiceRoller.DiceRoom = new DiceRoom(data.user, cid);
+					DiceRoller.DiceRoom = new DiceRoom(data.user, DiceRoller.cid);
 
 					DiceRoller.show_waitform(false);
 					requestAnimationFrame(function() {});
@@ -522,7 +507,7 @@ export class DiceRoller {
 				if(!data.action || data.action.length < 1) return;
 
 				if (DiceRoller.DiceRoom && DiceRoller.DiceRoom.actions.hasOwnProperty(data.action)) {
-					DiceRoller.DiceRoom.actions[data.action](data);
+					DiceRoller.DiceRoom.actions[data.action].call(DiceRoller.DiceRoom, data);
 				}
 				DiceRoller.show_waitform(false);
 			}
