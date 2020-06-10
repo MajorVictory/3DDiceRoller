@@ -1,0 +1,16 @@
+body {
+	background-repeat: no-repeat;
+	background-size: 100% 100%;
+}
+
+@media (orientation: portrait) {
+	body {
+		background-image: url('bg-portrait.png');
+	}
+}
+@media (orientation: landscape) {
+	body {
+		background-image: url('bg-landscape.png');
+	}
+}
+

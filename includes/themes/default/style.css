@@ -1,0 +1,10 @@
+@import "./default-phone.css" ;
+@import "./swfonts.css" ;
+@import "./spectrum.css" ;
+
+/*(max-width: 768px);
+@import "./default-tablet.css" (min-width: 768px) and (max-width: 992px);
+
+@import "./default-tablet.css" (max-width: 992px);
+@import "./default-desktop.css" (min-width: 992px) and (max-width: 1200px);
+@import "./default-desktopbig.css" (min-width: 1200px);*/

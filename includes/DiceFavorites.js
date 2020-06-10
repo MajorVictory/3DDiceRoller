@@ -1,20 +1,26 @@
 "use strict";
+import {Teal} from './Teal.js';
 
-
-class DiceFavorites {
+export class DiceFavorites {
 
 	constructor() {
-		this.favtemplate = $('.fav_draggable');
+		this.favtemplate = null;
 		this.savetimeout = null;
 
 		let storage = this.getStorage();
 		if (storage == null) return;
 
 		this.settings = {
-			allowDiceOverride: '1',
-			system: 'd20',
-			colorset: 'random',
-			texture: ''
+			allowDiceOverride: { value: '1', default: '1'},
+			shadows: { value: '1', default: '1'},
+			sounds: { value: '1', default: '1'},
+			volume: { value: '100', default: '100'},
+			system: { value: 'd20', default: 'd20'},
+			colorset: { value: 'random', default: 'random'},
+			bgcolor: { value: '#0b1a3e', default: '#0b1a3e'},
+			surface: { value: 'felt', default: 'felt'},
+			texture: { value: '', default: ''},
+			theme: { value: 'blue-felt', default: 'blue-felt'}
 		};
 
 		if (storage.getItem('DiceFavorites') != '1') {
@@ -30,8 +36,8 @@ class DiceFavorites {
 		if (storage == null) return;
 
 		const properties = Object.entries(this.settings);
-		for (const [key, value] of properties) {
-			storage.setItem('DiceFavorites.settings.'+key, value);
+		for (const [key, entry] of properties) {
+			storage.setItem('DiceFavorites.settings.'+key, entry.value);
 		}
 	}
 
@@ -40,34 +46,48 @@ class DiceFavorites {
 		if (storage == null) return;
 
 		const properties = Object.entries(this.settings);
-		for (const [key, value] of properties) {
-			this.settings[key] = storage.getItem('DiceFavorites.settings.'+key);
+		for (const [key, entry] of properties) {
+
+			let value = storage.getItem('DiceFavorites.settings.'+key) || entry.default;
+
+			// happens if old settings info is retrieved with invalid data
+			// set default and save again
+			if (value == undefined || value == null || value == 'null' || value == 'undefined') {
+				value = entry.default;
+				storage.setItem('DiceFavorites.settings.'+key, value);
+			} 
+
+			if (!(typeof this.settings[key] == 'object')) {
+				this.settings[key] = {};
+			}
+
+			this.settings[key].value = value;
 		}
 	}
 
 	storageAvailable(type) {
-	    var storage;
-	    try {
-	        storage = window[type];
-	        var x = '__storage_test__';
-	        storage.setItem(x, x);
-	        storage.removeItem(x);
-	        return true;
-	    }
-	    catch(e) {
-	        return e instanceof DOMException && (
-	            // everything except Firefox
-	            e.code === 22 ||
-	            // Firefox
-	            e.code === 1014 ||
-	            // test name field too, because code might not be present
-	            // everything except Firefox
-	            e.name === 'QuotaExceededError' ||
-	            // Firefox
-	            e.name === 'NS_ERROR_DOM_QUOTA_REACHED') &&
-	            // acknowledge QuotaExceededError only if there's something already stored
-	            (storage && storage.length !== 0);
-	    }
+		var storage;
+		try {
+			storage = window[type];
+			var x = '__storage_test__';
+			storage.setItem(x, x);
+			storage.removeItem(x);
+			return true;
+		}
+		catch(e) {
+			return e instanceof DOMException && (
+				// everything except Firefox
+				e.code === 22 ||
+				// Firefox
+				e.code === 1014 ||
+				// test name field too, because code might not be present
+				// everything except Firefox
+				e.name === 'QuotaExceededError' ||
+				// Firefox
+				e.name === 'NS_ERROR_DOM_QUOTA_REACHED') &&
+				// acknowledge QuotaExceededError only if there's something already stored
+				(storage && storage.length !== 0);
+		}
 	}
 
 	getStorage() {
@@ -84,75 +104,78 @@ class DiceFavorites {
 		return storage;
 	}
 
-	create(name, notation = '', colorset = '', texture = '', x = 0, y = 0) {
+	create(name, notation = '', colorset = '', texture = '', x = null, y = null) {
+
+		x = x == null ? (window.innerWidth / 4) : x;
+		y = y == null ? (window.innerHeight / 4) : y;
 
 		let draggable = this.favtemplate.clone(true);
 
-        draggable.find('.fav_name').text(name);        
+		draggable.find('.fav_name').text(name);        
 
-        let textwidth = Math.min(Math.max((notation.length+1), 4), 40);
+		let textwidth = Math.min(Math.max((notation.length+1), 4), 40);
 
-        draggable.find('.fav_notation').val(notation).css({width: textwidth+'ex'}).on('keyup change', function () {
+		draggable.find('.fav_notation').val(notation).css({width: textwidth+'ex'}).on('keyup change', function () {
 
-        	let textwidth = Math.min(Math.max(($(this).val().length+1), 4), 20);
+			let textwidth = Math.min(Math.max(($(this).val().length+1), 4), 20);
 
-        	$(this).css({width: textwidth+'ex'});
-        	teal.DiceFavorites.store();
-        });
+			$(this).css({width: textwidth+'ex'});
+			window.DiceFavorites.store();
+		});
 
-        draggable.find('.fav_colorset').val(colorset);
-        draggable.find('.fav_texture').val(texture);
+		draggable.find('.fav_colorset').val(colorset);
+		draggable.find('.fav_texture').val(texture);
 
-        draggable.find('.fav_delete').click(function() {
-        	$(this).parent().remove();
-        	teal.DiceFavorites.store();
-        });
+		draggable.find('.fav_delete').click(function() {
+			$(this).parent().remove();
+			window.DiceFavorites.store();
+		});
 
-        draggable.find('.fav_edit').click(function() {
-        	let newname = prompt('Enter a Title', $(this).parent().find('.fav_name').text());
-        	$(this).parent().find('.fav_name').empty().text(newname);
-        	teal.DiceFavorites.store();
-        });
+		draggable.find('.fav_edit').click(function() {
+			let newname = prompt('Enter a Title', $(this).parent().find('.fav_name').text());
+			$(this).parent().find('.fav_name').empty().text(newname);
+			window.DiceFavorites.store();
+		});
 
-        draggable.find('.fav_throw').click(function() {
-        	$('#set').val($(this).parent().find('.fav_notation').val());
-        	$t.raise_event($t.id('throw'), 'mouseup');
-        });
+		draggable.find('.fav_throw').click(function() {
+			$('#set').val($(this).parent().find('.fav_notation').val());
+			Teal.raise_event(Teal.id('throw'), 'mouseup');
+		});
 
-        draggable.draggable({
-        	scroll: false,
-        	snap: true,
-        	stack: '.fav_draggable',
-        	containment: 'window',
-        	snapTolerance: 10,
-        	stop: function() {
-        		teal.DiceFavorites.ensureOnScreen();
-        		teal.DiceFavorites.store();
-        	}
-        });
-        draggable.css({position: 'absolute', left: x, top: y, display: 'block'});
+		draggable.draggable({
+			scroll: false,
+			snap: '.fav_draggable, #selector_div, #log, #control_panel',
+			stack: '.fav_draggable, #control_panel',
+			containment: 'window',
+			snapTolerance: 10,
+			stop: function() {
+				window.DiceFavorites.ensureOnScreen();
+				window.DiceFavorites.store();
+			}
+		});
+		draggable.css({position: 'absolute', left: x, top: y, display: 'block'});
 
-        this.favtemplate.parent().append(draggable);
+		this.favtemplate.parent().append(draggable);
 
 		return draggable;
 	}
 
 	ensureOnScreen() {
 
-		$('.fav_draggable').each(function(index, el) {
+		$('.fav_draggable, #control_panel').each(function(index, el) {
 
-				let pos = $(this).offset();
-				if (!pos) return;
+			let pos = $(this).offset();
+			if (!pos) return;
 
-        		if (pos.left + $(this).width() > window.innerWidth) {
-        			pos.left = window.innerWidth - $(this).width();
-        		}
+			if (pos.left + $(this).width() > window.innerWidth) {
+				pos.left = window.innerWidth - $(this).width();
+			}
 
-        		if (pos.top + $(this).height() > window.innerHeight) {
-        			pos.top = window.innerHeight - $(this).height();
-        		}
+			if (pos.top + $(this).height() > window.innerHeight) {
+				pos.top = window.innerHeight - $(this).height();
+			}
 
-        		$(this).offset(pos);
+			$(this).offset(pos);
 		});
 
 	}
