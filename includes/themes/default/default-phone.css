@@ -1,0 +1,546 @@
+
+/*
+    Colors index:
+    body:
+        background: #0b1a3e
+        foreground: #9794ff
+
+    input elements:
+        background: #c0c0c0
+        border: white
+        border-hover: #9794ff
+
+    .draggable (favorites boxes):
+        background: #1e2c4d
+        border: white
+        border-hover: #9794ff
+
+    #info_div (roll results):
+        background: #1e2c4d
+
+    chat:
+        time: grey
+        info: grey
+        self: grey
+        user: grey
+        unconfirmed: lightgrey
+
+    control panel:
+        background: #1e2c4d
+
+*/
+
+
+body {
+    background-color: #0b1a3e;
+    color: #9794ff;
+    font-family: Georgia;
+    margin: 0px;
+}
+
+optgroup {
+    background-color: white;
+}
+
+input, select, button {
+    width: 10em;
+    text-align: center;
+    border: solid 2px white;
+    background-color: #c0c0c0;
+    font-family: Trebuchet MS;
+    border-radius: 0px;
+}
+
+textarea {
+    text-align: left;
+    border: solid 2px white;
+    background-color: #c0c0c0;
+    font-family: Trebuchet MS;
+}
+
+input[type="checkbox"] {
+    width: 1em; 
+}
+
+input:hover, select:hover, button:hover, .ui-slider-handle:hover {
+    border-color: #9794ff;
+}
+
+a {
+    color: white;
+}
+
+em {
+    border: 1px rgba(0, 0, 0, 0.2) solid;
+    font-style: normal;
+    padding: 0px 3px;
+    background-color: rgba(0, 0, 0, 0.08);
+    border-radius: 3px;
+}
+
+h6 {
+    font-size: 100%;
+    font-weight: normal;
+    margin: 0px;
+}
+
+p {
+    font-size: 80%;
+    margin: 0px 0px 10px 0px;
+    padding-left: 2em;
+}
+
+fieldset {
+    border: 2px dashed white;
+    margin: 0px auto 10px auto;
+    background-color: rgba(0,0,0,0.5);
+}
+
+legend {
+    font-size: 1.5em;
+    margin: 0px auto;
+    color: white;
+}
+
+.ui-helper-hidden-accessible {
+    border: 0;
+    clip: rect(0 0 0 0);
+    height: 1px;
+    margin: -1px;
+    overflow: hidden;
+    padding: 0;
+    position: absolute;
+    width: 1px;
+}
+
+.ui-slider {
+    border: 1px solid white;
+    position: relative;
+    background: #c0c0c0;
+    text-align: left;
+    margin: 20px;
+}
+
+.ui-slider-handle {
+    position: absolute;
+    width: 1.5em;
+    height: 1em;
+    top: 50%;
+    margin-top: -0.8em;
+    margin-left: -1em;
+    padding: 3px 5px;
+    text-align: center;
+    border: solid 2px white;
+    color: #000000;
+    background-color: #c0c0c0;
+    font-family: Trebuchet MS;
+    font-size: 1em;
+    line-height: 1em;
+    cursor: pointer;
+}
+
+.ui-tooltip {
+    padding: 8px;
+    position: absolute;
+    z-index: 9999;
+    max-width: 300px;
+    color: #000000;
+    background-color: #c0c0c0;
+}
+body .ui-tooltip {
+    border: solid 2px white;
+}
+
+
+#svg *, .svg * {
+    -moz-user-select: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -o-user-select: none;
+    user-select: none;
+}
+
+#waitform {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    z-index: 10000;
+    cursor: wait;
+}
+
+.center_field {
+    text-align: center;
+    width: 100%;
+}
+
+.center_field * {
+    font-family: Trebuchet MS;
+}
+
+.center_field button {
+    font-family: Trebuchet MS;
+    padding: 5px 4px;
+}
+
+.bottom_field {
+    position: absolute;
+    text-align: center;
+    bottom: 5px;
+    width: inherit;
+    padding: 0px;
+}
+
+#label {
+    font-size: 18pt;
+    word-spacing: 0.5em;
+}
+
+#label > h2 {
+    margin: 0px auto;
+}
+
+.diceresult:hover {
+    color: white;
+    cursor: pointer;
+}
+
+#set {
+    display: inline;
+    text-align: center;
+    line-height: 1em;
+    font-size: 1em;
+    margin-bottom: 5px;
+    max-width: 25em;
+    min-width: 5em;
+    padding: 3px 0px;
+}
+
+#clear, #save, #throw, #rage, #cp_showsettings, #cp_showhelp {
+    display: inline;
+    font-size: 1em;
+    cursor: pointer;
+    line-height: 1em;
+    margin-bottom: 5px;
+    width: 2em;
+}
+
+.fav_draggable {
+    position: absolute;
+    top: 30px;
+    left: 10px;
+    background-color: #1e2c4d;
+    padding: 2px 5px 0px 5px;
+    border: 2px dashed white;
+    cursor: move;
+    display: none;
+}
+
+.fav_draggable:hover {
+    border: 2px solid #9794ff;
+}
+
+.fav_draggable:hover > legend {
+    color: white;
+}
+
+.fav_draggable button {
+    display: inline;
+    font-size: 1em;
+    cursor: pointer;
+    line-height: 1em;
+    margin-bottom: 5px;
+    margin-right: 5px;
+    padding: 3px 0px;
+    width: 2em;
+}
+
+.fav_draggable input {
+    display: inline;
+    font-size: 1em;
+    cursor: pointer;
+    line-height: 1em;
+    margin-bottom: 5px;
+    padding: 3px 5px;
+    width: 5ex;
+    max-width: 16em;
+}
+
+.fav_name {
+    position: relative;
+    top: 1px;
+    font-size: 1.25em;
+    line-height: 1.25em;
+}
+
+#sethelp, #labelhelp {
+    font-size: .8em;
+    background: none;
+}
+
+#selector_div {
+    position: absolute;
+    width: 100%;
+    background-color: rgba(0,0,0,0.25);
+    border-bottom: 2px dashed white;
+}
+
+#selector_div select {
+    width: 9em;
+}
+
+#loginform fieldset {
+    min-width: 16em;
+    max-width: 40%;
+}
+
+#loginform {
+    display: table;
+    height: 100%;
+    width: 100%;
+}
+
+.loginform {
+    text-align: center;
+}
+
+.loginform * {
+    position: relative;
+    font-family: Trebuchet MS;
+}
+
+.loginform p {
+    margin-top: 0.7em;
+}
+
+.loginform .lform * {
+    font-size: 16pt;
+    margin-top: 0.3em;
+}
+
+.loginform .biglabel {
+    font-size: 32pt;
+    margin-bottom: 50px;
+}
+
+.smalllabel {
+    text-align: center;
+    margin: 20px;
+}
+
+.info-field {
+    font-family: Trebuchet MS;
+    text-align: center;
+    font-size: 12pt;
+    position: absolute;
+    width: 100%;
+    bottom: 2em;
+}
+
+.connection_message {
+    position: absolute;
+    top: -0.25em;
+    right: 0.5em;
+    text-align: right;
+}
+
+#button_join, #button_single {
+    font-size: 20pt;
+    cursor: pointer;
+    width: 8em;
+    padding: 5px 15px;
+}
+
+#log {
+    background-color: rgba(0,0,0,0.25);
+}
+
+.chat-notation {
+    border: 1px solid #9794ff;
+    font-style: normal;
+    padding: 0px 3px;
+    border-radius: 3px;
+}
+
+.teal-chat:before {
+    content: '';
+    display: inline-block;
+    height: 100%;
+    vertical-align: bottom;
+}
+.teal-chat {
+    position: absolute;
+    bottom: 0px;
+    font-family: Trebuchet MS;
+    padding: 5px 15px;
+    overflow-y: scroll;
+}
+
+.teal-chat-input {
+    font-family: Trebuchet MS;
+    height: 2em;
+    resize: none;
+    margin-top: 10px;
+    width: 100%;
+    vertical-align: bottom;
+}
+
+.teal-chat-time {
+    color: grey;
+    font-size: 70%;
+}
+ 
+.teal-chat-text {
+    white-space: pre;
+}
+
+.teal-chat-info {
+    color: grey;
+    font-style: italic;
+}
+
+.teal-chat-user {
+    font-weight: bold;
+}
+
+.teal-chat-row-own .teal-chat-user {
+    color: grey;
+}
+
+.teal-chat-unconfirmed * {
+    color: lightgrey;
+}
+
+#desk {
+    position: relative;
+}
+
+#info_div {
+    width: 100%;
+    position: relative;
+    bottom: 5em;
+    background-color: #1e2c4d;
+    opacity: 0.75;
+    z-index: 10;
+    word-wrap: anywhere;
+}
+
+#canvas {
+    border-bottom: 2px dashed white;
+}
+
+#control_panel_buttons {
+    position: absolute;
+    top: 2em;
+    left: 2em;
+    padding: 10px;
+}
+
+#control_panel_buttons button {
+    padding: 3px 0px;
+    margin-bottom: 0px;
+}
+
+#cp_hidesettings {
+    display: inline;
+    position: absolute;
+    bottom: 1em;
+    right: 1em;
+    font-size: 1em;
+    cursor: pointer;
+    line-height: 1em;
+    margin-bottom: 5px;
+    margin-right: 5px;
+    padding: 3px 0px;
+    width: 2em;
+}
+
+#system, #theme {
+    width: 15em;
+    margin-right: 5px;
+    margin-bottom: 5px;
+}
+
+#color, #texture, #surface {
+    display: inline;
+    margin-right: 5px;
+    margin-bottom: 5px;
+}
+
+#control_panel {
+    position: absolute;
+    top: 0em;
+    left: 1em;
+    margin: 10px;
+    padding: 30px 15px 15px 15px;
+    border: 2px dashed white;
+    background-color: #1e2c4d;
+}
+
+#control_panel:hover {
+    border: 2px solid #9794ff;
+    cursor: move;
+}
+
+#control_panel div {
+    font-size: 12pt;
+    font-family: Trebuchet MS;
+}
+
+#control_panel div.control_bgcolor {
+    padding: 0px;
+    margin-top: -2px;
+    border: solid 2px white;
+    color: black;
+    background-color: #c0c0c0;
+}
+
+#control_panel div.control_bgcolor:hover {
+    border-color: #9794ff;
+}
+
+#control_panel label, #control_panel button, #system {
+    display: block;
+    margin-bottom: 5px;
+}
+
+div.control_bgcolor > div.sp-preview {
+    width: 2em;
+    height: 1em;
+}
+
+div.control_bgcolor > div.sp-dd {
+    padding: 0px;
+}
+
+div.sp-container {
+    background-color: #1e2c4d;
+    border: solid 2px white;
+}
+
+.sp-cancel {
+    display: inline-block;
+    margin: 10px 0px;
+}
+
+#colorname {
+    margin-bottom: 5px;
+}
+
+#colorname a, a.sp-cancel {
+    text-decoration: none;
+}
+
+#colorname a:hover, a.sp-cancel:hover {
+    outline: 1px solid #9794ff;
+}
+
+.hidden {
+    display: none;
+    visibility: none;
+    width: 0px;
+    height: 0px;
+}
+
+.ignored {
+    text-decoration: line-through;
+}
