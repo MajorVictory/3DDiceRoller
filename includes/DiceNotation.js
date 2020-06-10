@@ -47,7 +47,7 @@ export class DiceNotation {
 
 		let no = notationdata.split('@');// 0: dice notations, 1: forced results
 		//let rollregex = new RegExp(/(\+|\-|\*|\/|\%|\^|){0,1}(\(*|)(\d*)([a-z]{1,5}\d+|[a-z]{1,5}|)(?:\{([a-z]+)(.*?|)\}|)(\)*|)/, 'i');
-		let rollregex = new RegExp(/(\+|\-|\*|\/|\%|\^|){0,1}()(\d*)([a-z]{1,5}\d+|[a-z]{1,5}|)(?:\{([a-z]+)(.*?|)\}|)()/, 'i');
+		let rollregex = new RegExp(/(\+|\-|\*|\/|\%|\^|){0,1}()(\d*)([a-z]+\d+|[a-z]+|)(?:\{([a-z]+)(.*?|)\}|)()/, 'i');
 		let resultsregex = new RegExp(/(\b)*(\-\d+|\d+)(\b)*/, 'gi'); // forced results: '1, 2, 3' or '1 2 3'
 		let res;
 

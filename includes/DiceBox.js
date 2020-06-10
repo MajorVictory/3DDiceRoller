@@ -490,7 +490,7 @@ export class DiceBox {
 		dicemesh.result = [];
 		dicemesh.stopped = 0;
 		dicemesh.castShadow = this.shadows;
-		dicemesh.body = new CANNON.Body({allowSleep: true, mass: diceobj.mass, shape: dicemesh.geometry.cannon_shape, material: this.dice_body_material});
+		dicemesh.body = new CANNON.Body({allowSleep: true, sleepSpeedLimit: 100, mass: diceobj.mass, shape: dicemesh.geometry.cannon_shape, material: this.dice_body_material});
 		dicemesh.body.type = CANNON.Body.DYNAMIC;
 		dicemesh.body.position.set(vectordata.pos.x, vectordata.pos.y, vectordata.pos.z);
 		dicemesh.body.quaternion.setFromAxisAngle(new CANNON.Vec3(vectordata.axis.x, vectordata.axis.y, vectordata.axis.z), vectordata.axis.a * Math.PI * 2);
@@ -571,7 +571,7 @@ export class DiceBox {
 	resetDice(dicemesh, {pos, axis, angle, velocity}) {
 		dicemesh.stopped = 0;
 		this.world.remove(dicemesh.body);
-		dicemesh.body = new CANNON.Body({allowSleep: true, mass: dicemesh.body.mass, shape: dicemesh.geometry.cannon_shape, material: this.dice_body_material});
+		dicemesh.body = new CANNON.Body({allowSleep: true, sleepSpeedLimit: 100, mass: dicemesh.body.mass, shape: dicemesh.geometry.cannon_shape, material: this.dice_body_material});
 		dicemesh.body.type = CANNON.Body.DYNAMIC;
 		dicemesh.body.position.set(pos.x, pos.y, pos.z);
 		dicemesh.body.quaternion.setFromAxisAngle(new CANNON.Vec3(axis.x, axis.y, axis.z), axis.a * Math.PI * 2);
@@ -897,7 +897,7 @@ export class DiceBox {
 	startClickThrow(notation) {
 		if (this.rolling) return;
 
-		let vector = { x: (Math.random() * 2 - 1) * this.display.currentWidth, y: -(Math.random() * 2 - 1) * this.display.currentHeight };
+		let vector = { x: (Math.random() * 2 - 0.5) * this.display.currentWidth, y: -(Math.random() * 2 - 0.5) * this.display.currentHeight };
 		let dist = Math.sqrt(vector.x * vector.x + vector.y * vector.y);
 		let boost = (Math.random() + 3) * dist;
 

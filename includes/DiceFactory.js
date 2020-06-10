@@ -110,6 +110,45 @@ export class DiceFactory {
 		diceobj.system = 'dweird';
 		this.register(diceobj);
 
+		diceobj = new DicePreset('dpoker', 'd6');
+		diceobj.name = 'Poker Dice (9-Ace)';
+		diceobj.setLabels(['A', '9', '10', 'J', 'Q', 'K']);
+		diceobj.setValues(1,6);
+		diceobj.scale = 0.9;
+		diceobj.display = 'labels';
+		diceobj.system = 'dweird';
+		diceobj.font = 'Times New Roman';
+		this.register(diceobj);
+
+		diceobj = new DicePreset('dspanpoker', 'd8');
+		diceobj.name = 'Spanish Poker Dice (7-Ace)';
+		diceobj.setLabels(['A', '7', '8', '9', '10', 'J', 'Q', 'K']);
+		diceobj.setValues(1,8);
+		diceobj.display = 'labels';
+		diceobj.system = 'dweird';
+		diceobj.font = 'Times New Roman';
+		this.register(diceobj);
+
+		diceobj = new DicePreset('disotope','d12');
+		diceobj.name = 'Radioactive Twelve-Sided Dice';
+		diceobj.setLabels(['', '', '', '', '', '', '', '', '', '', '', '☢️']);
+		diceobj.values = [0,0,0,0,0,0,0,0,0,0,0,1];
+		diceobj.mass = 350;
+		diceobj.inertia = 8;
+		diceobj.scale = 0.9;
+		diceobj.system = 'dweird';
+		this.register(diceobj);
+
+		diceobj = new DicePreset('dsuit', 'd4');
+		diceobj.name = 'Four-Suited Dice';
+		diceobj.setLabels(['♠️', '♥️', '♦️', '♣️']);
+		diceobj.setValues(1,4);
+		diceobj.inertia = 5;
+		diceobj.scale = 1.2;
+		diceobj.display = 'labels';
+		diceobj.system = 'dweird';
+		this.register(diceobj);
+
 		diceobj = new DicePreset('d8');
 		diceobj.name = 'Eight-Sided Dice';
 		diceobj.setLabels(['1', '2', '3', '4', '5', '6', '7', '8']);
@@ -426,7 +465,9 @@ export class DiceFactory {
 			const diceobj = window.DiceFactory.dice[this.notation.type];
 
 			if (this.shape == 'd4') {
-				return {value: matindex, label: diceobj.labels[matindex-1], reason: reason};
+				let labelindex2 = ((matindex-1) == 0) ? 5 : matindex;
+
+				return {value: matindex, label: diceobj.labels[matindex-1][labelindex2][0], reason: reason};
 			}
 			if (this.shape == 'd10') matindex += 1;
 
