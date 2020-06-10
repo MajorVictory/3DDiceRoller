@@ -426,7 +426,6 @@ export class DiceFactory {
 			const diceobj = window.DiceFactory.dice[this.notation.type];
 
 			if (this.shape == 'd4') {
-				console.log('matindex', matindex, 'diceobj.labels', diceobj.labels);
 				return {value: matindex, label: diceobj.labels[matindex-1], reason: reason};
 			}
 			if (this.shape == 'd10') matindex += 1;

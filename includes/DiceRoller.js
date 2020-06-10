@@ -46,10 +46,9 @@ export class DiceRoller {
 		this.set = Teal.id('set');
 		this.diceset = [];
 
-		window.addEventListener('message', this.on_receivePostMessage, false);
-		window.addEventListener('resize', this.on_window_resize, false);
-		window.addEventListener('beforeunload', this.close_socket, false);
-		window.addEventListener('beforeunload', this.close_socket, false);
+		window.addEventListener('message', this.on_receivePostMessage);
+		window.addEventListener('resize', this.on_window_resize);
+		window.addEventListener('beforeunload', this.close_socket);
 		window.DiceRoller = this;
 
 		// load theme
@@ -298,15 +297,13 @@ export class DiceRoller {
 			DiceRoller.DiceRoom.TealChat.resize(window.innerWidth - 30, hh - 10);
 			DiceRoller.DiceRoom.canvas.style.width = w;
 			DiceRoller.DiceRoom.canvas.style.height = h;
-			DiceRoller.DiceRoom.show_selector();
 		}
 
 		DiceRoller.DiceFavorites.ensureOnScreen();
 	}
 
 	socket_button_press(ev) {
-		let DiceRoller = window.DiceRoller;
-		DiceRoller.connect_socket(true);
+		window.DiceRoller.connect_socket(true);
 	}
 
 	on_theme_select_change(ev) {
@@ -394,7 +391,7 @@ export class DiceRoller {
 	button_join_press(ev) {
 		let DiceRoller = window.DiceRoller;
 		DiceRoller.show_waitform(true);
-		DiceRoller.Teal.connect_socket(false, DiceRoller.on_socket_connect);
+		window.DiceRoller.connect_socket(false, DiceRoller.on_socket_connect);
 	}
 
 	on_socket_connect(socketevent) {

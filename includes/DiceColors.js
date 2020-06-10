@@ -680,7 +680,7 @@ export class DiceColors {
 	    }
 
 	    if (this.textures[texturename] != null) {
-	        return { name: texturename, texture: this.textures[texturename] };
+	        return { name: texturename, texture: this.textures[texturename], composite: TEXTURELIST[texturename].composite };
 	    }
 	    return {name:'',texture:''};
 	}

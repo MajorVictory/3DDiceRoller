@@ -453,7 +453,7 @@ export class DiceBox {
 
 		if (!(value >= 1 && value <= 4)) return;
 
-		let num = value - result;
+		let num = result - value;
 		let geom = dicemesh.geometry.clone();
 
 		for (let i = 0, l = geom.faces.length; i < l; ++i) {
@@ -630,20 +630,15 @@ export class DiceBox {
 
 								diceFunc = dicemesh.notation.func.toLowerCase();
 
-								let funcdata = rethrowFunctions[diceFunc];
-								console.log('funcdata', funcdata);	
+								let funcdata = this.rethrowFunctions[diceFunc];
 
 								let reroll = false;
 								if (funcdata && funcdata.method) {
 									let method = funcdata.method;
 
 									let diceFuncArgs = dicemesh.notation.args || '';
-									console.log('diceFuncArgs', dicemesh.notation.args);
 									reroll = funcdata.method(dicemesh, diceFuncArgs);
 								}
-
-								console.log('reroll', reroll);	
-
 
 								if (reroll) {
 									--stopped;
@@ -681,7 +676,6 @@ export class DiceBox {
 			steps++;
 			this.world.step(this.framerate);
 		}
-		console.log(steps);
 	}
 
 	animateThrow(threadid, callback, notationVectors){
@@ -713,7 +707,6 @@ export class DiceBox {
 		if (this.running == threadid && this.throwFinished()) {
 			this.running = false;
 			this.rolling = false;
-			console.log(this.steps);
 			if(callback) callback.call(this, notationVectors);
 
 			
@@ -1000,8 +993,6 @@ export class DiceBox {
 
 		let valueSets = [];
 		let labelSets = [];
-		console.log('notationVectors', notationVectors);
-		console.log('array_dicemeshes', array_dicemeshes);
 
 		// first calculate all sets into values
 		// '4d20', '8d6', etc
@@ -1065,8 +1056,6 @@ export class DiceBox {
 			groupLevels[level][groupid].push(setvalue);
 		}
 
-		console.log('groupLevels', groupLevels);
-
 		//let results = {rolls: '', labels: '', values: ''};
 		let results = this.diceGroupCombine(notationVectors, labelSets);
 		results.op = '';
@@ -1077,16 +1066,12 @@ export class DiceBox {
 		//  so we start at the deepest level first and work upwards
 
 		let groupLevelsKeys = Object.keys(groupLevels).reverse();
-		console.log('groupLevelsKeys', groupLevelsKeys);
 
 		for (let key=0, len=groupLevelsKeys.length; key < len; ++key) {
 
 			let level = groupLevelsKeys[key];
 			let groupsInLevel = groupLevels[level];
 			if (!groupsInLevel) continue;
-
-
-			console.log('groupLevel[key] = value: ', level, groupsInLevel);
 
 			let resultsForLevel = {rolls: '', labels: '', values: 0, op: ''};
 
@@ -1114,13 +1099,10 @@ export class DiceBox {
 						resultsForGroup.values = groupResult.values;
 
 					} else {
-
-						console.log('groupResults', level, groupid, i, groupResults);
 						resultsForGroup.values = this.operate(resultsForGroup.values, groupResult.op, groupResult.values);
 					}
 
 				}
-				console.log('resultsForGroup', level, groupid, resultsForGroup);
 
 				let op = (groupid == 0) ? '' : resultsForGroup.op;
 
@@ -1140,8 +1122,6 @@ export class DiceBox {
 					resultsForLevel.values = this.operate(resultsForLevel.values, resultsForGroup.op, resultsForGroup.values);
 				//}
 			}
-			console.log('resultsForLevel', level, resultsForLevel);
-
 
 			if (resultsForLevel.rolls.length > 0) results.rolls += resultsForLevel.rolls+'';
 			if (resultsForLevel.labels.length > 0) results.labels += resultsForLevel.labels;
@@ -1157,8 +1137,6 @@ export class DiceBox {
 				results.values = this.operate(results.values, resultsForLevel.op, resultsForLevel.values);
 			//}
 		}
-
-		console.log('results', results);
 		return results;
 	}
 
@@ -1183,18 +1161,13 @@ export class DiceBox {
 		let diceFuncArgs = '';
 		if (diceFunc == '' && dicemeshList[0] && dicemeshList[0].notation && dicemeshList[0].notation.func) {
 			diceFunc = dicemeshList[0].notation.func.toLowerCase();
-			console.log('diceFunc', diceFunc);
 
 			if (diceFuncArgs == '' && dicemeshList[0] && dicemeshList[0].notation && dicemeshList[0].notation.args) {
 				diceFuncArgs = dicemeshList[0].notation.args;
-				console.log('diceFuncArgs', diceFuncArgs);
 			}
 
-			console.log('afterThrowFunctions', afterThrowFunctions);
 			if (diceFunc != '') {
-				let funcdata = afterThrowFunctions[diceFunc];
-
-				console.log('funcdata', funcdata);
+				let funcdata = this.afterThrowFunctions[diceFunc];
 
 				if (funcdata && funcdata.method) {
 					let method = funcdata.method;
@@ -1209,7 +1182,7 @@ export class DiceBox {
 		for(let i = 0; i < dicemeshList.length; i++){
 
 			let dicemesh = dicemeshList[i];
-			let diceobj =  window.DiceRoller.DiceFactory.get(dicemesh.notation.type);
+			let diceobj =  window.DiceFactory.get(dicemesh.notation.type);
 			let operator = dicemesh.notation.op;
 			let result = dicemesh.getLastValue();
 

@@ -1,4 +1,5 @@
 "use strict";
+import {Teal} from './Teal.js';
 
 export class DiceFavorites {
 
@@ -119,7 +120,7 @@ export class DiceFavorites {
 			let textwidth = Math.min(Math.max(($(this).val().length+1), 4), 20);
 
 			$(this).css({width: textwidth+'ex'});
-			teal.DiceFavorites.store();
+			window.DiceFavorites.store();
 		});
 
 		draggable.find('.fav_colorset').val(colorset);
@@ -127,18 +128,18 @@ export class DiceFavorites {
 
 		draggable.find('.fav_delete').click(function() {
 			$(this).parent().remove();
-			teal.DiceFavorites.store();
+			window.DiceFavorites.store();
 		});
 
 		draggable.find('.fav_edit').click(function() {
 			let newname = prompt('Enter a Title', $(this).parent().find('.fav_name').text());
 			$(this).parent().find('.fav_name').empty().text(newname);
-			teal.DiceFavorites.store();
+			window.DiceFavorites.store();
 		});
 
 		draggable.find('.fav_throw').click(function() {
 			$('#set').val($(this).parent().find('.fav_notation').val());
-			$t.raise_event($t.id('throw'), 'mouseup');
+			Teal.raise_event(Teal.id('throw'), 'mouseup');
 		});
 
 		draggable.draggable({
@@ -148,8 +149,8 @@ export class DiceFavorites {
 			containment: 'window',
 			snapTolerance: 10,
 			stop: function() {
-				teal.DiceFavorites.ensureOnScreen();
-				teal.DiceFavorites.store();
+				window.DiceFavorites.ensureOnScreen();
+				window.DiceFavorites.store();
 			}
 		});
 		draggable.css({position: 'absolute', left: x, top: y, display: 'block'});

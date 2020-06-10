@@ -64,7 +64,6 @@ export class DiceRoom {
 		ev.stopPropagation();
 		DiceRoller.DiceRoom.set.value = '0';
 		DiceRoller.DiceRoom.show_selector();
-		DiceRoller.on_window_resize();
 	}
 
 	on_button_create_favorite(ev) {
@@ -122,7 +121,13 @@ export class DiceRoom {
 
 		window.DiceRoller.DiceFactory.applyColorSet(window.DiceRoller.color_select.value, (window.DiceRoller.texture_select.value || null));
 
-		this.DiceBox.showSelector((this.params.alldice && this.params.alldice == '1'));
+
+		window.setTimeout(() => {
+			window.DiceRoller.on_window_resize();
+			this.DiceBox.showSelector((this.params.alldice && this.params.alldice == '1'));
+		}, 100);
+
+		
 	}
 
 	sendNetworkedRoll(notationVectors) {
@@ -198,7 +203,6 @@ export class DiceRoom {
 		};
 
 		Teal.hidden(this.desk, false);
-		window.DiceRoller.on_window_resize();
 		window.DiceRoller.DiceFavorites.retrieve();
 		window.DiceRoller.DiceFavorites.ensureOnScreen();
 
@@ -215,7 +219,6 @@ export class DiceRoom {
 		this.DiceBox = new DiceBox(this.canvas, { w: 500, h: 300 });
 		this.DiceBox.selector.dice = ['df', 'd4', 'd6', 'd8', 'd10', 'd100', 'd12', 'd20'];
 		this.DiceBox.initialize();
-		window.DiceRoller.on_window_resize();
 
 		this.DiceBox.volume = parseInt(window.DiceRoller.DiceFavorites.settings.volume.value);
 		this.DiceBox.sounds = window.DiceRoller.DiceFavorites.settings.sounds.value == '1';
@@ -286,7 +289,7 @@ export class DiceRoom {
 
 				if (!notationVectors || notationVectors.error) return;
 
-				sendNetworkedRoll(notationVectors);
+				this.sendNetworkedRoll(notationVectors);
 			}
 			else {
 				if (text.length > 1) {
@@ -348,11 +351,7 @@ export class DiceRoom {
 
 		this.DiceBox.rollDice(notationVectors, (notationVectors) => {
 
-			console.log('after roll - notationVectors', notationVectors);
-
 			let resultDice = this.DiceBox.diceList;
-
-			console.log('Roll Finished', resultDice);
 
 			let results = this.DiceBox.getDiceTotals(notationVectors, resultDice);
 
