@@ -3,9 +3,14 @@ import {Teal} from './Teal.js';
 
 export const TEXTURELIST = {
 	'cloudy': {
-		name: 'Clouds',
+		name: 'Clouds (Transparent)',
 		composite: 'destination-in',
 		source: './textures/cloudy.png'
+	},
+	'cloudy_2': {
+		name: 'Clouds',
+		composite: 'multiply',
+		source: './textures/cloudy.alt.png'
 	},
 	'fire': {
 		name: 'Fire',
@@ -432,7 +437,7 @@ export const COLORSETS = {
 		foreground: '#00FF00',
 		background: ['#3D9238','#52B848','#5EAC56','#9ECB9A'],
 		outline: '#000000',
-		texture: 'cloudy',
+		texture: 'cloudy_2',
 		description: 'Star Wars™ RPG Ability Dice'
 	},
 	'swrpg_pro': {
@@ -450,7 +455,7 @@ export const COLORSETS = {
 		foreground: '#8000FC',
 		background: ['#39165F','#664B84','#50247E','#745F88'],
 		outline: '#000000',
-		texture: 'cloudy',
+		texture: 'cloudy_2',
 		description: 'Star Wars™ RPG Difficulty Dice'
 	},
 	'swrpg_cha': {

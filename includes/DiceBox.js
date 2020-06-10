@@ -507,63 +507,64 @@ export class DiceBox {
 	}
 
 	eventCollide({body, target}) {
-			// collision events happen simultaneously for both colliding bodies
-			// all this sanity checking helps limits sounds being played
+		// collision events happen simultaneously for both colliding bodies
+		// all this sanity checking helps limits sounds being played
 
-			// don't play sounds if we're simulating
-		if (this.animstate == 'simulate') return;
-		if (!this.sounds || !body) return;
+		let DiceBox = window.DiceRoller.DiceRoom.DiceBox;
 
-		let volume = parseInt(this.DiceFavorites.settings.volume.value) || 0;
-			if (volume <= 0) return;
+		// don't play sounds if we're simulating
+		if (DiceBox.animstate == 'simulate') return;
+		if (!DiceBox.sounds || !body) return;
 
-			let now = Date.now();
+		let volume = parseInt(window.DiceFavorites.settings.volume.value) || 0;
+		if (volume <= 0) return;
+
+		let now = Date.now();
 		let currentSoundType = (body.mass > 0) ? 'dice' : 'table';
 
-			// 
-			// the idea here is that a dice clack should never be skipped in favor of a table sound
-			// if ((don't play sounds if we played one this world step, or there hasn't been enough delay) AND 'this sound IS NOT a dice clack') then 'skip it'
-		if ((this.lastSoundStep == body.world.stepnumber || this.lastSound > now) && currentSoundType != 'dice') return;
-			// also skip if it's too early and both last sound and this sound are the same
-		if ((this.lastSoundStep == body.world.stepnumber || this.lastSound > now) && currentSoundType == 'dice' && this.lastSoundType == 'dice') return;
+		// the idea here is that a dice clack should never be skipped in favor of a table sound
+		// if ((don't play sounds if we played one this world step, or there hasn't been enough delay) AND 'this sound IS NOT a dice clack') then 'skip it'
+		if ((DiceBox.lastSoundStep == body.world.stepnumber || DiceBox.lastSound > now) && currentSoundType != 'dice') return;
+
+		// also skip if it's too early and both last sound and this sound are the same
+		if ((DiceBox.lastSoundStep == body.world.stepnumber || DiceBox.lastSound > now) && currentSoundType == 'dice' && DiceBox.lastSoundType == 'dice') return;
 
 		if (body.mass > 0) { // dice to dice collision
 
 			let speed = body.velocity.length();
-				// also don't bother playing at low speeds
-				if (speed < 250) return;
+			// also don't bother playing at low speeds
+			if (speed < 250) return;
+			let strength = 0.1;
+			let high = 12000;
+			let low = 250;
+			strength = Math.max(Math.min(speed / (high-low), 1), strength);
 
-				let strength = 0.1;
-				let high = 12000;
-				let low = 250;
-				strength = Math.max(Math.min(speed / (high-low), 1), strength);
-
-			let sound = this.sounds_dice[Math.floor(Math.random() * this.sounds_dice.length)];
-				sound.volume = (strength * (volume/100));
-				sound.play();
-			this.lastSoundType = 'dice';
+			let sound = DiceBox.sounds_dice[Math.floor(Math.random() * DiceBox.sounds_dice.length)];
+			sound.volume = (strength * (volume/100));
+			sound.play();
+			DiceBox.lastSoundType = 'dice';
 
 
-			} else { // dice to table collision
+		} else { // dice to table collision
 			let speed = target.velocity.length();
-				// also don't bother playing at low speeds
-				if (speed < 250) return;
+			// also don't bother playing at low speeds
+			if (speed < 250) return;
 
-			let surface = this.DiceFavorites.settings.surface.value || 'felt';
-				let strength = 0.1;
-				let high = 12000;
-				let low = 250;
-				strength = Math.max(Math.min(speed / (high-low), 1), strength);
+			let surface = window.DiceFavorites.settings.surface.value || 'felt';
+			let strength = 0.1;
+			let high = 12000;
+			let low = 250;
+			strength = Math.max(Math.min(speed / (high-low), 1), strength);
 
-			let soundlist = this.sounds_table[surface];
-				let sound = soundlist[Math.floor(Math.random() * soundlist.length)];
-				sound.volume = (strength * (volume/100));
-				sound.play();
-			this.lastSoundType = 'table';
-			}
+			let soundlist = DiceBox.sounds_table[surface];
+			let sound = soundlist[Math.floor(Math.random() * soundlist.length)];
+			sound.volume = (strength * (volume/100));
+			sound.play();
+			DiceBox.lastSoundType = 'table';
+		}
 
-		this.lastSoundStep = body.world.stepnumber;
-		this.lastSound = now + this.soundDelay;
+		DiceBox.lastSoundStep = body.world.stepnumber;
+		DiceBox.lastSound = now + DiceBox.soundDelay;
 	}
 
 	//resets vectors on dice back to startign notation values for a roll after simulation.

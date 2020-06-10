@@ -119,7 +119,7 @@ export class DiceRoom {
 		Teal.id('sethelp').style.display = 'block';
 		this.deskrolling = false;
 
-		window.DiceRoller.DiceFactory.applyColorSet(window.DiceRoller.color_select.value, (window.DiceRoller.texture_select.value || null));
+		window.DiceColors.applyColorSet(window.DiceRoller.color_select.value, (window.DiceRoller.texture_select.value || null));
 
 
 		window.setTimeout(() => {
@@ -342,7 +342,7 @@ export class DiceRoom {
 		this.info_div.style.display = 'block';
 		this.deskrolling = true;
 
-		if (res.colorset.length > 0 || res.texture.length > 0) window.DiceRoller.DiceFactory.applyColorSet(res.colorset, res.texture);
+		if (res.colorset.length > 0 || res.texture.length > 0) window.DiceColors.applyColorSet(res.colorset, res.texture);
 
 		if (!window.DiceRoller.Teal.offline) Teal.unpack_vectors(res.vectors);
 

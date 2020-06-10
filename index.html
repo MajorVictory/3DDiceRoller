@@ -44,6 +44,7 @@
 							<div>Room Password (optional)</div>
 							<input id="input_pass" type="password" maxlength="100" value=""></input>
 							<div id="login_message"></div>
+							<p>Room Name and Password are case sensitive.</p>
 						</div>
 						<br/>
 						<button id="button_join" title="Join Friends">Join Friends</button>
@@ -116,7 +117,7 @@
 
 	<fieldset id="control_panel_buttons" class="noselect">
 		<button id="cp_showsettings" title="Show Settings Panel">⚙️</button>
-		<button id="cp_showhelp" title="View Help Page">❔</button>
+		<!--<button id="cp_showhelp" title="View Help Page">❔</button>-->
 	</fieldset>
 
 	<fieldset id="control_panel" class="noselect" style="display:none;">
@@ -146,8 +147,9 @@
 		<div id="volume_slider"><div id="volume_handle" class="ui-slider-handle"></div></div>
 
 		<button id="toggle_selector" title="Show/Hide Throw Buttons">Toggle Selector</button>
-		<!-- <button id="reconnect">Reconnect</button>-->
-		<button id="logout" title="Leave Room and Refresh">Logout</button>
+		<!-- <button id="reconnect">Reconnect</button>
+		<button id="logout" title="Leave Room and Refresh">Logout</button>-->
+		<br><br>
 	</fieldset>
 	<script type="module" src="./includes/DiceRoller.js"></script>
 </body>

@@ -334,7 +334,7 @@ export class DiceRoller {
 	on_color_select_change(ev) {
 		let DiceRoller = window.DiceRoller;
 		Teal.selectByValue(DiceRoller.texture_select, '');
-		DiceRoller.DiceFactory.applyColorSet(DiceRoller.color_select.value, null);
+		DiceRoller.DiceColors.applyColorSet(DiceRoller.color_select.value, null);
 		DiceRoller.Teal.rpc( { method: 'colorset', colorset: DiceRoller.color_select.value });
 		DiceRoller.Teal.rpc( { method: 'texture', texture: DiceRoller.texture_select.value });
 
@@ -347,7 +347,7 @@ export class DiceRoller {
 
 	on_texture_select_change(ev) {
 		let DiceRoller = window.DiceRoller;
-		DiceRoller.DiceFactory.applyColorSet(DiceRoller.color_select.value, (DiceRoller.texture_select.value || null));
+		DiceRoller.DiceColors.applyColorSet(DiceRoller.color_select.value, (DiceRoller.texture_select.value || null));
 		DiceRoller.Teal.rpc( { method: 'texture', texture: DiceRoller.texture_select.value });
 
 		DiceRoller.DiceFavorites.settings.texture.value = DiceRoller.texture_select.value;
