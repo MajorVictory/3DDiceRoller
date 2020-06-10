@@ -446,6 +446,14 @@ export class DiceFactory {
 			return this.result[this.result.length-1];
 		}
 
+		dicemesh.ignoreLastValue = function(ignore) {
+			let lastvalue = this.getLastValue();
+			if (lastvalue.value === undefined) return;
+
+			lastvalue.ignore = ignore;
+			this.setLastValue(lastvalue);
+		}
+
 		dicemesh.setLastValue = function(result) {
 			if (!this.result || this.result.length < 1) return;
 			if (!result || result.length < 1) return;

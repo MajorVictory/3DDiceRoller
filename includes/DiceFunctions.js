@@ -5,14 +5,15 @@ export class DiceFunctions {
 	constructor(dicebox) {
 
 		// these fucntions only trigger after a full throw is finished, including rerolls
-		dicebox.registerAfterThrowFunction('t', this.template, this.templateHelp());
+		//dicebox.registerAfterThrowFunction('t', this.template, this.templateHelp());
 
 		dicebox.registerAfterThrowFunction('a', this.advantage, this.advantageHelp());
 		dicebox.registerAfterThrowFunction('d', this.disadvantage, this.disadvantageHelp());
-		dicebox.registerAfterThrowFunction('f', this.filter, this.filterHelp());
+		//dicebox.registerAfterThrowFunction('f', this.filter, this.filterHelp());
 
 		// these functions can trigger during a roll, if you need to add more dice to the roll, do it here
 		dicebox.registerRethrowFunction('r', this.rethrowBasic, this.rethrowBasicHelp());
+		//dicebox.registerRethrowFunction('ra', this.rethrowAdvanced, this.rethrowAdvancedHelp());
 	}
 
 	// Array dicemeshList: contains only the dice results affected by this function
@@ -30,7 +31,7 @@ export class DiceFunctions {
 			let dicemesh = dicemeshList[i];
 			let result = dicemesh.getLastValue(); // current face values: {value: Int, label: String}
 			let notation = dicemesh.notation; // a full DiceNotation object
-			let diceobj =  DiceFactory.get(dicemesh.shape); // a full DicePreset object
+			let diceobj =  window.DiceFactory.get(dicemesh.shape); // a full DicePreset object
 
 			// DELETE RESULT
 			// this isn't recommended as the model remains onscreen, but it's result will be missing
@@ -69,7 +70,7 @@ export class DiceFunctions {
 
 				let forcedvalue = diceobj.values[Math.floor(Math.random() * diceobj.values.length)];
 
-				$t.DiceBox.swapDiceFace(dicemesh, forcedvalue);
+				window.DiceRoller.DiceRoom.DiceBox.swapDiceFace(dicemesh, forcedvalue);
 
 				dicemesh.resultReason = 'forced result, random';
 				dicemesh.storeRolledValue();
@@ -114,6 +115,43 @@ export class DiceFunctions {
 		let output = {};
 		output['Name'] = 'Reroll';
 		output['Usage'] = '{r,[Operation],[MatchAgainst],[MatchLimit],[RerollLimit]}';
+		output['Arguments'] = {
+			'Operation': [
+				'Use \'lt\' for \'<\'',
+				'Use \'gt\' for \'>\'',
+				'Use \'lte\' for \'<=\'',
+				'Use \'gte\' for \'<=\'',
+				'Use \'e\' for \'==\'',
+				'Use \'ne\' for \'!=\''
+			],
+			'MatchAgainst' : ['Any Number', 'list of numbers, seperated by colon (\':\')', 'min', 'max'],
+			'MatchLimit' : ['Any Number'],
+			'RerollLimit' : ['Any Number']
+		};
+		output['Description'] = 'Rerolls dice using the given Operation against MatchAgainst for MatchLimit dice up to a maximum of RerollLimit times each.';
+		output['Examples'] = {
+			'{r,e,1}': 'Reroll any 1\'s as many times as needed.',
+			'{r,gt,4,2}': 'Reroll the first 2 dice greater than 4 as many times as needed.',
+			'{r,lte,2,3,4}': 'Reroll the first 3 dice less than or equal to 2 only four times each and then stop.',
+			'{r,ne,2,,2}': 'Reroll any dice not equal to 2 only twice each and then stop.'
+		};
+		return output;
+	}
+
+	// rethrow methods only recieve one die at a time
+	// returns boolean to indicate if dice given needs to be rethrown
+	rethrowAdvanced(dicemesh, args) {
+
+		let latestresult = dicemesh.getLastValue();
+		if (!latestresult.value) return false;
+
+		return (latestresult.value == parseInt(args));
+	}
+
+	rethrowAdvancedHelp() {
+		let output = {};
+		output['Name'] = 'Reroll';
+		output['Usage'] = '{ra,[Operation],[MatchAgainst],[MatchLimit],[RerollLimit]}';
 		output['Arguments'] = {
 			'Operation': [
 				'Use \'lt\' for \'<\'',
@@ -187,15 +225,14 @@ export class DiceFunctions {
 			let dicemesh = dicemeshList[i];
 
 			if (!highest) highest = dicemesh;
-			highest = highest.result.value >= dicemesh.result.value ? highest : dicemesh;
+			highest = highest.getLastValue().value >= dicemesh.getLastValue().value ? highest : dicemesh;
 		}
 
 		// loop through and mark the other dice as ignore
 		for (let i=0, len=dicemeshList.length; i < len; ++i) {
-			let dicemesh = dicemeshList[i];
-			dicemesh.notation.ignore = (highest.uuid != dicemesh.uuid);
+			dicemeshList[i].ignoreLastValue((highest.uuid != dicemeshList[i].uuid));
 		}
-		return [highest];
+		return dicemeshList;
 	}
 
 	advantageHelp() {
@@ -211,9 +248,14 @@ export class DiceFunctions {
 			let dicemesh = dicemeshList[i];
 
 			if (!lowest) lowest = dicemesh;
-			lowest = lowest.result.value <= dicemesh.result.value ? lowest : dicemesh;
+			lowest = lowest.getLastValue().value <= dicemesh.getLastValue().value ? lowest : dicemesh;
 		}
-		return [lowest];
+
+		// loop through and mark the other dice as ignore
+		for (let i=0, len=dicemeshList.length; i < len; ++i) {
+			dicemeshList[i].ignoreLastValue((lowest.uuid != dicemeshList[i].uuid));
+		}
+		return dicemeshList;
 	}
 
 	disadvantageHelp() {

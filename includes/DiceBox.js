@@ -762,6 +762,8 @@ export class DiceBox {
 		let time_diff = (time - this.last_time) / 1000;
 		if (time_diff > 3) time_diff = this.framerate;
 
+		if (this.container.style.opacity != '1') this.container.style.opacity = Math.min(1, (parseFloat(this.container.style.opacity) + 0.05));
+
 		if (this.selector.rotate) {
 			let angle_change = 0.005 * Math.PI;
 			for (let i in this.diceList) {
@@ -884,7 +886,10 @@ export class DiceBox {
 
 		this.running = (new Date()).getTime();
 		this.last_time = 0;
-		if (this.selector.animate) this.animateSelector(this.running);
+		if (this.selector.animate) {
+			this.container.style.opacity = 0;
+			this.animateSelector(this.running);
+		}
 		else this.renderer.render(this.scene, this.camera);
 
 	}
