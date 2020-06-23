@@ -421,7 +421,7 @@ export class DiceFactory {
 	setBumpMapping(bumpMapping){
 		this.bumpMapping = bumpMapping;
 		this.materials_cache = {};
-		
+
 	}
 
 	register(diceobj) {
@@ -582,8 +582,8 @@ export class DiceFactory {
 						mat.bumpMap = canvasTextures.bump;
 					}
 					if (diceobj.shape != 'd4' && diceobj.normals[i]) {
-						if (mat.bumpScale < 3) mat.bumpScale = 3;
 						mat.bumpMap = new THREE.Texture(diceobj.normals[i]);
+						mat.bumpScale = 4;
 						mat.bumpMap.needsUpdate = true;
 					}
 				}
@@ -1098,8 +1098,10 @@ export class DiceFactory {
         for (var i = 0; i < faces.length; ++i) {
             var ii = faces[i], fl = ii.length - 1;
             var aa = Math.PI * 2 / fl;
-            var v0 = 0;
-            var v1 = 1 - (0.895/1.105);
+            var w = 0.65;
+            var h = 0.85;
+            var v0 = 1 - 1*h;
+            var v1 = 1 - (0.895/1.105)*h;
             var v2 = 1;
             for (var j = 0; j < fl - 2; ++j) {
                 geom.faces.push(new THREE.Face3(ii[0], ii[j + 1], ii[j + 2], [geom.vertices[ii[0]],
@@ -1114,14 +1116,14 @@ export class DiceFactory {
                             (Math.sin(aa * (j + 2) + af) + 1 + tab) / 2 / (1 + tab))]);
                 } else if(j==0) {
                     geom.faceVertexUvs[0].push([
-                        new THREE.Vector2(0, v1),
+                        new THREE.Vector2(0.5-w/2, v1),
                         new THREE.Vector2(0.5, v0),
-                        new THREE.Vector2(1, v1)
+                        new THREE.Vector2(0.5+w/2, v1)
                     ]);
                 } else if(j==1) {
                     geom.faceVertexUvs[0].push([
-                        new THREE.Vector2(0, v1),
-                        new THREE.Vector2(1, v1),
+                        new THREE.Vector2(0.5-w/2, v1),
+                        new THREE.Vector2(0.5+w/2, v1),
                         new THREE.Vector2(0.5, v2)
                     ]);
                 }

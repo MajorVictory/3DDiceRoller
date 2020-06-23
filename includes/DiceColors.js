@@ -6,37 +6,37 @@ export const TEXTURELIST = {
 		name: 'Clouds (Transparent)',
 		composite: 'destination-in',
 		source: './textures/cloudy.png',
-		bump: ''
+		bump: './textures/cloudy.alt.png'
 	},
 	'cloudy_2': {
 		name: 'Clouds',
 		composite: 'multiply',
 		source: './textures/cloudy.alt.png',
-		bump: ''
+		bump: './textures/cloudy.alt.png'
 	},
 	'fire': {
 		name: 'Fire',
 		composite: 'multiply',
 		source: './textures/fire.png',
-		bump: ''
+		bump: './textures/fire.png'
 	},
 	'marble': {
 		name: 'Marble',
 		composite: 'multiply',
 		source: './textures/marble.png',
-		bump: ''
+		bump: './textures/marble.png'
 	},
 	'water': {
 		name: 'Water',
 		composite: 'destination-in',
 		source: './textures/water.png',
-		bump: ''
+		bump: './textures/water.png'
 	},
 	'ice': {
 		name: 'Ice',
 		composite: 'destination-in',
 		source: './textures/ice.png',
-		bump: ''
+		bump: './textures/ice.png'
 	},
 	'paper': {
 		name: 'Paper',
@@ -48,13 +48,13 @@ export const TEXTURELIST = {
 		name: 'Speckles',
 		composite: 'multiply',
 		source: './textures/speckles.png',
-		bump: './textures/speckles-bump.png'
+		bump: './textures/speckles.png'
 	},
 	'glitter': {
 		name: 'Glitter',
 		composite: 'multiply',
 		source: './textures/glitter.png',
-		bump: ''
+		bump: './textures/glitter-bump.png'
 	},
 	'glitter_2': {
 		name: 'Glitter (Transparent)',
@@ -66,55 +66,85 @@ export const TEXTURELIST = {
 		name: 'Stars',
 		composite: 'multiply',
 		source: './textures/stars.png',
-		bump: ''
+		bump: './textures/stars.png'
 	},
 	'stainedglass': {
 		name: 'Stained Glass',
 		composite: 'multiply',
 		source: './textures/stainedglass.png',
-		bump: ''
+		bump: './textures/stainedglass-bump.png'
+	},
+	'wood': {
+		name: 'Wood',
+		composite: 'multiply',
+		source: './textures/wood.png',
+		bump: './textures/wood.png'
+	},
+	'metal': {
+		name: 'Stainless Steel',
+		composite: 'multiply',
+		source: './textures/metal.png',
+		bump: './textures/metal-bump.png'
 	},
 	'skulls': {
 		name: 'Skulls',
 		composite: 'multiply',
 		source: './textures/skulls.png',
-		bump: ''
+		bump: './textures/skulls.png'
 	},
 	'leopard': {
 		name: 'Leopard',
 		composite: 'multiply',
 		source: './textures/leopard.png',
-		bump: './textures/leopard-bump.png'
+		bump: './textures/leopard.png'
 	},
 	'tiger': {
 		name: 'Tiger',
 		composite: 'multiply',
 		source: './textures/tiger.png',
-		bump: './textures/tiger-bump.png'
+		bump: './textures/tiger.png'
 	},
 	'cheetah': {
 		name: 'Cheetah',
 		composite: 'multiply',
 		source: './textures/cheetah.png',
-		bump: './textures/cheetah-bump.png'
+		bump: './textures/cheetah.png'
+	},
+	'dragon': {
+		name: 'Dragon',
+		composite: 'multiply',
+		source: './textures/dragon.png',
+		bump: './textures/dragon-bump.png'
+	},
+	'lizard': {
+		name: 'Lizard',
+		composite: 'multiply',
+		source: './textures/lizard.png',
+		bump: './textures/lizard.png'
+	},
+	'bird': {
+		name: 'Bird',
+		composite: 'multiply',
+		source: './textures/feather.png',
+		bump: './textures/feather-bump.png'
 	},
 	'astral': {
 		name: 'Astral Sea',
 		composite: 'multiply',
 		source: './textures/astral.png',
-		bump: ''
+		bump: './textures/stars.png'
 	},
 	'acleaf': {
 		name: 'AC Leaf',
 		composite: 'multiply',
 		source: './textures/acleaf.png',
-		bump: ''
+		bump: './textures/acleaf.png'
 	},
 	'thecage': {
 		name: 'Nicholas Cage',
 		composite: 'multiply',
 		source: './textures/thecage.png',
-		bump: './textures/thecage-bump.png'
+		bump: ''
 	},
 	'isabelle': {
 		name: 'Isabelle',
