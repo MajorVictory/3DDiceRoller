@@ -8,7 +8,7 @@ import {DiceColors, THEMES, COLORSETS, TEXTURELIST, COLORCATEGORIES} from './Dic
 
 export class DiceRoller {
 
-	constructor(imagesList,bumpmaplist) {
+	constructor(imagesList) {
 
 		this.Teal = new Teal();
 
@@ -21,7 +21,6 @@ export class DiceRoller {
 
         this.DiceColors = new DiceColors(this);
 		this.DiceColors.textures = imagesList;
-		this.DiceColors.bumpmaps = bumpmaplist;
 		this.DiceColors.initColorSets();
 		window.DiceColors = this.DiceColors;
 
@@ -521,6 +520,6 @@ export class DiceRoller {
 	}
 }
 
-DiceColors.ImageLoader(TEXTURELIST, function(images, bumpmaps) {
-	window.DiceRoller = new DiceRoller(images, bumpmaps);
+DiceColors.ImageLoader(TEXTURELIST, function(images) {
+	window.DiceRoller = new DiceRoller(images);
 });

@@ -42,13 +42,13 @@ export const TEXTURELIST = {
 		name: 'Paper',
 		composite: 'multiply',
 		source: './textures/paper.png',
-		bump: ''
+		bump: './textures/paper-bump.png'
 	},
 	'speckles': {
 		name: 'Speckles',
 		composite: 'multiply',
 		source: './textures/speckles.png',
-		bump: ''
+		bump: './textures/speckles-bump.png'
 	},
 	'glitter': {
 		name: 'Glitter',
@@ -84,16 +84,10 @@ export const TEXTURELIST = {
 		name: 'Leopard',
 		composite: 'multiply',
 		source: './textures/leopard.png',
-		bump: ''
+		bump: './textures/leopard-bump.png'
 	},
 	'tiger': {
 		name: 'Tiger',
-		composite: 'multiply',
-		source: './textures/tiger.png',
-		bump: ''
-	},
-	'tigerbump': {
-		name: 'Tiger (Bumpmapped)',
 		composite: 'multiply',
 		source: './textures/tiger.png',
 		bump: './textures/tiger-bump.png'
@@ -102,7 +96,7 @@ export const TEXTURELIST = {
 		name: 'Cheetah',
 		composite: 'multiply',
 		source: './textures/cheetah.png',
-		bump: ''
+		bump: './textures/cheetah-bump.png'
 	},
 	'astral': {
 		name: 'Astral Sea',
@@ -120,7 +114,7 @@ export const TEXTURELIST = {
 		name: 'Nicholas Cage',
 		composite: 'multiply',
 		source: './textures/thecage.png',
-		bump: ''
+		bump: './textures/thecage-bump.png'
 	},
 	'isabelle': {
 		name: 'Isabelle',
@@ -648,7 +642,10 @@ export class DiceColors {
 
 		let itemprops = Object.entries(sources);
 		for (const [key, value] of itemprops) {
-			if(value.source != '' || value.bump != '') {
+			if(value.source != '') {
+				++numImages;
+			}
+			if(value.bump != '') {
 				++numImages;
 			}
 		}
@@ -660,29 +657,36 @@ export class DiceColors {
 				continue;
 			}
 
+			let imagentry = {
+				texture: '',
+				bump: ''
+			};
+
 			if (value.source != '') {
 	
-				images[key] = new Image();
-				images[key].onload = function() {
+				imagentry.texture = new Image();
+				imagentry.texture.onload = function() {
 		
 					if (++loadedImages >= numImages) {
-						callback(images,bumpmaps);
+						callback(images);
 					}
 				};
-				images[key].src = value.source;
+				imagentry.texture.src = value.source;
 			}
 
 			if (value.bump != '') {
 	
-				bumpmaps[key] = new Image();
-				bumpmaps[key].onload = function() {
+				imagentry.bump = new Image();
+				imagentry.bump.onload = function() {
 		
 					if (++loadedImages >= numImages) {
-						callback(images,bumpmaps);
+						callback(images);
 					}
 				};
-				bumpmaps[key].src = value.bump;
+				imagentry.bump.src = value.bump;
 			}
+
+			images[key] = imagentry;
 		}
 	}
 		
@@ -739,9 +743,9 @@ export class DiceColors {
 	    if (this.textures[texturename] != null) {
 	        return {
 	        	name: texturename,
-	        	texture: this.textures[texturename],
+	        	texture: this.textures[texturename].texture,
 	        	composite: TEXTURELIST[texturename].composite,
-	        	bump: this.bumpmaps[texturename] || ''
+	        	bump: this.textures[texturename].bump || ''
 	        };
 	    }
 	    return {name:'',texture:'',composite:'',bump:''};
