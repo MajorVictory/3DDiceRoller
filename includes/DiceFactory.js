@@ -678,7 +678,7 @@ export class DiceFactory {
 			// fix for some faces being weirdly rotated
 			let rotateface = this.rotate[diceobj.shape];
 			if(rotateface) {
-				let degrees = rotateface.all || (index > 0 && (index % 2) != 0) ? rotateface.odd : rotateface.even;
+				let degrees = ((rotateface.hasOwnProperty("all") ? rotateface.all : false) || (index > 0 && (index % 2) != 0)) ? rotateface.odd : rotateface.even;
 
 				if (degrees && degrees != 0) {
 
