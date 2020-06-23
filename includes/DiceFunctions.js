@@ -141,11 +141,8 @@ export class DiceFunctions {
 	// rethrow methods only recieve one die at a time
 	// returns boolean to indicate if dice given needs to be rethrown
 	rethrowAdvanced(dicemesh, args) {
-
-		let latestresult = dicemesh.getLastValue();
-		if (!latestresult.value) return false;
-
-		return (latestresult.value == parseInt(args));
+		if (!dicemesh.getFaceValue().value) return false;
+		return (dicemesh.getFaceValue().value == parseInt(args));
 	}
 
 	rethrowAdvancedHelp() {

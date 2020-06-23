@@ -3,9 +3,6 @@
 export class DicePreset {
 
 	constructor(type, shape = '') {
-
-		shape = shape || type;
-
 		this.type = type;
 		this.name = '';
 		this.shape = shape || type;
@@ -15,6 +12,7 @@ export class DicePreset {
 		this.labels = [];
 		this.valueMap = [];
 		this.values = [];
+		this.normals = [];
 		this.mass = 300;
 		this.inertia = 13;
 		this.geometry = null;
@@ -34,17 +32,24 @@ export class DicePreset {
 		}
 	}
 
-	setLabels(labels) {
+	registerFaces(faces, type = "labels"){
+		let tab;
 
-		this.labels.push('');
-		if(this.shape != 'd10') this.labels.push('');
+		if (type == "labels") {
+			tab = this.labels;
+		} else {
+			tab = this.normals;
+		}
+		
+		tab.push('');
+		if(this.shape != 'd10') tab.push('');
 
 		if (this.shape == 'd4') {
 
-			let a = labels[0];
-			let b = labels[1];
-			let c = labels[2];
-			let d = labels[3];
+			let a = faces[0];
+			let b = faces[1];
+			let c = faces[2];
+			let d = faces[3];
 
 			this.labels = [
 				[[], [0, 0, 0], [b, d, c], [a, c, d], [b, a, d], [a, b, c]],
@@ -53,8 +58,42 @@ export class DicePreset {
 				[[], [0, 0, 0], [d, b, c], [a, d, c], [d, a, b], [a, c, b]]
 			];
 		} else {
-			Array.prototype.push.apply(this.labels, labels)
+			Array.prototype.push.apply(tab, faces)
 		}
+	}
+
+	setLabels(labels) {
+		this.loadTextures(labels,this.registerFaces.bind(this),"labels");
+	}
+
+	setBumpMaps(normals){
+		this.loadTextures(normals,this.registerFaces.bind(this),"bump");
+	}
+
+	loadTextures(textures,callback,type){
+		let loadedImages = 0;
+		let numImages = textures.length;
+		let regexTexture = /\.(PNG|JPG|GIF|WEBP)/i;
+		let imgElements=Array(textures.length);
+		let hasTextures = false;
+		for (let i = 0;i<numImages;i++) {
+			if(textures[i] == '' || !textures[i].match(regexTexture)) {
+				imgElements[i] = textures[i];
+				++loadedImages
+				continue;
+			}
+			hasTextures = true;
+			imgElements[i] = new Image();
+			imgElements[i].onload = function() {
+	
+				if (++loadedImages >= numImages) {
+					callback(imgElements,type);
+				}
+			};
+			imgElements[i].src = textures[i];
+		}
+		if(!hasTextures)
+			callback(imgElements,type);
 	}
 
 	range(start, stop, step = 1) {

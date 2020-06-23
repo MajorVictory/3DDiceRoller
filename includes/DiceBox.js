@@ -13,7 +13,6 @@ export class DiceBox {
 
 		this.adaptive_timestep = false;
 		this.last_time = 0;
-		this.settle_time = 0;
 		this.running = false;
 		this.rolling = false;
 		this.threadid;
@@ -261,9 +260,10 @@ export class DiceBox {
 
 		if (this.light) this.scene.remove(this.light);
 		this.light = new THREE.SpotLight(this.colors.spotlight, 1.0);
-		this.light.position.set(-maxwidth / 2, maxwidth / 2, maxwidth * 2);
+		this.light.position.set(-maxwidth / 2, maxwidth / 2, maxwidth * 3);
 		this.light.target.position.set(0, 0, 0);
 		this.light.distance = maxwidth * 5;
+		this.light.angle = Math.PI/4;
 		this.light.castShadow = this.shadows;
 		this.light.shadow.camera.near = maxwidth / 10;
 		this.light.shadow.camera.far = maxwidth * 5;
@@ -442,7 +442,6 @@ export class DiceBox {
 			geom.faces[geomindex_value[i]].materialIndex = material_result;
 		}
 
-		dicemesh.resultReason = 'forced';
 		dicemesh.geometry = geom;
 	}
 
@@ -474,7 +473,6 @@ export class DiceBox {
             dicemesh.material = window.DiceRoller.DiceFactory.createMaterials(diceobj, 0, 0, false, num);
         }
 
-		dicemesh.resultReason = 'forced';
 		dicemesh.geometry = geom;
 	}
 
@@ -598,83 +596,81 @@ export class DiceBox {
 		);
 	}
 
-	throwFinished() {
-		let stopped = 0;
-		let stoptimer = (this.framerate * 60) * 50; // 10 more iterations
+	checkForRethrow(dicemesh) {
+		// all dice in a set/dice group will have the same function and arguments due to sorting beforehand
+		// this means the list passed in is the set of dice that need to be affected by this function
+		let diceFunc = (dicemesh.notation.func) ? dicemesh.notation.func.toLowerCase() : '';
+		let funcdata = this.rethrowFunctions[diceFunc];
+
+		let reroll = false;
+			
+		if (diceFunc != '' && funcdata && funcdata.method) {
+
+			diceFunc = dicemesh.notation.func.toLowerCase();
+
+			let diceFuncArgs = dicemesh.notation.args || '';
+			reroll = funcdata.method(dicemesh, diceFuncArgs);
+		}
+
+		return reroll;
+	}
+
+	throwFinished(notationVectors) {
 		if (this.iteration > 1000) return true;
 		if (this.iteration < (10 / this.framerate)) {
 
 			for (let i=0, len=this.diceList.length; i < len; ++i) {
 				let dicemesh = this.diceList[i];
 
-				// use a stoptimer to let the dice settle a bit before reading
-				if (this.solverBodyStopped(dicemesh.body)) {
+				let rethrow = false;
 
-					if (dicemesh.stopped == 0) {
-						dicemesh.stopped = this.iteration + stoptimer;
+				if (dicemesh.body.sleepState < CANNON.Body.SLEEPING) {
+					return false;
+
+				}
+
+				if (dicemesh.body.sleepState == CANNON.Body.SLEEPING) {
+
+					//check for forced roll
+
+					if (dicemesh.result.length == 0) {
+						dicemesh.storeRolledValue('natural');
+
+						rethrow = this.checkForRethrow(dicemesh);
+
+					} else if (dicemesh.result.length > 0 && dicemesh.rerolling) {
+						dicemesh.rerolling = false;
+						dicemesh.storeRolledValue('reroll');
+						
+						rethrow = this.checkForRethrow(dicemesh);
 					}
 
-					if(dicemesh.stopped < this.iteration) {
-						++stopped;
+					if (rethrow) {
+						dicemesh.rerolls += 1;
+						dicemesh.rerolling = true;
+						dicemesh.body.wakeUp();
+						dicemesh.body.type = CANNON.Body.DYNAMIC;
+						dicemesh.body.angularVelocity = new CANNON.Vec3(25, 25, 25);
+						dicemesh.body.velocity = new CANNON.Vec3(0, 0, 3000);
+						return false;
 
-						// store value and check for rerolls on second to last frae
-						// before declaring this dice as stopped
-						if (dicemesh.stopped == this.iteration-1) {
+					} else {
 
-							// all dice in a set/dice group will have the same function and arguments due to sorting beforehand
-							// this means the list passed in is the set of dice that need to be affected by this function
-							let diceFunc = (dicemesh.notation.func) ? dicemesh.notation.func.toLowerCase() : '';
-
-							dicemesh.storeRolledValue();
-
-							if (diceFunc != '') {
-
-								diceFunc = dicemesh.notation.func.toLowerCase();
-
-								let funcdata = this.rethrowFunctions[diceFunc];
-
-								let reroll = false;
-								if (funcdata && funcdata.method) {
-									let method = funcdata.method;
-
-									let diceFuncArgs = dicemesh.notation.args || '';
-									reroll = funcdata.method(dicemesh, diceFuncArgs);
-								}
-
-								if (reroll) {
-									--stopped;
-									dicemesh.rerolls += 1;
-									dicemesh.resultReason = 'reroll';
-									dicemesh.body.angularVelocity = new CANNON.Vec3(25, 25, 25);
-									dicemesh.body.velocity = new CANNON.Vec3(0, 0, 3000);
-
-								// if not rerolling by now, freeze the physics
-								// this prevents rerolls from changing other dice
-								} else {
-
-									dicemesh.body.type = CANNON.Body.KINEMATIC;
-
-								}
-							}
-						}
+						dicemesh.rerolling = false;
+						dicemesh.body.type = CANNON.Body.KINEMATIC;
 					}
-				} else {
-					dicemesh.stopped = 0;
 				}
 			}
 		}
-		return stopped == this.diceList.length;
+		return true;
 	}
 
-	simulateThrow() {
+	simulateThrow(notationVectors) {
 		this.animstate = 'simulate';
 		this.iteration = 0;
-		this.settle_time = 0;
 		this.rolling = true;
-		let steps = 0;
-		while (!this.throwFinished()) {
+		while (!this.throwFinished(notationVectors)) {
 			++this.iteration;
-			steps++;
 			this.world.step(this.framerate);
 		}
 	}
@@ -687,10 +683,14 @@ export class DiceBox {
 		++this.iteration;
 		let neededSteps = Math.floor(time_diff / this.framerate);
 
-		for(let i =0; i < neededSteps; i++) {
+		this.container.style.opacity = '1';
+
+		let throwFinished = this.throwFinished(notationVectors);
+		for(let i = 0; i < neededSteps; i++) {
 			this.world.step(this.framerate);
-			this.steps++;
-			}
+			++this.steps;
+			throwFinished = this.throwFinished(notationVectors);
+		}
 
 		// update physics interactions visually
 		for (let i in this.scene.children) {
@@ -704,8 +704,9 @@ export class DiceBox {
 		this.renderer.render(this.scene, this.camera);
 		this.last_time = this.last_time + neededSteps*this.framerate*1000;
 
+
 		// roll finished
-		if (this.running == threadid && this.throwFinished()) {
+		if (this.running == threadid && throwFinished) {
 			this.running = false;
 			this.rolling = false;
 			if(callback) callback.call(this, notationVectors);
@@ -728,7 +729,7 @@ export class DiceBox {
 		}
 	}
 
-	animateAfterThrow(me,threadid) {
+	animateAfterThrow(threadid) {
 		this.animstate = 'afterthrow';
 		let time = (new Date()).getTime();
 		let time_diff = (time - this.last_time) / 1000;
@@ -956,10 +957,9 @@ export class DiceBox {
 		for (let i=0, len=notationVectors.vectors.length; i < len; ++i) {
 			this.spawnDice(notationVectors.vectors[i]);
 		}
-		this.simulateThrow();
+		this.simulateThrow(notationVectors);
 		this.steps = 0;
 		this.iteration = 0;
-		this.settle_time = 0;
 		
 		//reset dice vectors
 		for (let i=0, len=this.diceList.length; i < len; ++i) {
