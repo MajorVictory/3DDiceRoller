@@ -13,6 +13,7 @@ export class DiceFavorites {
 		this.settings = {
 			allowDiceOverride: { value: '1', default: '1'},
 			shadows: { value: '1', default: '1'},
+			bumpmaps: { value: '1', default: '1'},
 			sounds: { value: '1', default: '1'},
 			volume: { value: '100', default: '100'},
 			system: { value: 'd20', default: 'd20'},
@@ -174,6 +175,9 @@ export class DiceFavorites {
 			if (pos.top + $(this).height() > window.innerHeight) {
 				pos.top = window.innerHeight - $(this).height();
 			}
+
+			if (pos.left < 0) pos.left = 10;
+			if (pos.top < 0) pos.top = 10;
 
 			$(this).offset(pos);
 		});

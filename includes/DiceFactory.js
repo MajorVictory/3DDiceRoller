@@ -418,6 +418,12 @@ export class DiceFactory {
 
 	}
 
+	setBumpMapping(bumpMapping){
+		this.bumpMapping = bumpMapping;
+		this.materials_cache = {};
+		
+	}
+
 	register(diceobj) {
 		this.dice[diceobj.type] = diceobj;
 		this.systems[diceobj.system].dice.push(diceobj.type);
