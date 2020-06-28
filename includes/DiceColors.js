@@ -5,111 +5,164 @@ export const TEXTURELIST = {
 	'cloudy': {
 		name: 'Clouds (Transparent)',
 		composite: 'destination-in',
-		source: './textures/cloudy.png'
+		source: './textures/cloudy.png',
+		bump: './textures/cloudy.alt.png'
 	},
 	'cloudy_2': {
 		name: 'Clouds',
 		composite: 'multiply',
-		source: './textures/cloudy.alt.png'
+		source: './textures/cloudy.alt.png',
+		bump: './textures/cloudy.alt.png'
 	},
 	'fire': {
 		name: 'Fire',
 		composite: 'multiply',
-		source: './textures/fire.png'
+		source: './textures/fire.png',
+		bump: './textures/fire.png'
 	},
 	'marble': {
 		name: 'Marble',
 		composite: 'multiply',
-		source: './textures/marble.png'
+		source: './textures/marble.png',
+		bump: './textures/marble.png'
 	},
 	'water': {
 		name: 'Water',
 		composite: 'destination-in',
-		source: './textures/water.png'
+		source: './textures/water.png',
+		bump: './textures/water.png'
 	},
 	'ice': {
 		name: 'Ice',
 		composite: 'destination-in',
-		source: './textures/ice.png'
+		source: './textures/ice.png',
+		bump: './textures/ice.png'
 	},
 	'paper': {
 		name: 'Paper',
 		composite: 'multiply',
-		source: './textures/paper.png'
+		source: './textures/paper.png',
+		bump: './textures/paper-bump.png'
 	},
 	'speckles': {
 		name: 'Speckles',
 		composite: 'multiply',
-		source: './textures/speckles.png'
+		source: './textures/speckles.png',
+		bump: './textures/speckles.png'
 	},
 	'glitter': {
 		name: 'Glitter',
 		composite: 'multiply',
-		source: './textures/glitter.png'
+		source: './textures/glitter.png',
+		bump: './textures/glitter-bump.png'
 	},
 	'glitter_2': {
 		name: 'Glitter (Transparent)',
 		composite: 'destination-in',
-		source: './textures/glitter-alpha.png'
+		source: './textures/glitter-alpha.png',
+		bump: ''
 	},
 	'stars': {
 		name: 'Stars',
 		composite: 'multiply',
-		source: './textures/stars.png'
+		source: './textures/stars.png',
+		bump: './textures/stars.png'
 	},
 	'stainedglass': {
 		name: 'Stained Glass',
 		composite: 'multiply',
-		source: './textures/stainedglass.png'
+		source: './textures/stainedglass.png',
+		bump: './textures/stainedglass-bump.png'
+	},
+	'wood': {
+		name: 'Wood',
+		composite: 'multiply',
+		source: './textures/wood.png',
+		bump: './textures/wood.png'
+	},
+	'metal': {
+		name: 'Stainless Steel',
+		composite: 'multiply',
+		source: './textures/metal.png',
+		bump: './textures/metal-bump.png'
 	},
 	'skulls': {
 		name: 'Skulls',
 		composite: 'multiply',
-		source: './textures/skulls.png'
+		source: './textures/skulls.png',
+		bump: './textures/skulls.png'
 	},
 	'leopard': {
 		name: 'Leopard',
 		composite: 'multiply',
-		source: './textures/leopard.png'
+		source: './textures/leopard.png',
+		bump: './textures/leopard.png'
 	},
 	'tiger': {
 		name: 'Tiger',
 		composite: 'multiply',
-		source: './textures/tiger.png'
+		source: './textures/tiger.png',
+		bump: './textures/tiger.png'
 	},
 	'cheetah': {
 		name: 'Cheetah',
 		composite: 'multiply',
-		source: './textures/cheetah.png'
+		source: './textures/cheetah.png',
+		bump: './textures/cheetah.png'
+	},
+	'dragon': {
+		name: 'Dragon',
+		composite: 'multiply',
+		source: './textures/dragon.png',
+		bump: './textures/dragon-bump.png'
+	},
+	'lizard': {
+		name: 'Lizard',
+		composite: 'multiply',
+		source: './textures/lizard.png',
+		bump: './textures/lizard.png'
+	},
+	'bird': {
+		name: 'Bird',
+		composite: 'multiply',
+		source: './textures/feather.png',
+		bump: './textures/feather-bump.png'
 	},
 	'astral': {
 		name: 'Astral Sea',
 		composite: 'multiply',
-		source: './textures/astral.png'
+		source: './textures/astral.png',
+		bump: './textures/stars.png'
 	},
 	'acleaf': {
 		name: 'AC Leaf',
 		composite: 'multiply',
-		source: './textures/acleaf.png'
+		source: './textures/acleaf.png',
+		bump: './textures/acleaf.png'
 	},
 	'thecage': {
 		name: 'Nicholas Cage',
 		composite: 'multiply',
-		source: './textures/thecage.png'
+		source: './textures/thecage.png',
+		bump: ''
 	},
 	'isabelle': {
 		name: 'Isabelle',
 		composite: 'source-over',
-		source: './textures/isabelle.png'
+		source: './textures/isabelle.png',
+		bump: ''
 	},
 	'none': {
 		name: 'None',
 		composite: 'source-over',
-		source: ''
+		source: '',
+		bump: ''
 	},
 	'': {
 		name: '~ Preset ~',
-		source: ''
+		composite: 'source-over',
+		source: '',
+		bump: ''
 	}
 };
 
@@ -608,29 +661,62 @@ export class DiceColors {
 
 	constructor() {
 		this.textures = {};
+		this.bumpmaps = {};
 	}
 
 	static ImageLoader(sources, callback) {
 		let images = {};
+		let bumpmaps = {};
 		let loadedImages = 0;
-	
+		let numImages = 0;
+
 		let itemprops = Object.entries(sources);
-		let numImages = itemprops.length;
+		for (const [key, value] of itemprops) {
+			if(value.source != '') {
+				++numImages;
+			}
+			if(value.bump != '') {
+				++numImages;
+			}
+		}
+
+
 		for (const [key, value] of itemprops) {
 	
-			if(value.source == '') {
-				++loadedImages
+			if(value.source == '' && value.bump == '') {
 				continue;
 			}
-	
-			images[key] = new Image();
-			images[key].onload = function() {
-	
-				if (++loadedImages >= numImages) {
-					callback(images);
-				}
+
+			let imagentry = {
+				texture: '',
+				bump: ''
 			};
-			images[key].src = value.source;
+
+			if (value.source != '') {
+	
+				imagentry.texture = new Image();
+				imagentry.texture.onload = function() {
+		
+					if (++loadedImages >= numImages) {
+						callback(images);
+					}
+				};
+				imagentry.texture.src = value.source;
+			}
+
+			if (value.bump != '') {
+	
+				imagentry.bump = new Image();
+				imagentry.bump.onload = function() {
+		
+					if (++loadedImages >= numImages) {
+						callback(images);
+					}
+				};
+				imagentry.bump.src = value.bump;
+			}
+
+			images[key] = imagentry;
 		}
 	}
 		
@@ -669,11 +755,11 @@ export class DiceColors {
 	    }
 
 	    if (!texturename || texturename == '') {
-	        return {name:'',texture:''};
+	        return {name:'',texture:'',composite:'',bump:''};
 	    }
 
 	    if (texturename == 'none') {
-	        return {name:'none',texture:''};
+	        return {name:'none',texture:'',composite:'',bump:''};
 	    }
 
 	    if(texturename == 'random') {
@@ -685,9 +771,14 @@ export class DiceColors {
 	    }
 
 	    if (this.textures[texturename] != null) {
-	        return { name: texturename, texture: this.textures[texturename], composite: TEXTURELIST[texturename].composite };
+	        return {
+	        	name: texturename,
+	        	texture: this.textures[texturename].texture,
+	        	composite: TEXTURELIST[texturename].composite,
+	        	bump: this.textures[texturename].bump || ''
+	        };
 	    }
-	    return {name:'',texture:''};
+	    return {name:'',texture:'',composite:'',bump:''};
 	}
 
 	initColorSets = function() {

@@ -17,6 +17,7 @@ export class DiceRoller {
 		window.DiceFavorites = this.DiceFavorites;
 
         this.DiceFactory = new DiceFactory();
+        this.DiceFactory.setBumpMapping((this.DiceFavorites.settings.bumpmaps.value == '1'));
 		window.DiceFactory = this.DiceFactory;
 
         this.DiceColors = new DiceColors(this);
@@ -46,7 +47,6 @@ export class DiceRoller {
 		this.set = Teal.id('set');
 		this.diceset = [];
 
-		window.addEventListener('message', this.on_receivePostMessage);
 		window.addEventListener('resize', this.on_window_resize);
 		window.addEventListener('beforeunload', this.close_socket);
 		window.DiceRoller = this;
@@ -186,6 +186,17 @@ export class DiceRoller {
 			DiceRoller.DiceFavorites.settings.allowDiceOverride.value = $('#checkbox_allowdiceoverride').prop('checked') ? '1' : '0';
 			DiceRoller.DiceFavorites.storeSettings();
 			if (DiceRoller.DiceRoom) DiceRoller.DiceRoom.show_selector();
+		});
+
+		$('#checkbox_bumpmap').prop('checked', this.DiceFavorites.settings.bumpmaps.value == '1');
+		$('#checkbox_bumpmap').change(function(event) {
+			let DiceRoller = window.DiceRoller;
+			DiceRoller.DiceFavorites.settings.bumpmaps.value = $('#checkbox_bumpmap').prop('checked') ? '1' : '0';
+			DiceRoller.DiceFavorites.storeSettings();
+			if (DiceRoller.DiceRoom) {
+				DiceRoller.DiceFactory.setBumpMapping((DiceRoller.DiceFavorites.settings.bumpmaps.value == '1'));
+				DiceRoller.DiceRoom.show_selector();
+			}
 		});
 
 		$('#checkbox_shadows').prop('checked', this.DiceFavorites.settings.shadows.value == '1');

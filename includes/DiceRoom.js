@@ -206,6 +206,8 @@ export class DiceRoom {
 		window.DiceRoller.DiceFavorites.retrieve();
 		window.DiceRoller.DiceFavorites.ensureOnScreen();
 
+		window.addEventListener('message', this.on_receivePostMessage);
+
 		Teal.bind(Teal.id('clear'), ['mouseup', 'touchend'], this.on_button_clear_notation);
 		Teal.bind(Teal.id('save'), ['mouseup', 'touchend'], this.on_button_create_favorite);
 		
