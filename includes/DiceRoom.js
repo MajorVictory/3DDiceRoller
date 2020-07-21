@@ -133,7 +133,7 @@ export class DiceRoom {
 	sendNetworkedRoll(notationVectors) {
 
 		this.label.innerHTML = this.TealChat.own_user+' is Rolling...';
-		info_div.style.display = 'block';
+		info_div.style.display = this.DiceBox.tally ? 'block' : 'none';
 		Teal.id('sethelp').style.display = 'none';
 		this.deskrolling = true;
 		window.DiceRoller.set_connection_message('');
@@ -190,6 +190,7 @@ export class DiceRoom {
 		this.info_div = Teal.id('info_div');
 		this.selector_div = Teal.id('selector_div');
 		this.params = Teal.get_url_params();
+		this.users = true;
 
 		// actions performed when the server sends a command
 		this.actions = {
@@ -243,7 +244,7 @@ export class DiceRoom {
 			if (!notationVectors || notationVectors.error) {
 
 				// if total display is up and dice aren't rolling, reset the selector
-				if (this.info_div.style.display != 'none') {
+				if (this.DiceBox.animstate == 'afterthrow') {
 					if (!this.DiceBox.rolling) this.show_selector();
 					return;
 				}
@@ -320,7 +321,7 @@ export class DiceRoom {
 		if (loginform) {
 			Teal.remove(loginform);
 			loginform.style.display = 'none';
-			Teal.id('label_players').style.display = "inline-block";
+			Teal.id('label_players').style.display = window.DiceFavorites.settings.users.value == '1' ? 'inline-block' : 'none';
 			this.TealChat.place.style.display = "inline-block";
 			this.TealChat.own_user = res.user;
 
@@ -341,7 +342,7 @@ export class DiceRoom {
 				res.time, this.TealChat.roll_uuid = Teal.uuid(), true);
 
 		this.label.innerHTML = res.user+' is Rolling...';
-		this.info_div.style.display = 'block';
+		this.info_div.style.display = this.DiceBox.tally ? 'block' : 'none';
 		this.deskrolling = true;
 
 		if (res.colorset.length > 0 || res.texture.length > 0) window.DiceColors.applyColorSet(res.colorset, res.texture);
@@ -359,7 +360,7 @@ export class DiceRoom {
 
 			this.label.innerHTML = (results.rolls+'<h2>'+results.labels+' '+results.values+'</h2>');
 
-			this.info_div.style.display = 'block';
+			this.info_div.style.display = this.DiceBox.tally ? 'block' : 'none';
 			Teal.id('labelhelp').style.display = 'block';
 			this.deskrolling = false;
 			this.DiceBox.rolling = false;

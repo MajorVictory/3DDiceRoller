@@ -168,46 +168,53 @@ export const TEXTURELIST = {
 
 export const THEMES = {
 	'default': {
-		name: 'Default Blue',
+		name: 'Solid Color',
 		author: 'MajorVictory',
 		showColorPicker: true,
-		surface: 'wood_tray'
+		surface: 'wood_tray',
+		colors: {fg: '#9794ff', bg: '#0b1a3e'}
 	},
 	'blue-felt': {
 		name: 'Blue Felt',
 		author: 'MajorVictory',
-		showColorPicker: false,
-		surface: 'felt'
+		showColorPicker: true,
+		surface: 'felt',
+		colors: {fg: '#9794ff', bg: '#0b1a3e'}
 	},
 	'red-felt': {
 		name: 'Red Felt',
 		author: 'MajorVictory',
-		showColorPicker: false,
-		surface: 'felt'
+		showColorPicker: true,
+		surface: 'felt',
+		colors: {fg: '#ff9494', bg: '#4d1e1e'}
 	},
 	'green-felt': {
 		name: 'Green Felt',
 		author: 'MajorVictory',
-		showColorPicker: false,
-		surface: 'felt'
+		showColorPicker: true,
+		surface: 'felt',
+		colors: {fg: '#97ff94', bg: '#244d1e'}
 	},
 	'taverntable': {
 		name: 'Old Tavern Table',
 		author: 'MajorVictory',
-		showColorPicker: false,
-		surface: 'wood_table'
+		showColorPicker: true,
+		surface: 'wood_table',
+		colors: {fg: '#9794ff', bg: '#0b1a3e'}
 	},
 	'mahogany': {
 		name: '(Mah-Hog-Any)',
 		author: 'MajorVictory',
-		showColorPicker: false,
-		surface: 'wood_table'
+		showColorPicker: true,
+		surface: 'wood_table',
+		colors: {fg: '#9794ff', bg: '#0b1a3e'}
 	},
 	'stainless': {
 		name: 'Stainless Steel',
 		author: 'MajorVictory',
 		showColorPicker: true,
-		surface: 'metal'
+		surface: 'metal',
+		colors: {fg: '#9794ff', bg: '#0b1a3e'}
 	}
 };
 
@@ -391,6 +398,25 @@ export const COLORSETS = {
 		outline: 'none',
 		texture: 'astral',
 		description: 'The Astral Sea, for Austin'
+	},
+	'dragons': {
+		name: 'Here be Dragons',
+		category: 'Custom Sets',
+		foreground: '#FFFFFF',
+		// 			[ red,       black,     blue,      green      white      gold,      silver,    bronze,    copper     brass
+		background: ['#B80000', '#4D5A5A', '#5BB8FF', '#7E934E', '#FFFFFF', '#F6ED7C', '#7797A3', '#A78437', '#862C1A', '#FFDF8A'],
+		outline: 'black',
+		texture: ['dragon', 'lizard'],
+		description: 'Here be Dragons'
+	},
+	'birdup': {
+		name: 'Bird Up',
+		category: 'Custom Sets',
+		foreground: '#FFFFFF',
+		background: ['#F11602', '#FFC000', '#6EC832', '#0094BC', '#05608D', '#FEABB3', '#F75680', '#F3F0DF', '#C7A57F'],
+		outline: 'black',
+		texture: 'bird',
+		description: 'Bird Up!'
 	},
 	'tigerking': {
 		name: 'Tiger King',
@@ -850,7 +876,7 @@ export class DiceColors {
 
 		if (update && urlargs.length > 0) {
 			Teal.empty(Teal.id('colorname'));
-			Teal.id('colorname').innerHTML = 'Dice Theme: '+colordata.description+' - <a href="?'+urlargs.join('&')+'">🔗</a>';
+			Teal.id('colorname').innerHTML = 'Theme: '+colordata.description+' - <a href="?'+urlargs.join('&')+'">🔗</a>';
 			DiceRoller.DiceFavorites.storeSettings();
 		}
 	}
