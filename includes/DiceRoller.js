@@ -296,7 +296,12 @@ export class DiceRoller {
 			}
 		}
 
-		$('#control_panel').draggable({
+		$('#control_panel').accordion({
+			header: 'fieldset > legend',
+			heightStyle: 'content',
+			collapsible: true,
+			active: false
+		}).draggable({
 			scroll: false,
 			snap: '.fav_draggable, #selector_div, #log, #control_panel',
 			stack: '.fav_draggable, #control_panel',

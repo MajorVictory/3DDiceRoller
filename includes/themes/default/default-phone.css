@@ -473,7 +473,6 @@ body .ui-tooltip {
     margin: 10px;
     padding: 30px 15px 15px 15px;
     border: 2px dashed white;
-    overflow-y: scroll;
 }
 
 #control_panel:hover {

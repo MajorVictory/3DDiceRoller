@@ -33,6 +33,14 @@
 						Expect breakages here!<br>
 						<a href="http://dnd.majorsplace.com/dice/index.html">Click here to visit the stable version</a>
 					</fieldset>
+
+					<fieldset>
+						<legend>Offline Dice</legend>
+						<div class="lform">
+							<button id="button_single" title="Roll for Myself">Roll for Myself</button>
+						</div>
+					</fieldset>
+
 					<fieldset>
 						<legend>Join / Create a Room</legend>
 						<div class="connection_message control_label" style="color:orange">Loading Textures...</div>
@@ -48,13 +56,6 @@
 						</div>
 						<br/>
 						<button id="button_join" title="Join Friends">Join Friends</button>
-					</fieldset>
-
-					<fieldset>
-						<legend>Offline Dice</legend>
-						<div class="lform">
-							<button id="button_single" title="Roll for Myself">Roll for Myself</button>
-						</div>
 					</fieldset>
 					
 					<fieldset>
@@ -122,30 +123,31 @@
 
 	<fieldset id="control_panel" class="noselect" style="display:none;">
 		<legend>Settings</legend>
-		<!-- <ul>
-			<li><a href="#control_panel_tab1">Personal Settings</a></li>
-			<li><a href="#control_panel_tab2">Room Settings</a></li>
-		</ul> -->
-		<div id="control_panel_tab1">
-			<fieldset>
-				<legend>Dice</legend>
+		<fieldset>
+			<legend>Dice</legend>
+			<div>
 				<label id="colorname" class="control_label" for="color">Theme: </label>
 				<select id="color" name="color"></select><select id="texture" name="texture"></select>
 				<label for="checkbox_allowdiceoverride" title="Allow some dice to override your color settings"><input type="checkbox" value='' id="checkbox_allowdiceoverride"> Allow Some Dice to Override Colors</label>
 				<p>Star Wars dice have themes they can use individually.</p>
 				<label for="system" title="Select which type of dice to display">Set:</label>
 				<select id="system" name="system"></select>
-			</fieldset>
-			<fieldset>
-				<legend>Site Theme</legend>
+			</div>
+		</fieldset>
+		<fieldset>
+			<legend>Site Theme</legend>
+			<div>
 				<label for="theme" title="Set an overall color theme for the page">Texture:</label>
 				<select id="theme" name="theme"></select>
-				<label id="fgbglabel">Foreground / Background:</label>
-				<input id="fgcolor" class="control_fgcolor" value="rgb(0,255,0)" />&nbsp;/&nbsp;<input id="bgcolor" class="control_bgcolor" value="rgb(0,255,0)" />
-			</fieldset>
-			<fieldset>
-				<legend>Da Graphecs</legend>
-
+				<label for="fgcolor">Foreground:</label>
+				<input id="fgcolor" class="control_fgcolor" value="rgb(0,255,0)" />
+				<label for="bgcolor">Background:</label>
+				<input id="bgcolor" class="control_bgcolor" value="rgb(0,255,0)" />
+			</div>
+		</fieldset>
+		<fieldset>
+			<legend>Da Graphecs</legend>
+			<div>
 				<label for="checkbox_bumpmap" title="Enable/Disable Bumpmapping"><input type="checkbox" value='' id="checkbox_bumpmap"> Bumpmapping</label>
 				<label for="checkbox_shadows" title="Enable/Disable Shadows"><input type="checkbox" value='' id="checkbox_shadows"> Shadows</label>
 				<p>May speed up rendering.<br>Recommend off for chroma keying.</p>
@@ -159,22 +161,16 @@
 				<p>Can cause lag on older browsers or systems.</p>
 				<label for="volume_slider">Sounds Effects Volume: </label>
 				<div id="volume_slider"><div id="volume_handle" class="ui-slider-handle"></div></div>
-			</fieldset>
-			<fieldset>
-				<legend>Elements</legend>
+			</div>
+		</fieldset>
+		<fieldset>
+			<legend>Elements</legend>
+			<div>
 				<button id="toggle_selector" title="Show/Hide Throw Buttons">Toggle Dice Buttons</button>
 				<label for="checkbox_tally" title="Show/Hide Dice Tally"><input type="checkbox" value='' id="checkbox_tally"> Show Dice Tally</label>
 				<label for="checkbox_users" title="Show/Hide Userlist"><input type="checkbox" value='' id="checkbox_users"> Show Userlist</label>
-			</fieldset>
-			<!-- <button id="reconnect">Reconnect</button>
-			<button id="logout" title="Leave Room and Refresh">Logout</button>-->
-		</div>
-		<!-- <div id="control_panel_tab2">
-			<label for="room_password" title="Select which type of dice to display">Room Password:</label>
-			<input type="text" id="room_password" name="room_password" value="">
-			<label for="room_maxdice" title="Select which type of dice to display">Max Dice:</label>
-			<input type="number" id="room_maxdice" name="room_maxdice" value="">
-		</div> -->
+			</div>
+		</fieldset>
 		<br><br>
 		<div class="connection_message control_label" style="color:orange">Loading Textures...</div>
 		<button id="cp_hidesettings" title="Close Settings Panel">✔️</button>
