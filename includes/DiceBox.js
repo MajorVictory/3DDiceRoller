@@ -67,6 +67,7 @@ export class DiceBox {
 		this.volume = 100;
 		this.soundDelay = 10; // time between sound effects in ms
 		this.animstate = '';
+		this.tally = true;
 
 		this.selector = {
 			animate: true,
@@ -143,6 +144,7 @@ export class DiceBox {
 		this.sounds = window.DiceRoller.DiceFavorites.settings.sounds.value == '1';
 		this.volume = parseInt(window.DiceRoller.DiceFavorites.settings.volume.value);
 		this.shadows = window.DiceRoller.DiceFavorites.settings.shadows.value == '1';
+		this.tally = window.DiceRoller.DiceFavorites.settings.tally.value == '1';
 
 		this.renderer = window.WebGLRenderingContext
 			? new THREE.WebGLRenderer({ antialias: true, alpha: true })

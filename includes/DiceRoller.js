@@ -51,13 +51,6 @@ export class DiceRoller {
 		window.addEventListener('beforeunload', this.close_socket);
 		window.DiceRoller = this;
 
-		// load theme
-		let themeid = this.DiceFavorites.settings.theme.value;
-		if (themeid != 'default') {
-			let headelement = document.getElementsByTagName("head")[0];
-			Teal.element('link', {rel: 'stylesheet', type: 'text/css', href: './includes/themes/'+themeid+'/style.css'}, headelement);
-		}
-
 		// fill in the select box for themes
 		const themeprops = Object.entries(THEMES);
 		for (const [key, value] of themeprops) {
@@ -222,6 +215,22 @@ export class DiceRoller {
 			if (DiceRoller.DiceRoom) DiceRoller.DiceRoom.DiceBox.sounds = (DiceRoller.DiceFavorites.settings.sounds.value == '1');
 		});
 
+		$('#checkbox_tally').prop('checked', this.DiceFavorites.settings.tally.value == '1');
+		$('#checkbox_tally').change(function(event) {
+			let DiceRoller = window.DiceRoller;
+			DiceRoller.DiceFavorites.settings.tally.value = $('#checkbox_tally').prop('checked') ? '1' : '0';
+			DiceRoller.DiceFavorites.storeSettings();
+			if (DiceRoller.DiceRoom) DiceRoller.DiceRoom.DiceBox.tally = (DiceRoller.DiceFavorites.settings.tally.value == '1');
+		});
+
+		$('#checkbox_users').prop('checked', this.DiceFavorites.settings.users.value == '1');
+		$('#checkbox_users').change(function(event) {
+			let DiceRoller = window.DiceRoller;
+			DiceRoller.DiceFavorites.settings.users.value = $('#checkbox_users').prop('checked') ? '1' : '0';
+			DiceRoller.DiceFavorites.storeSettings();
+			Teal.id('label_players').style.display = DiceRoller.DiceFavorites.settings.users.value == '1' ? 'inline-block' : 'none';
+		});
+
 		let volume_handle = $( "#volume_handle" );
 		$('#volume_slider').slider({
 			range: 'min',
@@ -248,7 +257,7 @@ export class DiceRoller {
 
 		$('.control_bgcolor').spectrum({
 			showPalette: true,
-			palette: [['#ff0000','#00ff00','#0000ff'],['#000000','#ffffff'],['#0b1a3e']],
+			palette: [['#ff0000','#00ff00','#0000ff'],['#000000','#ffffff'],['#9794ff', '#0b1a3e']],
 	        color: this.DiceFavorites.settings.bgcolor.value,
 	        showInput: "true",
 	        showAlpha: "false",
@@ -261,17 +270,38 @@ export class DiceRoller {
 			}
 	    });
 
+		$('.control_fgcolor').spectrum({
+			showPalette: true,
+			palette: [['#ff0000','#00ff00','#0000ff'],['#000000','#ffffff'],['#9794ff', '#0b1a3e']],
+	        color: this.DiceFavorites.settings.fgcolor.value,
+	        showInput: "true",
+	        showAlpha: "false",
+	        replacerClassName: 'control_fgcolor',
+	        change: function(color) {
+				let DiceRoller = window.DiceRoller;
+				$(document.body).css('color', color.toHexString());
+				DiceRoller.DiceFavorites.settings.fgcolor.value = color.toHexString();
+				DiceRoller.DiceFavorites.storeSettings();
+			}
+	    });
+
 		let pageThemeInfo = THEMES[this.DiceFavorites.settings.theme.value];
 		if (pageThemeInfo) {
 			if (pageThemeInfo.showColorPicker) {
 				$('.sp-replacer').show();
 				$(document.body).css('background-color', this.DiceFavorites.settings.bgcolor.value);
+				$(document.body).css('color', this.DiceFavorites.settings.fgcolor.value);
 			} else {
 				$('.sp-replacer').hide();
 			}
 		}
 
-		$('#control_panel').draggable({
+		$('#control_panel').accordion({
+			header: 'fieldset > legend',
+			heightStyle: 'content',
+			collapsible: true,
+			active: false
+		}).draggable({
 			scroll: false,
 			snap: '.fav_draggable, #selector_div, #log, #control_panel',
 			stack: '.fav_draggable, #control_panel',
@@ -291,7 +321,9 @@ export class DiceRoller {
 
 				$(this).offset(pos);
 			}
-		});
+		}).tabs();
+
+		this.on_theme_select_change(null, this.DiceFavorites.settings.fgcolor.value, this.DiceFavorites.settings.bgcolor.value);
 	}
 
 	on_window_resize() {
@@ -317,15 +349,40 @@ export class DiceRoller {
 		window.DiceRoller.connect_socket(true);
 	}
 
-	on_theme_select_change(ev) {
+	on_theme_select_change(ev, fgcolor, bgcolor) {
 		let DiceRoller = window.DiceRoller;
 		let themeinfo = THEMES[DiceRoller.theme_select.value];
 		if (!themeinfo) Teal.selectByValue(DiceRoller.theme_select, 'default');
 		Teal.selectByValue(DiceRoller.surface_select, themeinfo.surface);
 		DiceRoller.DiceFavorites.settings.theme.value = DiceRoller.theme_select.value;
 		DiceRoller.DiceFavorites.settings.surface.value = DiceRoller.surface_select.value;
+
+		// load theme
+		if ($('head > link')[1]) $('head > link')[1].remove();
+
+		let themeid = DiceRoller.DiceFavorites.settings.theme.value;
+		if (themeid != 'default') {
+			let headelement = document.getElementsByTagName("head")[0];
+			Teal.element('link', {rel: 'stylesheet', type: 'text/css', href: './includes/themes/'+themeid+'/style.css'}, headelement);
+		}
+
+		let pageThemeInfo = THEMES[DiceRoller.DiceFavorites.settings.theme.value];
+
+		DiceRoller.DiceFavorites.settings.fgcolor.value = fgcolor || pageThemeInfo.colors.fg;
+		DiceRoller.DiceFavorites.settings.bgcolor.value = bgcolor || pageThemeInfo.colors.bg;
 		DiceRoller.DiceFavorites.storeSettings();
-		location.reload();
+
+		if (pageThemeInfo) {
+			if (pageThemeInfo.showColorPicker) {
+				$('.sp-replacer, #fgbglabel').show();
+				$(document.body).css('color', fgcolor || pageThemeInfo.colors.fg);
+				$(document.body).css('background-color', bgcolor || pageThemeInfo.colors.bg);
+				$('.control_fgcolor').spectrum('set', fgcolor || pageThemeInfo.colors.fg);
+				$('.control_bgcolor').spectrum('set', bgcolor || pageThemeInfo.colors.bg);
+			} else {
+				$('.sp-replacer, #fgbglabel').hide();
+			}
+		}
 	}
 
 	on_surface_select_change(ev) {

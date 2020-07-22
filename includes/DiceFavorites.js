@@ -15,10 +15,13 @@ export class DiceFavorites {
 			shadows: { value: '1', default: '1'},
 			bumpmaps: { value: '1', default: '1'},
 			sounds: { value: '1', default: '1'},
+			tally: { value: '1', default: '1'},
+			users: { value: '1', default: '1'},
 			volume: { value: '100', default: '100'},
 			system: { value: 'd20', default: 'd20'},
 			colorset: { value: 'random', default: 'random'},
 			bgcolor: { value: '#0b1a3e', default: '#0b1a3e'},
+			fgcolor: { value: '#9794ff', default: '#9794ff'},
 			surface: { value: 'felt', default: 'felt'},
 			texture: { value: '', default: ''},
 			theme: { value: 'blue-felt', default: 'blue-felt'}
@@ -182,6 +185,15 @@ export class DiceFavorites {
 			$(this).offset(pos);
 		});
 
+		if ($('#control_panel').height() > window.innerHeight) {
+			$('#control_panel').height(window.innerHeight - 10);
+		}
+
+		let cpoffset = $('#control_panel').offset();
+		if (cpoffset.left < 0) cpoffset.left = 10;
+		if (cpoffset.top < 0) cpoffset.top = 10;
+		$('#control_panel').offset(cpoffset);
+
 	}
 
 	store() {
@@ -232,5 +244,6 @@ export class DiceFavorites {
 
 			this.create(entry.name, entry.notation, entry.colorset, entry.texture, entry.x, entry.y);
 		}
+		this.ensureOnScreen();
 	}
 }

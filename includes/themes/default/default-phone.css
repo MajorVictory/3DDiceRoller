@@ -63,7 +63,7 @@ input[type="checkbox"] {
 }
 
 input:hover, select:hover, button:hover, .ui-slider-handle:hover {
-    border-color: #9794ff;
+    border-color: #c0c0c0;
 }
 
 a {
@@ -228,7 +228,6 @@ body .ui-tooltip {
     position: absolute;
     top: 30px;
     left: 10px;
-    background-color: #1e2c4d;
     padding: 2px 5px 0px 5px;
     border: 2px dashed white;
     cursor: move;
@@ -236,7 +235,8 @@ body .ui-tooltip {
 }
 
 .fav_draggable:hover {
-    border: 2px solid #9794ff;
+    border-width: 2px;
+    border-style: solid;
 }
 
 .fav_draggable:hover > legend {
@@ -355,7 +355,8 @@ body .ui-tooltip {
 }
 
 .chat-notation {
-    border: 1px solid #9794ff;
+    border-width: 1px;
+    border-style: solid;
     font-style: normal;
     padding: 0px 3px;
     border-radius: 3px;
@@ -418,7 +419,6 @@ body .ui-tooltip {
     width: 100%;
     position: relative;
     bottom: 5em;
-    background-color: #1e2c4d;
     opacity: 0.75;
     z-index: 10;
     word-wrap: anywhere;
@@ -454,13 +454,13 @@ body .ui-tooltip {
     width: 2em;
 }
 
-#system, #theme {
+#system, #toggle_selector, #toggle_tally {
     width: 15em;
     margin-right: 5px;
     margin-bottom: 5px;
 }
 
-#color, #texture, #surface {
+#color, #texture, #surface, #theme {
     display: inline;
     margin-right: 5px;
     margin-bottom: 5px;
@@ -473,11 +473,11 @@ body .ui-tooltip {
     margin: 10px;
     padding: 30px 15px 15px 15px;
     border: 2px dashed white;
-    background-color: #1e2c4d;
 }
 
 #control_panel:hover {
-    border: 2px solid #9794ff;
+    border-width: 2px;
+    border-style: solid;
     cursor: move;
 }
 
@@ -486,7 +486,7 @@ body .ui-tooltip {
     font-family: Trebuchet MS;
 }
 
-#control_panel div.control_bgcolor {
+#control_panel div.control_bgcolor, #control_panel div.control_fgcolor {
     padding: 0px;
     margin-top: -2px;
     border: solid 2px white;
@@ -494,8 +494,8 @@ body .ui-tooltip {
     background-color: #c0c0c0;
 }
 
-#control_panel div.control_bgcolor:hover {
-    border-color: #9794ff;
+#control_panel div.control_bgcolor:hover, #control_panel div.control_fgcolor:hover {
+    border-color: #c0c0c0;
 }
 
 #control_panel label, #control_panel button, #system {
@@ -503,17 +503,16 @@ body .ui-tooltip {
     margin-bottom: 5px;
 }
 
-div.control_bgcolor > div.sp-preview {
+div.control_bgcolor > div.sp-preview, div.control_fgcolor > div.sp-preview {
     width: 2em;
     height: 1em;
 }
 
-div.control_bgcolor > div.sp-dd {
+div.control_bgcolor > div.sp-dd, div.control_fgcolor > div.sp-dd {
     padding: 0px;
 }
 
 div.sp-container {
-    background-color: #1e2c4d;
     border: solid 2px white;
 }
 
@@ -531,7 +530,7 @@ div.sp-container {
 }
 
 #colorname a:hover, a.sp-cancel:hover {
-    outline: 1px solid #9794ff;
+    outline: 1px solid #c0c0c0;
 }
 
 .hidden {
