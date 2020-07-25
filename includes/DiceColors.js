@@ -152,6 +152,42 @@ export const TEXTURELIST = {
 		source: './textures/isabelle.png',
 		bump: ''
 	},
+	'bronze01': {
+		name: 'bronze01',
+		composite: 'difference',
+		source: './textures/bronze/01.png',
+		bump: ''
+	},
+	'bronze02': {
+		name: 'bronze02',
+		composite: 'difference',
+		source: './textures/bronze/02.png',
+		bump: ''
+	},
+	'bronze03': {
+		name: 'bronze03',
+		composite: 'difference',
+		source: './textures/bronze/03.png',
+		bump: ''
+	},
+	'bronze03a': {
+		name: 'bronze03a',
+		composite: 'difference',
+		source: './textures/bronze/03a.png',
+		bump: ''
+	},
+	'bronze03b': {
+		name: 'bronze03b',
+		composite: 'difference',
+		source: './textures/bronze/03b.png',
+		bump: ''
+	},
+	'bronze04': {
+		name: 'bronze04',
+		composite: 'difference',
+		source: './textures/bronze/04.png',
+		bump: ''
+	},
 	'none': {
 		name: 'None',
 		composite: 'source-over',
@@ -398,6 +434,16 @@ export const COLORSETS = {
 		outline: 'none',
 		texture: 'astral',
 		description: 'The Astral Sea, for Austin'
+	},
+	'bronze': {
+		name: 'Bronze',
+		description: 'Thylean Bronze by @SpencerThayer',
+		category: 'Custom Sets',
+		foreground: ['#FF9159','#FFB066','#FFBF59','#FFD059'],
+		background: ['#705206','#7A4E06','#643100','#7A2D06'],
+		outline: ['#3D2D03','#472D04','#301700','#471A04'],
+		edge: ['#FF5D0D','#FF7B00','#FFA20D','#FFBA0D'],
+		texture: ['bronze01','bronze02','bronze03','bronze03a','bronze03b','bronze04']
 	},
 	'dragons': {
 		name: 'Here be Dragons',
@@ -718,7 +764,7 @@ export class DiceColors {
 				bump: ''
 			};
 
-			if (value.source != '') {
+			if (value.source && value.source != '') {
 	
 				imagentry.texture = new Image();
 				imagentry.texture.onload = function() {
@@ -730,7 +776,7 @@ export class DiceColors {
 				imagentry.texture.src = value.source;
 			}
 
-			if (value.bump != '') {
+			if (value.bump && value.bump != '') {
 	
 				imagentry.bump = new Image();
 				imagentry.bump.onload = function() {
