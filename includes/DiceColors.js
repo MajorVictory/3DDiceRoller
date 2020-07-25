@@ -436,7 +436,7 @@ export const COLORSETS = {
 		description: 'The Astral Sea, for Austin'
 	},
 	'bronze': {
-		name: 'Bronze',
+		name: 'Thylean Bronze',
 		description: 'Thylean Bronze by @SpencerThayer',
 		category: 'Custom Sets',
 		foreground: ['#FF9159','#FFB066','#FFBF59','#FFD059'],
