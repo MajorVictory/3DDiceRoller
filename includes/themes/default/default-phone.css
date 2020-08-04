@@ -454,7 +454,7 @@ body .ui-tooltip {
     width: 2em;
 }
 
-#system, #toggle_selector, #toggle_tally {
+#system, #theme, #toggle_selector, #toggle_tally {
     width: 15em;
     margin-right: 5px;
     margin-bottom: 5px;
@@ -479,6 +479,10 @@ body .ui-tooltip {
     border-width: 2px;
     border-style: solid;
     cursor: move;
+}
+
+#control_panel fieldset {
+    cursor: pointer;
 }
 
 #control_panel div {

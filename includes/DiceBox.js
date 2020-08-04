@@ -49,6 +49,7 @@ export class DiceBox {
 		this.barrier_body_material = new CANNON.Material();
 		this.sounds_table = {};
 		this.sounds_dice = [];
+		this.sounds_coins = [];
 		this.lastSoundType = '';
 		this.lastSoundStep = 0;
 		this.lastSound = 0;
@@ -57,6 +58,7 @@ export class DiceBox {
 		this.barrier;
 		this.camera;
 		this.light;
+		this.light_amb;
 		this.desk;
 		this.pane;
 
@@ -135,6 +137,10 @@ export class DiceBox {
 
 		for (let i=1; i <= 15; ++i) {
 			this.sounds_dice.push(new Audio('./sounds/dicehit'+i+'.wav'));
+		}
+
+		for (let i=1; i <= 6; ++i) {
+			this.sounds_coins.push(new Audio('./sounds/coinhit'+i+'.wav'));
 		}
 
 		Teal.bind(this.container, 'mousemove', function(ev) {
@@ -261,6 +267,7 @@ export class DiceBox {
 		const maxwidth = Math.max(this.display.containerWidth, this.display.containerHeight);
 
 		if (this.light) this.scene.remove(this.light);
+		if (this.light_amb) this.scene.remove(this.light_amb);
 		this.light = new THREE.SpotLight(this.colors.spotlight, 1.0);
 		this.light.position.set(-maxwidth / 2, maxwidth / 2, maxwidth * 3);
 		this.light.target.position.set(0, 0, 0);
@@ -274,6 +281,9 @@ export class DiceBox {
 		this.light.shadow.mapSize.width = 1024;
 		this.light.shadow.mapSize.height = 1024;
 		this.scene.add(this.light);
+
+		this.light_amb = new THREE.AmbientLight( 0x404040 );
+		this.scene.add(this.light_amb);
 
 		if (this.desk) this.scene.remove(this.desk);
 		let shadowplane = new THREE.ShadowMaterial();
@@ -338,25 +348,49 @@ export class DiceBox {
 
 				velvec.x /= dist;
 				velvec.y /= dist;
+				let velocity, angle, axis;
 
-				let velocity = { 
-					x: velvec.x * (boost * notationVectors.boost), 
-					y: velvec.y * (boost * notationVectors.boost), 
-					z: -10
-				};
+				if (diceobj.shape != "d2") {
 
-				let angle = {
-					x: -(Math.random() * vec.y * 5 + diceobj.inertia * vec.y),
-					y: Math.random() * vec.x * 5 + diceobj.inertia * vec.x,
-					z: 0
-				};
+					velocity = { 
+						x: velvec.x * boost, 
+						y: velvec.y * boost, 
+						z: -10
+					};
 
-				let axis = { 
-					x: Math.random(), 
-					y: Math.random(), 
-					z: Math.random(), 
-					a: Math.random()
-				};
+					angle = {
+						x: -(Math.random() * vec.y * 5 + diceobj.inertia * vec.y),
+						y: Math.random() * vec.x * 5 + diceobj.inertia * vec.x,
+						z: 0
+					};
+
+					axis = { 
+						x: Math.random(), 
+						y: Math.random(), 
+						z: Math.random(), 
+						a: Math.random()
+					};
+				} else {
+					//coin flip
+					velocity = { 
+						x: velvec.x * boost / 10, 
+						y: velvec.y * boost / 10, 
+						z: 3000
+					};
+
+					angle = {
+						x: 12 * diceobj.inertia,//-(Math.random() * velvec.y * 50 + diceobj.inertia * velvec.y ) ,
+						y: 1 * diceobj.inertia,//Math.random() * velvec.x * 50 + diceobj.inertia * velvec.x ,
+						z: 0
+					};
+
+					axis = { 
+						x: 1,//Math.random(), 
+						y: 1,//Math.random(), 
+						z: Math.random(), 
+						a: Math.random()
+					};
+				}
 
 				notationVectors.vectors.push({ 
 					type: diceobj.type, 
@@ -417,8 +451,18 @@ export class DiceBox {
 		// except on d10 meshes
 		if (diceobj.shape == 'd10') magic = 1;
 
-		let material_value = (valueindex+magic);
-		let material_result = (resultindex+magic);
+		let material_value, material_result = (resultindex+magic);
+
+		//and D2 meshes have a lot more faces
+		if(diceobj.shape != "d2"){
+			material_value = (valueindex+magic);
+			material_result = (resultindex+magic);
+		} else {
+			material_value = valueindex+1;
+			material_result = resultindex+1;
+		}
+
+		//and probably some third rule eventually...
 
 		for (var i = 0, l = geom.faces.length; i < l; ++i) {
 			const matindex = geom.faces[i].materialIndex;
@@ -498,8 +542,9 @@ export class DiceBox {
 		dicemesh.body.velocity.set(vectordata.velocity.x, vectordata.velocity.y, vectordata.velocity.z);
 		dicemesh.body.linearDamping = 0.1;
 		dicemesh.body.angularDamping = 0.1;
+		dicemesh.body.diceShape = diceobj.shape;
 
-		dicemesh.body.addEventListener('collide', this.eventCollide);
+		dicemesh.body.addEventListener('collide', this.eventCollide.bind(this));
 
 		this.scene.add(dicemesh);
 		this.diceList.push(dicemesh);
@@ -534,12 +579,19 @@ export class DiceBox {
 			let speed = body.velocity.length();
 			// also don't bother playing at low speeds
 			if (speed < 250) return;
+
 			let strength = 0.1;
 			let high = 12000;
 			let low = 250;
 			strength = Math.max(Math.min(speed / (high-low), 1), strength);
 
-			let sound = DiceBox.sounds_dice[Math.floor(Math.random() * DiceBox.sounds_dice.length)];
+			let sound;
+
+			if(body.diceShape != "d2")
+				sound = DiceBox.sounds_dice[Math.floor(Math.random() * DiceBox.sounds_dice.length)];
+			else
+				sound = DiceBox.sounds_coins[Math.floor(Math.random() * DiceBox.sounds_coins.length)];
+
 			sound.volume = (strength * (volume/100));
 			sound.play();
 			DiceBox.lastSoundType = 'dice';
@@ -579,6 +631,7 @@ export class DiceBox {
 		dicemesh.body.velocity.set(velocity.x, velocity.y, velocity.z);
 		dicemesh.body.linearDamping = 0.1;
 		dicemesh.body.angularDamping = 0.1;
+		dicemesh.body.diceShape = dicemesh.shape;
 		dicemesh.body.addEventListener('collide', this.eventCollide);
 		this.world.add(dicemesh.body);
 		dicemesh.body.sleepState = 0;

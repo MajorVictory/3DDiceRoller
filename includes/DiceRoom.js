@@ -119,7 +119,11 @@ export class DiceRoom {
 		Teal.id('sethelp').style.display = 'block';
 		this.deskrolling = false;
 
-		window.DiceColors.applyColorSet(window.DiceRoller.color_select.value, (window.DiceRoller.texture_select.value || null));
+		window.DiceColors.applyColorSet(
+			window.DiceRoller.color_select.value,
+			window.DiceRoller.texture_select.value,
+			window.DiceRoller.material_select.value
+		);
 
 
 		window.setTimeout(() => {
@@ -151,7 +155,8 @@ export class DiceRoom {
 				notation: notationVectors.notation,
 				vectors: notationVectors.vectors,
 				colorset: window.DiceRoller.color_select.value,
-				texture: window.DiceRoller.texture_select.value
+				texture: window.DiceRoller.texture_select.value,
+				material: window.DiceRoller.material_select.value
 			});
 
 		} else {
@@ -200,6 +205,7 @@ export class DiceRoom {
 			chat: this.action_chat,
 			colorset: this.action_colorset,
 			texture: this.action_texture,
+			material: this.action_material,
 			roomlist: this.action_roomlist,
 		};
 
@@ -327,6 +333,7 @@ export class DiceRoom {
 
 			window.DiceRoller.Teal.rpc( { method: 'colorset', colorset: window.DiceRoller.color_select.value });
 			window.DiceRoller.Teal.rpc( { method: 'texture', texture: window.DiceRoller.texture_select.value });
+			window.DiceRoller.Teal.rpc( { method: 'material', texture: window.DiceRoller.material_select.value });
 			window.DiceRoller.on_window_resize();
 		}
 		window.DiceRoller.set_connection_message(' ');
@@ -345,7 +352,9 @@ export class DiceRoom {
 		this.info_div.style.display = this.DiceBox.tally ? 'block' : 'none';
 		this.deskrolling = true;
 
-		if (res.colorset.length > 0 || res.texture.length > 0) window.DiceColors.applyColorSet(res.colorset, res.texture);
+		if (res.colorset.length > 0 || res.texture.length > 0 || res.material.length > 0) {
+			window.DiceColors.applyColorSet(res.colorset, res.texture, res.material, false);
+		}
 
 		if (!window.DiceRoller.Teal.offline) Teal.unpack_vectors(res.vectors);
 
@@ -430,6 +439,9 @@ export class DiceRoom {
 	}
 	action_texture(res) {
 		alert("texture: "+res.texture);
+	}
+	action_material(res) {
+		alert("material: "+res.material);
 	}
 	action_roomlist(res) {
 		console.log(res);

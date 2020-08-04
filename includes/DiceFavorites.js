@@ -24,6 +24,7 @@ export class DiceFavorites {
 			fgcolor: { value: '#9794ff', default: '#9794ff'},
 			surface: { value: 'felt', default: 'felt'},
 			texture: { value: '', default: ''},
+			material: { value: '', default: ''},
 			theme: { value: 'blue-felt', default: 'blue-felt'}
 		};
 

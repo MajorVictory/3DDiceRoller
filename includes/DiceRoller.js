@@ -36,6 +36,7 @@ export class DiceRoller {
 		this.system_select = Teal.id('system');
 		this.color_select = Teal.id('color');
 		this.texture_select = Teal.id('texture');
+		this.material_select = Teal.id('material');
 		this.socket_button = Teal.id('reconnect');
 		this.desk = Teal.id('desk');
 		this.toggle_selector = Teal.id('toggle_selector');
@@ -92,13 +93,27 @@ export class DiceRoller {
 			Teal.element('option', attributes, Teal.id('texture'), value.name);
 		}
 
+		// fill in the select box for materials
+		const materialprops = Object.entries(this.DiceFactory.material_types);
+		for (const [key, value] of materialprops) {
+
+			let attributes = {value: key};
+			if(key == this.DiceFavorites.settings.material.value) attributes['selected'] = 'selected';
+			Teal.element('option', attributes, Teal.id('material'), value.name);
+		}
+
 		
 		this.params = Teal.get_url_params();
 		this.params.colorset = this.DiceFavorites.settings.colorset.value || this.params.colorset;
 		this.params.texture = this.DiceFavorites.settings.texture.value || this.params.texture;
+		this.params.material = this.DiceFavorites.settings.material.value || this.params.material;
 
-		if (this.params.colorset || this.params.texture) {
-			this.DiceColors.applyColorSet((this.params.colorset || 'random'), (this.params.texture || null));
+		if (this.params.colorset || this.params.texture || this.params.material) {
+			this.DiceColors.applyColorSet(
+				(this.params.colorset || 'random'),
+				(this.params.texture || ''),
+				(this.params.material || '')
+			);
 		} else {
 			this.DiceColors.applyColorSet('random');
 		}
@@ -149,6 +164,10 @@ export class DiceRoller {
 		Teal.bind(this.texture_select, 'change', this.on_texture_select_change);
 		Teal.bind(this.texture_select, 'focus', function(ev) { Teal.set(this.desk, { class: '' }); });
 		Teal.bind(this.texture_select, 'blur', function(ev) { Teal.set(this.desk, { class: 'noselect' }); });
+
+		Teal.bind(this.material_select, 'change', this.on_material_select_change);
+		Teal.bind(this.material_select, 'focus', function(ev) { Teal.set(this.desk, { class: '' }); });
+		Teal.bind(this.material_select, 'blur', function(ev) { Teal.set(this.desk, { class: 'noselect' }); });
 
 		Teal.bind(this.control_panel_show, 'click', this.on_control_panel_show);
 		Teal.bind(this.control_panel_hide, 'click', this.on_control_panel_show);
@@ -383,6 +402,12 @@ export class DiceRoller {
 				$('.sp-replacer, #fgbglabel').hide();
 			}
 		}
+
+		if (pageThemeInfo.cubeMap) {
+			window.DiceFactory.setCubeMap('./includes/themes/'+themeid+'/', pageThemeInfo.cubeMap);
+		} else {
+			window.DiceFactory.setCubeMap(false);
+		}
 	}
 
 	on_surface_select_change(ev) {
@@ -402,12 +427,17 @@ export class DiceRoller {
 	on_color_select_change(ev) {
 		let DiceRoller = window.DiceRoller;
 		Teal.selectByValue(DiceRoller.texture_select, '');
-		DiceRoller.DiceColors.applyColorSet(DiceRoller.color_select.value, null);
+		Teal.selectByValue(DiceRoller.material_select, '');
+
+		DiceRoller.DiceColors.applyColorSet(DiceRoller.color_select.value);
+
 		DiceRoller.Teal.rpc( { method: 'colorset', colorset: DiceRoller.color_select.value });
 		DiceRoller.Teal.rpc( { method: 'texture', texture: DiceRoller.texture_select.value });
+		DiceRoller.Teal.rpc( { method: 'material', material: DiceRoller.material_select.value });
 
 		DiceRoller.DiceFavorites.settings.colorset.value = DiceRoller.color_select.value;
 		DiceRoller.DiceFavorites.settings.texture.value = DiceRoller.texture_select.value;
+		DiceRoller.DiceFavorites.settings.material.value = DiceRoller.material_select.value;
 		DiceRoller.DiceFavorites.storeSettings();
 
 		if(DiceRoller.DiceRoom) DiceRoller.DiceRoom.show_selector();
@@ -415,10 +445,21 @@ export class DiceRoller {
 
 	on_texture_select_change(ev) {
 		let DiceRoller = window.DiceRoller;
-		DiceRoller.DiceColors.applyColorSet(DiceRoller.color_select.value, (DiceRoller.texture_select.value || null));
+		DiceRoller.DiceColors.applyColorSet(DiceRoller.color_select.value, DiceRoller.texture_select.value);
 		DiceRoller.Teal.rpc( { method: 'texture', texture: DiceRoller.texture_select.value });
 
 		DiceRoller.DiceFavorites.settings.texture.value = DiceRoller.texture_select.value;
+		DiceRoller.DiceFavorites.storeSettings();
+
+		if(DiceRoller.DiceRoom) DiceRoller.DiceRoom.show_selector();
+	}
+
+	on_material_select_change(ev) {
+		let DiceRoller = window.DiceRoller;
+		DiceRoller.DiceColors.applyColorSet(DiceRoller.color_select.value, DiceRoller.texture_select.value, DiceRoller.material_select.value);
+		DiceRoller.Teal.rpc( { method: 'material', material: DiceRoller.material_select.value });
+
+		DiceRoller.DiceFavorites.settings.material.value = DiceRoller.material_select.value;
 		DiceRoller.DiceFavorites.storeSettings();
 
 		if(DiceRoller.DiceRoom) DiceRoller.DiceRoom.show_selector();
