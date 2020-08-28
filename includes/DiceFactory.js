@@ -677,7 +677,6 @@ export class DiceFactory {
 						if(size > 45)
 							scale = 4;
 						mat.bumpScale = scale;
-						console.log("bs: "+mat.bumpScale);
 					}
 
 					if (canvasTextures.bump) {
@@ -939,7 +938,14 @@ export class DiceFactory {
 		return {composite:compositetexture,bump:bumpMap};
 	}
 
-	applyColorSet(colordata) {
+	applyColorSet(colordata, texture) {
+
+		if (typeof colordata === 'string') {
+			colordata = window.DiceColors.getColorSet(colordata);
+		}
+
+		texture = texture || colordata.texture;
+
 		this.colordata = colordata;
 		this.label_color = colordata.foreground;
 		this.dice_color = colordata.background;
@@ -964,7 +970,7 @@ export class DiceFactory {
 		let prevmaterial = this.dice_material;
 
 		if (colorset) {
-			let colordata = DiceColors.getColorSet(colorset);
+			let colordata = window.DiceColors.getColorSet(colorset);
 
 			if (this.colordata.id != colordata.id) {
 				this.applyColorSet(colordata);

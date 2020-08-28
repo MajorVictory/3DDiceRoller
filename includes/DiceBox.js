@@ -1,7 +1,6 @@
 "use strict";
 import {Teal} from './Teal.js';
 import {DiceNotation} from './DiceNotation.js';
-import {DiceColors} from './DiceColors.js';
 export class DiceBox {
 
 	constructor(element_container, vector2_dimensions, dice_factory, dice_favorites) {
