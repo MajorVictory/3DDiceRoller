@@ -18,73 +18,85 @@ export const TEXTURELIST = {
 		name: 'Fire',
 		composite: 'multiply',
 		source: './textures/fire.png',
-		bump: './textures/fire.png'
+		bump: './textures/fire.png',
+		material: 'metal'
 	},
 	'marble': {
 		name: 'Marble',
 		composite: 'multiply',
 		source: './textures/marble.png',
-		bump: './textures/marble.png'
+		bump: '',
+		material: 'glass'
 	},
 	'water': {
 		name: 'Water',
 		composite: 'destination-in',
 		source: './textures/water.png',
-		bump: './textures/water.png'
+		bump: './textures/water.png',
+		material: 'glass'
 	},
 	'ice': {
 		name: 'Ice',
 		composite: 'destination-in',
 		source: './textures/ice.png',
-		bump: './textures/ice.png'
+		bump: './textures/ice.png',
+		material: 'glass'
 	},
 	'paper': {
 		name: 'Paper',
 		composite: 'multiply',
 		source: './textures/paper.png',
-		bump: './textures/paper-bump.png'
+		bump: './textures/paper-bump.png',
+		material: 'wood'
 	},
 	'speckles': {
 		name: 'Speckles',
 		composite: 'multiply',
 		source: './textures/speckles.png',
-		bump: './textures/speckles.png'
+		bump: './textures/speckles.png',
+		material: 'none'
 	},
 	'glitter': {
 		name: 'Glitter',
 		composite: 'multiply',
 		source: './textures/glitter.png',
-		bump: './textures/glitter-bump.png'
+		bump: './textures/glitter-bump.png',
+		material: 'none'
 	},
 	'glitter_2': {
 		name: 'Glitter (Transparent)',
 		composite: 'destination-in',
 		source: './textures/glitter-alpha.png',
-		bump: ''
+		bump: '',
+		material: 'none'
 	},
 	'stars': {
 		name: 'Stars',
 		composite: 'multiply',
 		source: './textures/stars.png',
-		bump: './textures/stars.png'
+		bump: './textures/stars.png',
+		material: 'none'
 	},
 	'stainedglass': {
 		name: 'Stained Glass',
 		composite: 'multiply',
 		source: './textures/stainedglass.png',
-		bump: './textures/stainedglass-bump.png'
+		bump: './textures/stainedglass-bump.png',
+		material: 'glass'
 	},
 	'wood': {
 		name: 'Wood',
 		composite: 'multiply',
 		source: './textures/wood.png',
-		bump: './textures/wood.png'
+		bump: './textures/wood.png',
+		material: 'wood'
 	},
 	'metal': {
 		name: 'Stainless Steel',
 		composite: 'multiply',
 		source: './textures/metal.png',
-		bump: './textures/metal-bump.png'
+		bump: './textures/metal-bump.png',
+		material: 'metal'
 	},
 	'skulls': {
 		name: 'Skulls',
@@ -96,109 +108,127 @@ export const TEXTURELIST = {
 		name: 'Leopard',
 		composite: 'multiply',
 		source: './textures/leopard.png',
-		bump: './textures/leopard.png'
+		bump: './textures/leopard.png',
+		material: 'wood'
 	},
 	'tiger': {
 		name: 'Tiger',
 		composite: 'multiply',
 		source: './textures/tiger.png',
-		bump: './textures/tiger.png'
+		bump: './textures/tiger.png',
+		material: 'wood'
 	},
 	'cheetah': {
 		name: 'Cheetah',
 		composite: 'multiply',
 		source: './textures/cheetah.png',
-		bump: './textures/cheetah.png'
+		bump: './textures/cheetah.png',
+		material: 'wood'
 	},
 	'dragon': {
 		name: 'Dragon',
 		composite: 'multiply',
 		source: './textures/dragon.png',
-		bump: './textures/dragon-bump.png'
+		bump: './textures/dragon-bump.png',
+		material: 'none'
 	},
 	'lizard': {
 		name: 'Lizard',
 		composite: 'multiply',
 		source: './textures/lizard.png',
-		bump: './textures/lizard.png'
+		bump: './textures/lizard.png',
+		material: 'none'
 	},
 	'bird': {
 		name: 'Bird',
 		composite: 'multiply',
 		source: './textures/feather.png',
-		bump: './textures/feather-bump.png'
+		bump: './textures/feather-bump.png',
+		material: 'wood'
 	},
 	'astral': {
 		name: 'Astral Sea',
 		composite: 'multiply',
 		source: './textures/astral.png',
-		bump: './textures/stars.png'
+		bump: './textures/stars.png',
+		material: 'none'
 	},
 	'acleaf': {
 		name: 'AC Leaf',
 		composite: 'multiply',
 		source: './textures/acleaf.png',
-		bump: './textures/acleaf.png'
+		bump: './textures/acleaf.png',
+		material: 'none'
 	},
 	'thecage': {
 		name: 'Nicholas Cage',
 		composite: 'multiply',
 		source: './textures/thecage.png',
-		bump: ''
+		bump: '',
+		material: 'metal'
 	},
 	'isabelle': {
 		name: 'Isabelle',
 		composite: 'source-over',
 		source: './textures/isabelle.png',
-		bump: ''
+		bump: '',
+		material: 'none'
 	},
 	'bronze01': {
 		name: 'bronze01',
 		composite: 'difference',
 		source: './textures/bronze/01.png',
-		bump: ''
+		bump: '',
+		material: 'metal'
 	},
 	'bronze02': {
 		name: 'bronze02',
 		composite: 'difference',
 		source: './textures/bronze/02.png',
-		bump: ''
+		bump: '',
+		material: 'metal'
 	},
 	'bronze03': {
 		name: 'bronze03',
 		composite: 'difference',
 		source: './textures/bronze/03.png',
-		bump: ''
+		bump: '',
+		material: 'metal'
 	},
 	'bronze03a': {
 		name: 'bronze03a',
 		composite: 'difference',
 		source: './textures/bronze/03a.png',
-		bump: ''
+		bump: '',
+		material: 'metal'
 	},
 	'bronze03b': {
 		name: 'bronze03b',
 		composite: 'difference',
 		source: './textures/bronze/03b.png',
-		bump: ''
+		bump: '',
+		material: 'metal'
 	},
 	'bronze04': {
 		name: 'bronze04',
 		composite: 'difference',
 		source: './textures/bronze/04.png',
-		bump: ''
+		bump: '',
+		material: 'metal'
 	},
 	'none': {
 		name: 'None',
 		composite: 'source-over',
 		source: '',
-		bump: ''
+		bump: '',
+		material: ''
 	},
 	'': {
 		name: '~ Preset ~',
 		composite: 'source-over',
 		source: '',
-		bump: ''
+		bump: '',
+		material: ''
 	}
 };
 
@@ -208,53 +238,96 @@ export const THEMES = {
 		author: 'MajorVictory',
 		showColorPicker: true,
 		surface: 'wood_tray',
-		colors: {fg: '#9794ff', bg: '#0b1a3e'}
+		colors: {fg: '#9794ff', bg: '#0b1a3e'},
+		cubeMap: ['envmap.jpg','envmap.jpg','envmap.jpg','envmap.jpg','envmap.jpg','envmap.jpg']
 	},
 	'blue-felt': {
 		name: 'Blue Felt',
 		author: 'MajorVictory',
 		showColorPicker: true,
 		surface: 'felt',
-		colors: {fg: '#9794ff', bg: '#0b1a3e'}
+		colors: {fg: '#9794ff', bg: '#0b1a3e'},
+		// ['', '', 'top', 'bottom', '', ''] -- looking down/camera view
+		cubeMap: ['envmap.jpg','envmap.jpg','envmap.jpg','envmap.jpg','envmap.jpg','envmap.jpg']
 	},
 	'red-felt': {
 		name: 'Red Felt',
 		author: 'MajorVictory',
 		showColorPicker: true,
 		surface: 'felt',
-		colors: {fg: '#ff9494', bg: '#4d1e1e'}
+		colors: {fg: '#ff9494', bg: '#4d1e1e'},
+		cubeMap: ['envmap.jpg','envmap.jpg','envmap.jpg','envmap.jpg','envmap.jpg','envmap.jpg']
 	},
 	'green-felt': {
 		name: 'Green Felt',
 		author: 'MajorVictory',
 		showColorPicker: true,
 		surface: 'felt',
-		colors: {fg: '#97ff94', bg: '#244d1e'}
+		colors: {fg: '#97ff94', bg: '#244d1e'},
+		// ['', '', 'top', 'bottom', '', ''] -- looking down/camera view
+		cubeMap: ['envmap.jpg','envmap.jpg','envmap.jpg','envmap.jpg','envmap.jpg','envmap.jpg']
 	},
 	'taverntable': {
 		name: 'Old Tavern Table',
 		author: 'MajorVictory',
 		showColorPicker: true,
 		surface: 'wood_table',
-		colors: {fg: '#9794ff', bg: '#0b1a3e'}
+		colors: {fg: '#9794ff', bg: '#0b1a3e'},
+		cubeMap: ['px.png', 'nx.png', 'py.png', 'ny.png', 'pz.png', 'nz.png']
 	},
 	'mahogany': {
 		name: '(Mah-Hog-Any)',
 		author: 'MajorVictory',
 		showColorPicker: true,
 		surface: 'wood_table',
-		colors: {fg: '#9794ff', bg: '#0b1a3e'}
+		colors: {fg: '#9794ff', bg: '#0b1a3e'},
+		cubeMap: ['px.png', 'nx.png', 'py.png', 'ny.png', 'pz.png', 'nz.png']
 	},
 	'stainless': {
 		name: 'Stainless Steel',
 		author: 'MajorVictory',
 		showColorPicker: true,
 		surface: 'metal',
-		colors: {fg: '#9794ff', bg: '#0b1a3e'}
+		colors: {fg: '#9794ff', bg: '#0b1a3e'},
+		cubeMap: ['px.png', 'nx.png', 'py.png', 'ny.png', 'pz.png', 'nz.png']
+	},
+	'cyberpunk': {
+		name: 'Neo-New-Future-City',
+		author: 'MajorVictory',
+		showColorPicker: true,
+		surface: 'metal',
+		colors: {fg: '#3494A6', bg: '#440B28'},
+		cubeMap: ['px.png', 'nx.png', 'py.png', 'ny.png', 'pz.png', 'nz.png']
+	},
+	'cagetown': {
+		name: 'Cage Town',
+		author: 'MajorVictory',
+		showColorPicker: true,
+		surface: 'wood_table',
+		colors: {fg: '#D7A866', bg: '#282811'},
+		cubeMap: ['px.png', 'nx.png', 'py.png', 'ny.png', 'pz.png', 'nz.png']
 	}
 };
 
 export const COLORSETS = {
+	'coin_default': {
+		name: 'Gold Coin',
+		description: 'Gold Dragonhead Coin',
+		category: 'Other',
+		foreground: '#f6c928',
+		background: '#f6c928',
+		outline: 'none',
+		texture: 'metal'
+	},
+	'coin_silver': {
+		name: 'Silver Coin',
+		description: 'Gold Dragonhead Coin',
+		category: 'Other',
+		foreground: '#f6c928',
+		background: '#f6c928',
+		outline: 'none',
+		texture: 'metal'
+	},
 	'radiant': {
 		name: 'Radiant',
 		category: 'Damage Types',
@@ -821,17 +894,19 @@ export class DiceColors {
 	        for(let i = 0, l = texturename.length; i < l; i++){
 	            if (typeof texturename[i] == 'string') {
 	                textures.push(this.getTexture(texturename[i]));
+	            } else if (typeof texturename[i].name == 'string') {
+	                textures.push(this.getTexture(texturename[i].name));
 	            }
 	        }
 	        return textures;
 	    }
 
 	    if (!texturename || texturename == '') {
-	        return {name:'',texture:'',composite:'',bump:''};
+	        return {name:'',texture:'',composite:'',bump:'',data:{}};
 	    }
 
 	    if (texturename == 'none') {
-	        return {name:'none',texture:'',composite:'',bump:''};
+	        return {name:'none',texture:'',composite:'',bump:'',data:{}};
 	    }
 
 	    if(texturename == 'random') {
@@ -847,10 +922,11 @@ export class DiceColors {
 	        	name: texturename,
 	        	texture: this.textures[texturename].texture,
 	        	composite: TEXTURELIST[texturename].composite,
-	        	bump: this.textures[texturename].bump || ''
+	        	bump: this.textures[texturename].bump || '',
+	        	data: TEXTURELIST[texturename]
 	        };
 	    }
-	    return {name:'',texture:'',composite:'',bump:''};
+	    return {name:'',texture:'',composite:'',bump:'',data:{}};
 	}
 
 	initColorSets() {
@@ -880,44 +956,40 @@ export class DiceColors {
 		}
 	}
 
-	applyColorSet(colorset, texture = null, update = true) {
+	applyColorSet(colorsetid, texture = '', material = '', update = true) {
 
 		var urlargs = [];
-		var colordata = this.getColorSet(colorset);
+		var colordata = this.getColorSet(colorsetid);
 
-		if (colorset && colorset.length > 0) {
-
+		if (colorsetid && colorsetid.length > 0) {
 			DiceRoller.DiceFactory.applyColorSet(colordata);
 
-			urlargs.push('colorset='+colorset);
 
-			if (update) {
-				Teal.selectByValue(Teal.id('color'), colorset);
-				DiceRoller.DiceFavorites.settings.colorset.value = colorset;
+			if (texture == '' && !Array.isArray(colordata.texture)) {
+				texture = colordata.texture.name;
+
+				if (material == '' && !Array.isArray(colordata.texture.data)) {
+					material = colordata.texture.data.material || '';
+				}
 			}
+
 		}
 
-		if (texture || (colordata.texture && !Array.isArray(colordata.texture))) {
+		if (texture != '') DiceRoller.DiceFactory.applyTexture(this.getTexture(texture));
+		if (material != '') DiceRoller.DiceFactory.applyMaterial(material);
 
-			var texturedata = this.getTexture((texture || colordata.texture.name));
+		if (update) {
+			Teal.selectByValue(Teal.id('color'), colorsetid);
+			if (texture != '') Teal.selectByValue(Teal.id('texture'), texture);
+			if (material != '') Teal.selectByValue(Teal.id('material'), material);
 
-			let tex = Array.isArray(texturedata) ? '' : texturedata;
+			urlargs.push('colorset='+colorsetid);
+			if (texture != '') urlargs.push('texture='+texture);
+			if (material != '') urlargs.push('material='+material);
 
-			if (texturedata.name) {
-				DiceRoller.DiceFactory.applyTexture(texturedata);
-			}
-
-			urlargs.push('texture='+tex.name);
-
-			if (update) {
-				Teal.selectByValue(Teal.id('texture'), tex.name);
-				DiceRoller.DiceFavorites.settings.texture.value = tex.name;
-			}
-		} else {
-			if (update) {
-				Teal.selectByValue(Teal.id('texture'), '');
-				DiceRoller.DiceFavorites.settings.texture.value = '';
-			}
+			DiceRoller.DiceFavorites.settings.colorset.value = colorsetid;
+			DiceRoller.DiceFavorites.settings.texture.value = (texture || '');
+			DiceRoller.DiceFavorites.settings.material.value = (material || '');
 		}
 
 		if (update && urlargs.length > 0) {

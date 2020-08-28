@@ -42,7 +42,7 @@ export class DicePreset {
 		}
 		
 		tab.push('');
-		if(this.shape != 'd10') tab.push('');
+		if(!["d2","d10"].includes(this.shape)) tab.push('');
 
 		if (this.shape == 'd4') {
 
@@ -73,7 +73,7 @@ export class DicePreset {
 	loadTextures(textures,callback,type){
 		let loadedImages = 0;
 		let numImages = textures.length;
-		let regexTexture = /\.(PNG|JPG|GIF|WEBP)/i;
+		let regexTexture = /\.(PNG|JPG|GIF|WEBP)$/i;
 		let imgElements=Array(textures.length);
 		let hasTextures = false;
 		for (let i = 0;i<numImages;i++) {

@@ -58,6 +58,15 @@
 					<fieldset style="text-align: left">
 						<legend>What's New</legend>
 						<div class="lform">
+							<h2>August 28, 2020</h2>
+							<ul>
+								<li>Bugfix: fixed loading error for some phone browsers</li>
+								<li>Bugfix: fixed issue where settings were not responding to touch input.</li>
+								<li>New: Materials! Textures can now be shiny or dull.</li>
+								<li>New: Coin™! A coin (1dc) has been added to the D20 set.</li>
+								<li>New Site Themes: 'Neo-New-Future-City' and 'Cage Town'</li>
+								<li>Lighting has been updated, all themes now have a proper cubemap for reflections.</li>
+							</ul>
 							<h2>July 25, 2020</h2>
 							<ul>
 								<li>New Textures: Bronze (01, 02, 03, 03a, 03b, 04) submitted by @SpencerThayer</li>
@@ -145,7 +154,7 @@
 			<legend>Dice</legend>
 			<div>
 				<label id="colorname" class="control_label" for="color">Theme: </label>
-				<select id="color" name="color"></select><select id="texture" name="texture"></select>
+				<select id="color" name="color"></select><select id="texture" name="texture"></select><select id="material" name="material"></select>
 				<label for="checkbox_allowdiceoverride" title="Allow some dice to override your color settings"><input type="checkbox" value='' id="checkbox_allowdiceoverride"> Allow Some Dice to Override Colors</label>
 				<p>Star Wars dice have themes they can use individually.</p>
 				<label for="system" title="Select which type of dice to display">Set:</label>
@@ -155,7 +164,7 @@
 		<fieldset>
 			<legend>Site Theme</legend>
 			<div>
-				<label for="theme" title="Set an overall color theme for the page">Texture:</label>
+				<label for="theme" title="Set an overall color theme for the page">Theme:</label>
 				<select id="theme" name="theme"></select>
 				<label for="fgcolor">Foreground:</label>
 				<input id="fgcolor" class="control_fgcolor" value="rgb(0,255,0)" />

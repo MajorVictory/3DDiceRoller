@@ -18,6 +18,7 @@ export class DiceFactory {
 		this.edge_color = '';
 		this.label_outline = '';
 		this.dice_texture = '';
+		this.dice_material = '';
 		this.bumpMapping = true;
 
 		this.material_options = {
@@ -25,6 +26,45 @@ export class DiceFactory {
 			color: 0xb5b5b5,
 			shininess: 5,
 			flatShading: true
+		};
+
+		this.cubeMap;
+
+		this.material_types = {
+			'': {
+				name: '~ Preset ~'
+			},
+			'none': {
+				name: 'Plastic'
+			},
+			'perfectmetal': {
+				name: 'Perfect Metal',
+				color: 0xdddddd,
+				roughness: 0,
+				metalness: 1,
+				envMapIntensity: 1
+			},
+			'metal': {
+				name: 'Metal',
+				color: 0xdddddd,
+				roughness: 0.5,
+				metalness: 0.6,
+				envMapIntensity: 1
+			},
+			'wood': {
+				name: 'Wood',
+				color: 0xdddddd,
+				roughness: 0.9,
+				metalness: 0.0,
+				envMapIntensity: 1
+			},
+			'glass': {
+				name: 'Glass',
+				color: 0xdddddd,
+				roughness: 0.1,
+				metalness: 0.0,
+				envMapIntensity: 1
+			}
 		};
 
 		this.canvas;
@@ -47,7 +87,35 @@ export class DiceFactory {
 			'all': {id: 'alldice', name: 'ALL THE DICE', dice:[]},
 		};
 
-		let diceobj = new DicePreset('d1', 'd6');
+		let diceobj;
+		diceobj = new DicePreset('d2');
+		diceobj.name = 'd2';
+		diceobj.setLabels(['1','2']);
+		diceobj.setValues(1,2);
+		diceobj.inertia = 8;
+		diceobj.mass = 400;
+		diceobj.scale = 0.9;
+		diceobj.system = 'dweird';
+		this.register(diceobj);
+		
+		diceobj = new DicePreset('dc','d2');
+		diceobj.name = 'Coin';
+		diceobj.setLabels([
+			'./textures/silvercoin/tail.png',
+			'./textures/silvercoin/heads.png'
+		]);
+		diceobj.setBumpMaps([
+			'./textures/silvercoin/tail_bump.png',
+			'./textures/silvercoin/heads_bump.png'
+		]);
+		diceobj.setValues(0,1);
+		diceobj.inertia = 8;
+		diceobj.mass = 400;
+		diceobj.scale = 0.9;
+		diceobj.colorset = "coin_silver"
+		this.register(diceobj);
+
+		diceobj = new DicePreset('d1', 'd6');
 		diceobj.name = 'One-sided Dice';
 		diceobj.setLabels(['1']);
 		diceobj.setValues(1,1);
@@ -55,13 +123,13 @@ export class DiceFactory {
 		diceobj.system = 'dweird';
 		this.register(diceobj);
 
-		diceobj = new DicePreset('d2', 'd6');
+		/*diceobj = new DicePreset('d2', 'd6');
 		diceobj.name = 'Two-Sided Dice';
 		diceobj.setLabels(['1', '2']);
 		diceobj.setValues(1,2);
 		diceobj.scale = 0.9;
 		diceobj.system = 'dweird';
-		this.register(diceobj);
+		this.register(diceobj);*/
 
 		diceobj = new DicePreset('d3', 'd6');
 		diceobj.name = 'Three-Sided Dice';
@@ -424,6 +492,18 @@ export class DiceFactory {
 
 	}
 
+	setCubeMap(basepath, sources) {
+
+		if (basepath === false) {
+			this.cubeMap = null;
+			return;
+		}
+
+		let loader = new THREE.CubeTextureLoader();
+		loader.setPath(basepath);
+		this.cubeMap = loader.load(sources);
+	}
+
 	register(diceobj) {
 		this.dice[diceobj.type] = diceobj;
 		this.systems[diceobj.system].dice.push(diceobj.type);
@@ -477,7 +557,7 @@ export class DiceFactory {
 
 				return {value: matindex, label: diceobj.labels[matindex-1][labelindex2][0], reason: reason};
 			}
-			if (this.shape == 'd10') matindex += 1;
+			if (['d10','d2'].includes(this.shape)) matindex += 1;
 
 			let value = diceobj.values[((matindex-1) % diceobj.values.length)];
 			let label = diceobj.labels[(((matindex-1) % (diceobj.labels.length-2))+2)];
@@ -518,12 +598,23 @@ export class DiceFactory {
 			dicemesh.material[0].needsUpdate = true;
 		}
 
-		switch (type) {
+		/*switch (type) {
 			case 'd1':
 				return this.fixmaterials(dicemesh, 1);
 			case 'd2':
 				return this.fixmaterials(dicemesh, 2);
 			case 'd3': case 'df': case 'dset': 
+				return this.fixmaterials(dicemesh, 3);
+			default:
+				return dicemesh;
+		}*/
+
+		switch (diceobj.values.length) {
+			case 1:
+				return this.fixmaterials(dicemesh, 1);
+			case 2:
+				return this.fixmaterials(dicemesh, 2);
+			case 3: 
 				return this.fixmaterials(dicemesh, 3);
 			default:
 				return dicemesh;
@@ -549,7 +640,18 @@ export class DiceFactory {
 		}
 		
 		for (var i = 0; i < labels.length; ++i) {
-			var mat = new THREE.MeshPhongMaterial(this.material_options);
+			var mat;
+			if (this.dice_material != 'none') {
+				mat = new THREE.MeshStandardMaterial(this.material_types[this.dice_material]);
+				if (this.cubeMap) {
+					mat.envMap = this.cubeMap;
+				} else {
+					mat.envMapIntensity = 0;
+				}
+			} else {
+				mat = new THREE.MeshPhongMaterial(this.material_options);
+			}
+
 			let canvasTextures;
 			if (i==0) { //edge
 				//if the texture is fully opaque, we do not use it for edge
@@ -609,11 +711,20 @@ export class DiceFactory {
 
 		let text = labels[index];
 		let isTexture = false;
+		let textCache = text;
+		if (text instanceof HTMLImageElement) {
+			textCache = text.src;
+		} else if (text instanceof Array) {
+			text.forEach(el => {
+				textCache += el.src;
+			});
+		}
+
 
 		// an attempt at materials caching
-		let cachestring = diceobj.type + text + index + texture.name + forecolor + outlinecolor + backcolor;
+		let cachestring = diceobj.type + textCache + index + texture.name + forecolor + outlinecolor + backcolor;
 		if (diceobj.shape == 'd4') {
-			cachestring = diceobj.type + text.join() + texture.name + forecolor + outlinecolor + backcolor;
+			cachestring = diceobj.type + textCache + texture.name + forecolor + outlinecolor + backcolor;
 		}
 		if (allowcache && this.materials_cache[cachestring] != null) {
 			this.cache_hits++;
@@ -840,6 +951,7 @@ export class DiceFactory {
 		this.dice_color = colordata.background;
 		this.label_outline = colordata.outline;
 		this.dice_texture = colordata.texture;
+		this.dice_material = (colordata?.texture?.material || colordata?.texture[0]?.material || '');
 		this.edge_color = colordata.hasOwnProperty("edge") ? colordata.edge:colordata.background;
 	}
 
@@ -847,9 +959,15 @@ export class DiceFactory {
 		this.dice_texture = texture;
 	}
 
+	applyMaterial(material) {
+		this.dice_material = material;
+	}
+
 	setMaterialInfo(colorset = '') {
 
 		let prevcolordata = this.colordata;
+		let prevtexture = this.dice_texture;
+		let prevmaterial = this.dice_material;
 
 		if (colorset) {
 			let colordata = window.DiceColors.getColorSet(colorset);
@@ -864,6 +982,7 @@ export class DiceFactory {
 		this.label_color_rand = '';
 		this.label_outline_rand = '';
 		this.dice_texture_rand = '';
+		this.dice_material_rand = '';
 		this.edge_color_rand = '';
 
 		// set base color first
@@ -883,6 +1002,7 @@ export class DiceFactory {
 			// if texture list is same length do the same
 			if (Array.isArray(this.dice_texture) && this.dice_texture.length == this.dice_color.length) {
 				this.dice_texture_rand = this.dice_texture[colorindex];
+				this.dice_material_rand = this.dice_texture_rand.material;
 			}
 
 			//if edge list and color list are same length, treat them as a parallel list
@@ -935,12 +1055,23 @@ export class DiceFactory {
 		// same for textures list
 		if (this.dice_texture_rand == '' && Array.isArray(this.dice_texture)) {
 			this.dice_texture_rand = this.dice_texture[Math.floor(Math.random() * this.dice_texture.length)];
+			this.dice_material_rand = this.dice_texture_rand.material || this.dice_material;
 		} else if (this.dice_texture_rand == '') {
 			this.dice_texture_rand = this.dice_texture;
+			this.dice_material_rand = this.dice_texture_rand.material || this.dice_material;
+		}
+
+		//apply material
+		if (this.dice_material_rand == '' && Array.isArray(this.dice_material)) {
+			this.dice_material_rand = this.dice_material[Math.floor(Math.random() * this.dice_material.length)];
+		} else if (this.dice_material_rand == '') {
+			this.dice_material_rand = this.dice_material;
 		}
 
 		if (this.colordata.id != prevcolordata.id) {
 			this.applyColorSet(prevcolordata);
+			this.applyTexture(prevtexture);
+			this.applyMaterial(prevmaterial);
 		}
 	}
 
@@ -950,6 +1081,8 @@ export class DiceFactory {
 
 	createGeometry(type, radius) {
 		switch (type) {
+			case 'd2':
+				return this.create_d2_geometry(radius);
 			case 'd4':
 				return this.create_d4_geometry(radius);
 			case 'd6':
@@ -965,6 +1098,13 @@ export class DiceFactory {
 			default:
 				return null;
 		}
+	}
+
+	create_d2_geometry(radius) {
+		var geom = new THREE.CylinderGeometry(1*radius, 1*radius, 0.1*radius, 32);
+		geom.rotateX(Math.PI/2);
+		geom.cannon_shape = new CANNON.Cylinder(1*radius,1*radius,0.1*radius,8);
+		return geom;
 	}
 
 	create_d4_geometry(radius) {
