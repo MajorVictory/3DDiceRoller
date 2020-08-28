@@ -53,25 +53,29 @@ export const TEXTURELIST = {
 		name: 'Speckles',
 		composite: 'multiply',
 		source: './textures/speckles.png',
-		bump: './textures/speckles.png'
+		bump: './textures/speckles.png',
+		material: 'none'
 	},
 	'glitter': {
 		name: 'Glitter',
 		composite: 'multiply',
 		source: './textures/glitter.png',
-		bump: './textures/glitter-bump.png'
+		bump: './textures/glitter-bump.png',
+		material: 'none'
 	},
 	'glitter_2': {
 		name: 'Glitter (Transparent)',
 		composite: 'destination-in',
 		source: './textures/glitter-alpha.png',
-		bump: ''
+		bump: '',
+		material: 'none'
 	},
 	'stars': {
 		name: 'Stars',
 		composite: 'multiply',
 		source: './textures/stars.png',
-		bump: './textures/stars.png'
+		bump: './textures/stars.png',
+		material: 'none'
 	},
 	'stainedglass': {
 		name: 'Stained Glass',
@@ -125,31 +129,36 @@ export const TEXTURELIST = {
 		name: 'Dragon',
 		composite: 'multiply',
 		source: './textures/dragon.png',
-		bump: './textures/dragon-bump.png'
+		bump: './textures/dragon-bump.png',
+		material: 'none'
 	},
 	'lizard': {
 		name: 'Lizard',
 		composite: 'multiply',
 		source: './textures/lizard.png',
-		bump: './textures/lizard.png'
+		bump: './textures/lizard.png',
+		material: 'none'
 	},
 	'bird': {
 		name: 'Bird',
 		composite: 'multiply',
 		source: './textures/feather.png',
-		bump: './textures/feather-bump.png'
+		bump: './textures/feather-bump.png',
+		material: 'wood'
 	},
 	'astral': {
 		name: 'Astral Sea',
 		composite: 'multiply',
 		source: './textures/astral.png',
-		bump: './textures/stars.png'
+		bump: './textures/stars.png',
+		material: 'none'
 	},
 	'acleaf': {
 		name: 'AC Leaf',
 		composite: 'multiply',
 		source: './textures/acleaf.png',
-		bump: './textures/acleaf.png'
+		bump: './textures/acleaf.png',
+		material: 'none'
 	},
 	'thecage': {
 		name: 'Nicholas Cage',
@@ -162,7 +171,8 @@ export const TEXTURELIST = {
 		name: 'Isabelle',
 		composite: 'source-over',
 		source: './textures/isabelle.png',
-		bump: ''
+		bump: '',
+		material: 'none'
 	},
 	'bronze01': {
 		name: 'bronze01',
@@ -210,13 +220,15 @@ export const TEXTURELIST = {
 		name: 'None',
 		composite: 'source-over',
 		source: '',
-		bump: ''
+		bump: '',
+		material: ''
 	},
 	'': {
 		name: '~ Preset ~',
 		composite: 'source-over',
 		source: '',
-		bump: ''
+		bump: '',
+		material: ''
 	}
 };
 
@@ -299,14 +311,22 @@ export const THEMES = {
 
 export const COLORSETS = {
 	'coin_default': {
-		name: 'coin_default',
-		description: 'Metal Coin',
+		name: 'Gold Coin',
+		description: 'Gold Dragonhead Coin',
 		category: 'Other',
 		foreground: '#f6c928',
 		background: '#f6c928',
 		outline: 'none',
-		texture: 'metal',
-		description: 'Dragonhead Coin'
+		texture: 'metal'
+	},
+	'coin_silver': {
+		name: 'Silver Coin',
+		description: 'Gold Dragonhead Coin',
+		category: 'Other',
+		foreground: '#f6c928',
+		background: '#f6c928',
+		outline: 'none',
+		texture: 'metal'
 	},
 	'radiant': {
 		name: 'Radiant',

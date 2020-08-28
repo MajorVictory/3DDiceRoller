@@ -101,18 +101,18 @@ export class DiceFactory {
 		diceobj = new DicePreset('dc','d2');
 		diceobj.name = 'Coin';
 		diceobj.setLabels([
-			'./textures/coin/tail.png',
-			'./textures/coin/heads.png'
+			'./textures/silvercoin/tail.png',
+			'./textures/silvercoin/heads.png'
 		]);
 		diceobj.setBumpMaps([
-			'./textures/coin/tail_bump.png',
-			'./textures/coin/heads_bump.png'
+			'./textures/silvercoin/tail_bump.png',
+			'./textures/silvercoin/heads_bump.png'
 		]);
 		diceobj.setValues(0,1);
 		diceobj.inertia = 8;
 		diceobj.mass = 400;
 		diceobj.scale = 0.9;
-		diceobj.colorset = "coin_default"
+		diceobj.colorset = "coin_silver"
 		this.register(diceobj);
 
 		diceobj = new DicePreset('d1', 'd6');
@@ -1095,7 +1095,7 @@ export class DiceFactory {
 	}
 
 	create_d2_geometry(radius) {
-		var geom = new THREE.CylinderGeometry(1*radius, 1*radius, 0.1*radius, 20);
+		var geom = new THREE.CylinderGeometry(1*radius, 1*radius, 0.1*radius, 32);
 		geom.rotateX(Math.PI/2);
 		geom.cannon_shape = new CANNON.Cylinder(1*radius,1*radius,0.1*radius,8);
 		return geom;

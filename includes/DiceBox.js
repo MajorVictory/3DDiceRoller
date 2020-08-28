@@ -167,7 +167,7 @@ export class DiceBox {
 		this.world.solver.iterations = 14;
 		this.world.allowSleep = true;
 
-		this.scene.add(new THREE.AmbientLight(this.colors.ambient, 1));
+		this.scene.add(new THREE.HemisphereLight( 0xffffbb, 0x676771, 1 ));
 
 		this.world.addContactMaterial(new CANNON.ContactMaterial( this.desk_body_material, this.dice_body_material, {friction: 0.01, restitution: 0.5}));
 		this.world.addContactMaterial(new CANNON.ContactMaterial( this.barrier_body_material, this.dice_body_material, {friction: 0, restitution: 1.0}));
@@ -282,7 +282,7 @@ export class DiceBox {
 		this.light.shadow.mapSize.height = 1024;
 		this.scene.add(this.light);
 
-		this.light_amb = new THREE.AmbientLight( 0x404040 );
+		this.light_amb = new THREE.HemisphereLight( 0xffffbb, 0x676771, 1 );
 		this.scene.add(this.light_amb);
 
 		if (this.desk) this.scene.remove(this.desk);
@@ -534,7 +534,7 @@ export class DiceBox {
 		dicemesh.result = [];
 		dicemesh.stopped = 0;
 		dicemesh.castShadow = this.shadows;
-		dicemesh.body = new CANNON.Body({allowSleep: true, sleepSpeedLimit: 80, sleepTimeLimit:0.75, mass: diceobj.mass, shape: dicemesh.geometry.cannon_shape, material: this.dice_body_material});
+		dicemesh.body = new CANNON.Body({allowSleep: true, sleepSpeedLimit: 75, sleepTimeLimit:0.9, mass: diceobj.mass, shape: dicemesh.geometry.cannon_shape, material: this.dice_body_material});
 		dicemesh.body.type = CANNON.Body.DYNAMIC;
 		dicemesh.body.position.set(vectordata.pos.x, vectordata.pos.y, vectordata.pos.z);
 		dicemesh.body.quaternion.setFromAxisAngle(new CANNON.Vec3(vectordata.axis.x, vectordata.axis.y, vectordata.axis.z), vectordata.axis.a * Math.PI * 2);
@@ -623,7 +623,7 @@ export class DiceBox {
 	resetDice(dicemesh, {pos, axis, angle, velocity}) {
 		dicemesh.stopped = 0;
 		this.world.remove(dicemesh.body);
-		dicemesh.body = new CANNON.Body({allowSleep: true, sleepSpeedLimit: 80, sleepTimeLimit:0.75, mass: dicemesh.body.mass, shape: dicemesh.geometry.cannon_shape, material: this.dice_body_material});
+		dicemesh.body = new CANNON.Body({allowSleep: true, sleepSpeedLimit: 75, sleepTimeLimit:0.9, mass: dicemesh.body.mass, shape: dicemesh.geometry.cannon_shape, material: this.dice_body_material});
 		dicemesh.body.type = CANNON.Body.DYNAMIC;
 		dicemesh.body.position.set(pos.x, pos.y, pos.z);
 		dicemesh.body.quaternion.setFromAxisAngle(new CANNON.Vec3(axis.x, axis.y, axis.z), axis.a * Math.PI * 2);
