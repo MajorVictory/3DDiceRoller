@@ -959,7 +959,7 @@ export class DiceColors {
 	applyColorSet(colorsetid, texture = '', material = '', update = true) {
 
 		var urlargs = [];
-		var colordata = this.getColorSet(colorset);
+		var colordata = this.getColorSet(colorsetid);
 
 		if (colorsetid && colorsetid.length > 0) {
 			DiceRoller.DiceFactory.applyColorSet(colordata);
