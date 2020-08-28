@@ -736,7 +736,7 @@ export class DiceColors {
 		this.bumpmaps = {};
 	}
 
-	static ImageLoader(sources, callback) {
+	ImageLoader(sources, callback) {
 		let images = {};
 		let bumpmaps = {};
 		let loadedImages = 0;
@@ -792,7 +792,7 @@ export class DiceColors {
 		}
 	}
 		
-	static randomColor = function() {
+	randomColor() {
 		// random colors
 		let rgb=[];
 		rgb[0] = Math.floor(Math.random() * 254);
@@ -808,7 +808,7 @@ export class DiceColors {
 		return {background: background, foreground: foreground };
 	}
 
-	static getColorSet(colorsetname) {
+	getColorSet(colorsetname) {
 		let colorset = COLORSETS[colorsetname] || COLORSETS['random'];
 		return colorset;
 	}
@@ -853,7 +853,7 @@ export class DiceColors {
 	    return {name:'',texture:'',composite:'',bump:''};
 	}
 
-	initColorSets = function() {
+	initColorSets() {
 
 		let sets = Object.entries(COLORSETS);
 		for (const [name, data] of sets) {
@@ -863,7 +863,7 @@ export class DiceColors {
 
 		// generate the colors and textures for the random set
 		for (let i = 0; i < 10; i++) {
-				let randcolor = DiceColors.randomColor();
+				let randcolor = this.randomColor();
 				let randtex = this.getTexture('random');
 
 			if (randtex.name != '') {
@@ -883,7 +883,7 @@ export class DiceColors {
 	applyColorSet(colorset, texture = null, update = true) {
 
 		var urlargs = [];
-			var colordata = DiceColors.getColorSet(colorset);
+		var colordata = this.getColorSet(colorset);
 
 		if (colorset && colorset.length > 0) {
 

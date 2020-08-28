@@ -126,38 +126,46 @@ export class DiceRoller {
 		}
 		
 		Teal.bind(this.socket_button, 'click', this.socket_button_press);
-		Teal.bind(this.socket_button, ['mousedown', 'mouseup'], function(ev) { ev.stopPropagation(); });
+		Teal.bind(this.socket_button, ['mousedown', 'mouseup', 'touchstart', 'touchend'], function(ev) { ev.stopPropagation(); });
 		Teal.bind(this.socket_button, 'focus', function(ev) { Teal.set(this.desk, { class: '' }); });
 		Teal.bind(this.socket_button, 'blur', function(ev) { Teal.set(this.desk, { class: 'noselect' }); });
 
 		Teal.bind(this.theme_select, 'change', this.on_theme_select_change);
+		Teal.bind(this.theme_select, ['mousedown', 'mouseup', 'touchstart', 'touchend'], function(ev) { ev.stopPropagation(); });
 		Teal.bind(this.theme_select, 'focus', function(ev) { Teal.set(this.desk, { class: '' }); });
 		Teal.bind(this.theme_select, 'blur', function(ev) { Teal.set(this.desk, { class: 'noselect' }); });
 
 		Teal.bind(this.surface_select, 'change', this.on_surface_select_change);
+		Teal.bind(this.surface_select, ['mousedown', 'mouseup', 'touchstart', 'touchend'], function(ev) { ev.stopPropagation(); });
 		Teal.bind(this.surface_select, 'focus', function(ev) { Teal.set(this.desk, { class: '' }); });
 		Teal.bind(this.surface_select, 'blur', function(ev) { Teal.set(this.desk, { class: 'noselect' }); });
 
 		Teal.bind(this.system_select, 'change', this.on_system_select_change);
+		Teal.bind(this.system_select, ['mousedown', 'mouseup', 'touchstart', 'touchend'], function(ev) { ev.stopPropagation(); });
 		Teal.bind(this.system_select, 'focus', function(ev) { Teal.set(this.desk, { class: '' }); });
 		Teal.bind(this.system_select, 'blur', function(ev) { Teal.set(this.desk, { class: 'noselect' }); });
 
 		Teal.bind(this.color_select, 'change', this.on_color_select_change);
+		Teal.bind(this.color_select, ['mousedown', 'mouseup', 'touchstart', 'touchend'], function(ev) { ev.stopPropagation(); });
 		Teal.bind(this.color_select, 'focus', function(ev) { Teal.set(this.desk, { class: '' }); });
 		Teal.bind(this.color_select, 'blur', function(ev) { Teal.set(this.desk, { class: 'noselect' }); });
 
 		Teal.bind(this.texture_select, 'change', this.on_texture_select_change);
+		Teal.bind(this.texture_select, ['mousedown', 'mouseup', 'touchstart', 'touchend'], function(ev) { ev.stopPropagation(); });
 		Teal.bind(this.texture_select, 'focus', function(ev) { Teal.set(this.desk, { class: '' }); });
 		Teal.bind(this.texture_select, 'blur', function(ev) { Teal.set(this.desk, { class: 'noselect' }); });
 
 		Teal.bind(this.control_panel_show, 'click', this.on_control_panel_show);
 		Teal.bind(this.control_panel_hide, 'click', this.on_control_panel_show);
+		Teal.bind(this.control_panel_show, ['mousedown', 'mouseup', 'touchstart', 'touchend'], function(ev) { ev.stopPropagation(); });
+		Teal.bind(this.control_panel_hide, ['mousedown', 'mouseup', 'touchstart', 'touchend'], function(ev) { ev.stopPropagation(); });
 		Teal.bind(this.control_panel_show, 'focus', function(ev) { Teal.set(this.desk, { class: '' }); });
 		Teal.bind(this.control_panel_hide, 'focus', function(ev) { Teal.set(this.desk, { class: '' }); });
 		Teal.bind(this.control_panel_show, 'blur', function(ev) { Teal.set(this.desk, { class: 'noselect' }); });
 		Teal.bind(this.control_panel_hide, 'blur', function(ev) { Teal.set(this.desk, { class: 'noselect' }); });
 
 		Teal.bind(this.toggle_selector, 'click', this.on_toggle_selector);
+		Teal.bind(this.toggle_selector, ['mousedown', 'mouseup', 'touchstart', 'touchend'], function(ev) { ev.stopPropagation(); });
 		Teal.bind(this.toggle_selector, 'focus', function(ev) { Teal.set(this.desk, { class: '' }); });
 		Teal.bind(this.toggle_selector, 'blur', function(ev) { Teal.set(this.desk, { class: 'noselect' }); });
 
@@ -589,6 +597,7 @@ export class DiceRoller {
 	}
 }
 
-DiceColors.ImageLoader(TEXTURELIST, function(images) {
+let dc = new DiceColors();
+dc.ImageLoader(TEXTURELIST, function(images) {
 	window.DiceRoller = new DiceRoller(images);
 });
