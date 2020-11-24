@@ -1,9 +1,5 @@
 Major's 3D Dice
 
-NOTICE: ONLINE FEATURES WILL BE DOWN TEMPORARILY FROM OCTOBER 30, TO MID NOVEMBER!
-I am moving and the only server for the online portion of the dice roller is on a machine I must ship to another state.
-You can still use the offline portion available on the github page in the meantime. ( https://majorvictory.github.io/3DDiceRoller/ )
-
 Uses three.js and cannon.js to simulate actual dice and read their results.
 http://threejs.org
 http://cannonjs.org
