@@ -8,18 +8,15 @@
 <meta name="description" content="Online 3D dice roller"/>
 <title>Major's 3D Dice</title>
 <link rel="stylesheet" type="text/css" href="./includes/themes/default/style.css">
+
+<script type="module" src="./includes/Teal.js"></script>
 <script type="text/javascript" src="./libs/three.min.js"></script>
 <script type="text/javascript" src="./libs/cannon.js"></script>
 <script type="text/javascript" src="https://code.jquery.com/jquery-3.5.0.min.js"></script>
 <script type="text/javascript" src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
-<script type="text/javascript" src="./includes/DicePreset.js"></script>
-<script type="text/javascript" src="./includes/DiceFactory.js"></script>
-<script type="text/javascript" src="./includes/DiceNotation.js"></script>
-<script type="text/javascript" src="./includes/DiceFavorites.js"></script>
-<script type="text/javascript" src="./includes/DiceBox.js"></script>
-<script type="text/javascript" src="./includes/DiceFunctions.js"></script>
-<script type="text/javascript" src="./includes/teal.js"></script>
-<script type="text/javascript" src="./includes/colorsets.js"></script>
+<script type="text/javascript" src="./libs/jquery.ui.touch-punch.min.js"></script>
+<script type="text/javascript" src="./libs/spectrum.js"></script>
+
 <style type="text/css">
 
 	#dice_list {
@@ -38,27 +35,32 @@
 		background-color: rgba(0,0,0,0.25);
 	}
 
-	dd.dicename {
-		flex-basis: 70%;
+	dd {
 		flex-grow: 1;
 		padding: 2px 4px;
 		margin: 0px;
+		border-bottom: 1px solid white;
+	}
+
+	dd.dicename {
+		flex-basis: 70%;
 		border-bottom: 1px dashed white;
 		text-align: right;
 		color: white;
 		font-size: 135%;
 		padding: 2px 4px;
 		background-color: rgba(0,0,0,0.25);
-
 	}
 
-	dd {
-		flex-basis: 25%;
-		flex-grow: 1;
-		padding: 2px 4px;
-		margin: 0px;
-		border-bottom: 1px solid white;
+	dd.dicedata {
+		text-align: left;
 	}
+
+	dd.dicevalues {
+		flex-basis: 55%;
+	}
+
+
 
 	b {
 		font-weight: bold;
@@ -70,7 +72,7 @@
 		flex-flow: row wrap;
 	}
 
-	fieldset {
+	#flex_container fieldset {
 		min-width: 25em;
 	}
 
@@ -125,7 +127,7 @@
 			<fieldset id="rooms_list" class="one_third">
 				<legend class="fav_name">Rooms List</legend>
 				<div id="message" style="color:orange">Not Connected</div>
-				<button id="connect">Get Rooms List</button>
+				<button id="roomslist_button">Get Rooms List</button>
 				<div id="room_template" style="display:none; visibility:hidden;">
 					<section>
 						<h2>{@name}</h2>
@@ -141,99 +143,90 @@
 				</div>
 			</fieldset>
 
-			<fieldset class="one_third">
+			<fieldset id="function_list" class="one_third">
 				<legend class="fav_name">Function Reference</legend>
 				<div id="function_template" style="display:none; visibility:hidden;">
 					<section>
-						<h2>{{@Name},{@Arguments}}</h2>
+						<h2>{@Name}</h2>
+						<pre>{@Usage}</pre>
+						{@Description}
 						<div>
-							<h3>{@Usage}</h3>
-							{@Description}
+							<h3>Arguments</h3>
+							<ul>{@Arguments}</ul>
+							<h3>Examples</h3>
 							<ul>{@Examples}</ul>
 						</div>
 					</section>
 				</div>
 			</fieldset>
-
-			<fieldset class="one_third">
-				<legend class="fav_name">Notation Reference</legend>
-				<section>
-					<h2>{{@Name},{@Arguments}}</h2>
-					<div>
-						<h3>{@Usage}</h3>
-						{@Description}
-						<ul>{@Examples}</ul>
-					</div>
-				</section>
-			</fieldset>
 		</div>
 	</div>
+
+	<fieldset id="control_panel_buttons" class="noselect">
+		<button id="cp_showsettings" title="Show Settings Panel">⚙️</button>
+		<button id="cp_joincreate" title="Join or Create a Room">👥</button>
+	</fieldset>
+
+	<fieldset id="control_panel" class="noselect" style="display:none;">
+		<legend>Settings</legend>
+		<fieldset>
+			<legend>Dice</legend>
+			<div>
+				<label id="colorname" class="control_label" for="color">Theme: </label>
+				<select id="color" name="color"></select><select id="texture" name="texture"></select><select id="material" name="material"></select>
+				<label for="checkbox_allowdiceoverride" title="Allow some dice to override your color settings"><input type="checkbox" value='' id="checkbox_allowdiceoverride"> Allow Some Dice to Override Colors</label>
+				<p>Star Wars dice have themes they can use individually.</p>
+				<label for="system" title="Select which type of dice to display">Set:</label>
+				<select id="system" name="system"></select>
+			</div>
+		</fieldset>
+		<fieldset>
+			<legend>Site Theme</legend>
+			<div>
+				<label for="theme" title="Set an overall color theme for the page">Theme:</label>
+				<select id="theme" name="theme"></select>
+				<label for="fgcolor">Foreground:</label>
+				<input id="fgcolor" class="control_fgcolor" value="rgb(0,255,0)" />
+				<label for="bgcolor">Background:</label>
+				<input id="bgcolor" class="control_bgcolor" value="rgb(0,255,0)" />
+			</div>
+		</fieldset>
+		<fieldset>
+			<legend>Da Graphecs</legend>
+			<div>
+				<label for="checkbox_bumpmap" title="Enable/Disable Bumpmapping"><input type="checkbox" value='' id="checkbox_bumpmap"> Bumpmapping</label>
+				<label for="checkbox_shadows" title="Enable/Disable Shadows"><input type="checkbox" value='' id="checkbox_shadows"> Shadows</label>
+				<p>May speed up rendering.<br>Recommend off for chroma keying.</p>
+				<label for="checkbox_sounds" title="Enable/Disable Sound Effects"><input type="checkbox" value='' id="checkbox_sounds"> Sound Effects</label>
+				<select id="surface" name="surface">
+					<option value="felt">Felt</option>
+					<option value="wood_tray">Wood Tray</option>
+					<option value="wood_table">Wood Table</option>
+					<option value="metal">Metal</option>
+				</select>
+				<p>Can cause lag on older browsers or systems.</p>
+				<label for="volume_slider">Sounds Effects Volume: </label>
+				<div id="volume_slider"><div id="volume_handle" class="ui-slider-handle"></div></div>
+			</div>
+		</fieldset>
+		<fieldset>
+			<legend>Elements</legend>
+			<div>
+				<button id="toggle_selector" title="Show/Hide Throw Buttons">Toggle Dice Buttons</button>
+				<label for="checkbox_tally" title="Show/Hide Dice Tally"><input type="checkbox" value='' id="checkbox_tally"> Show Dice Tally</label>
+				<label for="checkbox_users" title="Show/Hide Userlist"><input type="checkbox" value='' id="checkbox_users"> Show Userlist</label>
+			</div>
+		</fieldset>
+		<br><br>
+		<div class="connection_message control_label" style="color:orange">Loading Textures...</div>
+		<button id="cp_hidesettings" title="Close Settings Panel">✔️</button>
+	</fieldset>
+	<script type="module" src="./includes/DiceRoller.js"></script>
 	<script type="text/javascript" defer="defer">
 
 		String.prototype.toTitleCase = function() {
 	        return this.replace(/\w*/g, function(txt) { return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase(); });
 	    }
-
-
-		function set_connection_message(text, color = 'orange') {
-			$('#message').each(function() {
-				$(this).text(text).css({color: color});
-			});
-		}
-
-		function getRoomsList() {
-			if ($t.socket && $t.socket.readyState <= WebSocket.OPEN) {
-				
-				$t.rpc({method:'roomlist'});
-
-			} else {
-				set_connection_message("Connecting...");
-				$t.openSocket();
-			}
-
-			$t.socket.onerror = function(event) {
-				set_connection_message("Connection Error", 'red', true);
-				$t.offline = true;
-			}
-
-			$t.socket.onopen = function(event) {
-				set_connection_message("Connected", 'green');
-				$t.offline = false;
-				$t.rpc({method:'roomlist'});
-			}
-
-			$t.socket.onclose = function(event) {
-				if (event.wasClean) {
-					set_connection_message("Connection Ended");
-				} else {
-					set_connection_message("Connection Failed", 'red', true);    
-				}
-				$t.offline = true;
-			}
-
-			$t.socket.onmessage = function(message) {
-				if (message && message.data) {
-					var data = JSON.parse(message.data);
-
-					if (data.error) {
-						set_connection_message(data.error, 'red');
-					}
-
-					if(!data.action || data.action.length < 1) return;
-
-					if (data.action == 'roomlist') {
-						console.log(data.list);
-
-						$('.room_entry').remove();
-
-						for (let i=0, len=data.list.length; i < len; ++i) {
-							createRoomListing(data.list[i]);
-						}
-
-					}
-				}
-			}
-		}
 
 		function createRoomListing(data = {}) {
 
@@ -260,75 +253,30 @@
     		const itemprops = Object.entries(data);
 	    	for (var [key, value] of itemprops) {
 
-                if (key == 'Examples') {
-                	value = '<li>'+value.join('</li><li>')+'</li>';
+	    		let outValue = '';
+	    		if (key == 'Arguments') {
+	    			for (const [argName, argValues] of Object.entries(value)) {
+	    				if (argName != 'None') {
+		    				outValue += '<dl>';
+		                	outValue += '<dt>'+argName+':</dt><dd>'+argValues.join('</dd><dd>')+'</dd>';
+		    				outValue += '</dl>';
+		    			} else {
+		    				outValue += '<li>None</li>';
+		    			}
+	                }
                 }
 
-	    		content = content.split('{@'+key+'}').join(value);
+                if (key == 'Examples') {
+	    			for (const [example, exampleDesc] of Object.entries(value)) {
+	                	outValue += '<li><pre>'+example+'</pre>: '+exampleDesc+'</li>';
+	                }
+                }
+				content = content.split('{@'+key+'}').join(outValue || value);
 	    	}
 
-    	    let newentry = $(content).addClass('room_entry');
-    	    newentry.appendTo('#rooms_list').show();
+    	    let newentry = $(content).addClass('function_entry');
+    	    newentry.appendTo('#function_list').show();
 	    }
-
-		$(function() {
-
-			var params = $t.get_url_params();
-
-			if (params.server) {
-				$t.socketAddress = params.server;
-				$t.socketSecure = params.secure;
-			} else {
-				$t.socketAddress = 'dnd.majorsplace.com:32400';
-				$t.socketSecure = false;
-			}
-
-			set_connection_message("Ready", 'green');
-
-			$('#connect').click(function () {
-				getRoomsList();
-			});
-
-
-			$t.DiceBox = DiceBox(document.body, {w:0,h:0}, $t.DiceFactory);
-
-
-			let dice_list = $('#dice_list');
-
-			const dicelist = Object.entries($t.DiceFactory.dice);
-			for (const [key, diceobj] of dicelist) {
-
-				let entry = $('<dt></dt>').text(diceobj.type).appendTo(dice_list);
-				$('<dd></dd>').html(diceobj.name).addClass('dicename').appendTo(dice_list);
-				$('<dd></dd>').html('<b>Shape:</b><br>'+diceobj.shape).appendTo(dice_list);
-
-				let systeminfo = $t.DiceFactory.systems[diceobj.system];
-				$('<dd></dd>').html('<b>System:</b><br>'+systeminfo.name).appendTo(dice_list);
-
-				let values = '<b>Values:</b><br>';
-
-				if (diceobj.display == 'values') {
-					values += diceobj.values.join(', ');
-				} else {
-					// labels array has two blank first entries
-					diceobj.labels.shift();
-					diceobj.labels.shift();
-					values += '<span>'+diceobj.labels.join('</span>, <span>')+'</span>';
-				}
-				let valueentry = $('<dd></dd>').html(values);
-
-				if (diceobj.font != '') {
-					valueentry.find('span').css('font-family', diceobj.font);
-				}
-
-				valueentry.appendTo(dice_list);
-			}
-
-
-			let rethrowfunctions = $t.DiceBox.getRethrowFunctions();
-			let afterthrowfunctions = $t.DiceBox.getAfterThrowFunctions();
-
-		});
 	</script>
 </body>
 </html>

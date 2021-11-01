@@ -3,12 +3,10 @@ import {Teal} from './Teal.js';
 import {DiceNotation} from './DiceNotation.js';
 export class DiceBox {
 
-	constructor(element_container, vector2_dimensions, dice_factory, dice_favorites) {
+	constructor(element_container, vector2_dimensions) {
 		//private variables
 		this.container = element_container;
 		this.dimensions = vector2_dimensions;
-		this.DiceFactory = window.DiceRoller.DiceFactory;
-		this.DiceFavorites = window.DiceRoller.DiceFavorites;
 
 		this.adaptive_timestep = false;
 		this.last_time = 0;
@@ -83,9 +81,6 @@ export class DiceBox {
 		};
 
 		this.shadows = true;
-
-		this.rethrowFunctions = {};
-		this.afterThrowFunctions = {};
 	}
 
 
@@ -100,22 +95,6 @@ export class DiceBox {
 		if (this.renderer) this.renderer.shadowMap.enabled = this.shadows;
 		if (this.light) this.light.castShadow = this.shadows;
 		if (this.desk) this.desk.receiveShadow = this.shadows;
-	}
-
-	registerRethrowFunction(funcName, callback, helptext){
-		this.rethrowFunctions[funcName] = {
-			name: funcName,
-			help: helptext,
-			method: callback
-		};
-	}
-
-	registerAfterThrowFunction(funcName, callback, helptext) {
-		this.afterThrowFunctions[funcName] = {
-			name: funcName,
-			help: helptext,
-			method: callback
-		};
 	}
 
 	initialize() {
@@ -654,7 +633,7 @@ export class DiceBox {
 		// all dice in a set/dice group will have the same function and arguments due to sorting beforehand
 		// this means the list passed in is the set of dice that need to be affected by this function
 		let diceFunc = (dicemesh.notation.func) ? dicemesh.notation.func.toLowerCase() : '';
-		let funcdata = this.rethrowFunctions[diceFunc];
+		let funcdata = window.DiceFunctions.rethrowFunctions[diceFunc];
 
 		let reroll = false;
 			
@@ -1227,7 +1206,7 @@ export class DiceBox {
 			}
 
 			if (diceFunc != '') {
-				let funcdata = this.afterThrowFunctions[diceFunc];
+				let funcdata = window.DiceFunctions.afterThrowFunctions[diceFunc];
 
 				if (funcdata && funcdata.method) {
 					let method = funcdata.method;

@@ -5,9 +5,10 @@ import {Teal} from './Teal.js';
 export class TealChat {
 
     constructor(place) {
-        this.place = place;
-        this.text = Teal.element('div', { style: 'display: inline-block; vertical-align: bottom; width: 100%', 'class': 'teal-chat-log' }, place);
-        this.area = Teal.element('textarea', { 'class': 'teal-chat-input' }, this.text);
+        this.place = Teal.id('teal-chat');
+        this.userlist = Teal.id('teal-userlist');
+        this.text = Teal.id('teal-chat-messages');
+        this.area = Teal.id('teal-chat-input');
         this.last_user = undefined;
         this.own_user = undefined;
         this.last_message = '';
@@ -15,14 +16,15 @@ export class TealChat {
     }
     
     resize(w, h) {
-        this.place.style.width = w + 'px';
+        //this.place.style.width = w + 'px';
         this.place.style.height = h + 'px';
+        this.userlist.style.height = h + 'px';
     }
 
     insert_text(m) {
-        var scroll = this.place.scrollHeight - this.place.scrollTop == this.place.offsetHeight;
-        this.text.insertBefore(m, this.area);
-        if (scroll) this.place.scrollTop = this.place.scrollHeight;
+        var scroll = this.text.scrollHeight - this.text.scrollTop == this.text.offsetHeight;
+        this.text.appendChild(m);
+        if (scroll) this.text.scrollTop = this.text.scrollHeight;
     }
 
     add_unconfirmed_message(user, text, time, uuid, just_uuid) {

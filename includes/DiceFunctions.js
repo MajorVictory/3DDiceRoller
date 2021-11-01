@@ -2,18 +2,36 @@
 
 export class DiceFunctions {
 
-	constructor(dicebox) {
+	constructor() {
+		this.rethrowFunctions = {};
+		this.afterThrowFunctions = {};
 
 		// these fucntions only trigger after a full throw is finished, including rerolls
-		//dicebox.registerAfterThrowFunction('t', this.template, this.templateHelp());
+		// this.registerAfterThrowFunction('t', this.template, this.templateHelp());
 
-		dicebox.registerAfterThrowFunction('a', this.advantage, this.advantageHelp());
-		dicebox.registerAfterThrowFunction('d', this.disadvantage, this.disadvantageHelp());
-		//dicebox.registerAfterThrowFunction('f', this.filter, this.filterHelp());
+		this.registerAfterThrowFunction('a', this.advantage, this.advantageHelp());
+		this.registerAfterThrowFunction('d', this.disadvantage, this.disadvantageHelp());
+		//this.registerAfterThrowFunction('f', this.filter, this.filterHelp());
 
 		// these functions can trigger during a roll, if you need to add more dice to the roll, do it here
-		dicebox.registerRethrowFunction('r', this.rethrowBasic, this.rethrowBasicHelp());
-		//dicebox.registerRethrowFunction('ra', this.rethrowAdvanced, this.rethrowAdvancedHelp());
+		this.registerRethrowFunction('r', this.rethrowBasic, this.rethrowBasicHelp());
+		//this.registerRethrowFunction('ra', this.rethrowAdvanced, this.rethrowAdvancedHelp());
+	}
+
+	registerRethrowFunction(funcName, callback, helptext){
+		this.rethrowFunctions[funcName] = {
+			name: funcName,
+			help: helptext,
+			method: callback
+		};
+	}
+
+	registerAfterThrowFunction(funcName, callback, helptext) {
+		this.afterThrowFunctions[funcName] = {
+			name: funcName,
+			help: helptext,
+			method: callback
+		};
 	}
 
 	// Array dicemeshList: contains only the dice results affected by this function
@@ -113,27 +131,15 @@ export class DiceFunctions {
 
 	rethrowBasicHelp() {
 		let output = {};
-		output['Name'] = 'Reroll';
-		output['Usage'] = '{r,[Operation],[MatchAgainst],[MatchLimit],[RerollLimit]}';
+		output['Name'] = 'Reroll (Basic)';
+		output['Usage'] = '{r,[Value]}';
 		output['Arguments'] = {
-			'Operation': [
-				'Use \'lt\' for \'<\'',
-				'Use \'gt\' for \'>\'',
-				'Use \'lte\' for \'<=\'',
-				'Use \'gte\' for \'<=\'',
-				'Use \'e\' for \'==\'',
-				'Use \'ne\' for \'!=\''
-			],
-			'MatchAgainst' : ['Any Number', 'list of numbers, seperated by colon (\':\')', 'min', 'max'],
-			'MatchLimit' : ['Any Number'],
-			'RerollLimit' : ['Any Number']
+			'Value' : ['Any Number']
 		};
-		output['Description'] = 'Rerolls dice using the given Operation against MatchAgainst for MatchLimit dice up to a maximum of RerollLimit times each.';
+		output['Description'] = 'Reroll any dice matching the given Value';
 		output['Examples'] = {
-			'{r,e,1}': 'Reroll any 1\'s as many times as needed.',
-			'{r,gt,4,2}': 'Reroll the first 2 dice greater than 4 as many times as needed.',
-			'{r,lte,2,3,4}': 'Reroll the first 3 dice less than or equal to 2 only four times each and then stop.',
-			'{r,ne,2,,2}': 'Reroll any dice not equal to 2 only twice each and then stop.'
+			'{r,1}': 'Reroll any 1\'s as many times as needed.',
+			'{r,2}': 'Reroll any 2\'s as many times as needed.',
 		};
 		return output;
 	}
@@ -147,7 +153,7 @@ export class DiceFunctions {
 
 	rethrowAdvancedHelp() {
 		let output = {};
-		output['Name'] = 'Reroll';
+		output['Name'] = 'Reroll (Advanced)';
 		output['Usage'] = '{ra,[Operation],[MatchAgainst],[MatchLimit],[RerollLimit]}';
 		output['Arguments'] = {
 			'Operation': [
@@ -233,9 +239,16 @@ export class DiceFunctions {
 	}
 
 	advantageHelp() {
-		let output = '';
-		output += 'Usage: {a}<br>';
-		output += 'Keeps only one of the highest value dice.<br>';
+
+		let output = {};
+		output['Name'] = 'Advantage';
+		output['Usage'] = '{a}';
+		output['Arguments'] = { 'None':[] };
+		output['Description'] = 'Selects the highest value of the given result';
+		output['Examples'] = {
+			'2d20{a}': 'Selects highest value of two D20\'s.',
+			'5d10{a}': 'Selects the single highest result of five D10 rolls.'
+		};
 		return output;
 	}
 
@@ -256,9 +269,15 @@ export class DiceFunctions {
 	}
 
 	disadvantageHelp() {
-		let output = '';
-		output += 'Usage: {d}<br>';
-		output += 'Keeps only one of the lowest value dice.<br>';
+		let output = {};
+		output['Name'] = 'Disadvantage';
+		output['Usage'] = '{d}';
+		output['Arguments'] = { 'None':[] };
+		output['Description'] = 'Selects the lowest value of the given result';
+		output['Examples'] = {
+			'2d20{a}': 'Selects lowest value of two D20\'s.',
+			'5d10{a}': 'Selects the single lowest result of five D10 rolls.'
+		};
 		return output;
 	}
 

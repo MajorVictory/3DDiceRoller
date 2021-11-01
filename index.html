@@ -101,6 +101,7 @@
 	</div>
 
 	<div id="desk" class="noselect">
+		<div class="connection_message control_label" style="color:orange">Connection: </div>
 		<div id="selector_div" style="display: none">
 			<div class="center_field">
 				<div>
@@ -124,14 +125,19 @@
 				<div id="label"></div>
 			</div>
 		</div>
-		<div class="info-field">
-			<div class="center_field">
-				<span id="label_players" style="display: none"></span>
-			</div>
-		</div>
 	</div>
 
-	<div id="log" class="teal-chat" style="display: none"></div>
+	<div id="bottom-panel">
+		<div id="teal-chat" style="display: none">
+			<div id="teal-chat-messages"></div>
+			<textarea id="teal-chat-input"></textarea>
+		</div>
+
+		<div id="teal-userlist" style="display: none;">
+			<h2 id="roomname"></h2>
+			<ul id="users"></ul>
+		</div>
+	</div>
 
 	<div id="fav_container">
 		<fieldset class="fav_draggable">
@@ -145,7 +151,7 @@
 
 	<fieldset id="control_panel_buttons" class="noselect">
 		<button id="cp_showsettings" title="Show Settings Panel">⚙️</button>
-		<!--<button id="cp_showhelp" title="View Help Page">❔</button>-->
+		<button id="cp_showhelp" title="View Help Page">❔</button>
 	</fieldset>
 
 	<fieldset id="control_panel" class="noselect" style="display:none;">
