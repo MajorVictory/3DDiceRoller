@@ -140,7 +140,6 @@ export class DiceRoom {
 		info_div.style.display = this.DiceBox.tally ? 'block' : 'none';
 		Teal.id('sethelp').style.display = 'none';
 		this.deskrolling = true;
-		window.DiceRoller.set_connection_message('');
 		window.DiceRoller.show_waitform(true);
 
 		let time = new Date().getTime();
@@ -310,7 +309,7 @@ export class DiceRoom {
 				window.DiceRoller.Teal.rpc({ method: 'chat', cid: cid, text: text, time: time, uuid: uuid });
 			}
 		}.bind(this));
-
+		
 		this.show_selector();
 	}
 
@@ -336,7 +335,6 @@ export class DiceRoom {
 			window.DiceRoller.Teal.rpc( { method: 'material', texture: window.DiceRoller.material_select.value });
 			window.DiceRoller.on_window_resize();
 		}
-		window.DiceRoller.set_connection_message(' ');
 	}
 	action_userlist(res) {
 		Teal.id('label_players').innerHTML = res.room + ': ' + res.list.join(', ');

@@ -343,6 +343,13 @@ body .ui-tooltip {
     text-align: right;
 }
 
+#desk > div.connection_message {
+    position: absolute;
+    top: 0.25em;
+    right: 0.5em;
+    text-align: right;
+}
+
 #button_join, #button_single {
     font-size: 20pt;
     cursor: pointer;

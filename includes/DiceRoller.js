@@ -574,9 +574,9 @@ export class DiceRoller {
 		this.Teal.socket.onclose = function(event) {
 			let DiceRoller = window.DiceRoller;
 			if (event.wasClean) {
-				DiceRoller.set_connection_message("Connection Ended");
+				DiceRoller.set_connection_message("Connection Ended", 'red');
 			} else {
-				DiceRoller.set_connection_message("Connection Failed", 'red', true);    
+				DiceRoller.set_connection_message("Connection Lost", 'red', true);    
 			}
 			console.log(event);
 			DiceRoller.show_waitform(false);
@@ -595,25 +595,22 @@ export class DiceRoller {
 				if (data.error) {
 					DiceRoller.set_connection_message(data.error, 'red');
 					DiceRoller.show_waitform(false);
-					DiceRoller.set_login_message(data.error, 'red');
 				}
 
 				if (data.warning) {
 					DiceRoller.set_connection_message(data.warning, 'orange');
 					DiceRoller.show_waitform(false);
-					DiceRoller.set_login_message(data.warning, 'orange');
 				}
 
 				if (data.message) {
 					DiceRoller.set_connection_message(data.message, 'green');
 					DiceRoller.show_waitform(false);
-					DiceRoller.set_login_message(data.message, 'green');
 				}
 
 				if (data.method == 'join' && data.action == 'login') {
 
 					DiceRoller.DiceRoom = new DiceRoom(data.user, DiceRoller.cid);
-
+					DiceRoller.set_connection_message('Connected', 'green');
 					DiceRoller.show_waitform(false);
 					requestAnimationFrame(function() {});
 				}
