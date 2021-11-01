@@ -309,7 +309,7 @@ export class DiceRoom {
 				window.DiceRoller.Teal.rpc({ method: 'chat', cid: cid, text: text, time: time, uuid: uuid });
 			}
 		}.bind(this));
-		
+
 		this.show_selector();
 	}
 
@@ -326,8 +326,8 @@ export class DiceRoom {
 		if (loginform) {
 			Teal.remove(loginform);
 			loginform.style.display = 'none';
-			Teal.id('label_players').style.display = window.DiceFavorites.settings.users.value == '1' ? 'inline-block' : 'none';
-			this.TealChat.place.style.display = "inline-block";
+			Teal.id('teal-userlist').style.display = window.DiceFavorites.settings.users.value == '1' ? 'block' : 'none';
+			this.TealChat.place.style.display = "grid";
 			this.TealChat.own_user = res.user;
 
 			window.DiceRoller.Teal.rpc( { method: 'colorset', colorset: window.DiceRoller.color_select.value });
@@ -337,7 +337,8 @@ export class DiceRoom {
 		}
 	}
 	action_userlist(res) {
-		Teal.id('label_players').innerHTML = res.room + ': ' + res.list.join(', ');
+		Teal.id('roomname').innerHTML = 'Room: ' + res.room;
+		Teal.id('users').innerHTML = res.list.map(e => { return `<li>${e}</li>` }).join('');
 		this.TealChat.add_info(res.user + ' has ' + { 'add': 'joined', 'del': 'left' }[res.act] + ' the room');
 	}
 	action_roll(res) {

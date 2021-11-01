@@ -25,6 +25,9 @@ export class DiceRoller {
 		this.DiceColors.initColorSets();
 		window.DiceColors = this.DiceColors;
 
+		this.DiceFunctions = new DiceFunctions();
+		window.DiceFunctions = this.DiceFunctions;
+
 		this.DiceRoom = null;
 
 		this.cid = -1;
@@ -43,6 +46,10 @@ export class DiceRoller {
 		this.parent_notation = Teal.id('parent_notation');
 		this.parent_roll = Teal.id('parent_roll');
 		this.deskrolling = false;
+
+		this.cp_showhelp = Teal.id('cp_showhelp');
+		this.cp_joincreate = Teal.id('cp_joincreate');
+		this.dice_list = Teal.id('dice_list');
 
 		//possibly only needed for DiceRoom
 		this.set = Teal.id('set');
@@ -255,7 +262,7 @@ export class DiceRoller {
 			let DiceRoller = window.DiceRoller;
 			DiceRoller.DiceFavorites.settings.users.value = $('#checkbox_users').prop('checked') ? '1' : '0';
 			DiceRoller.DiceFavorites.storeSettings();
-			Teal.id('label_players').style.display = DiceRoller.DiceFavorites.settings.users.value == '1' ? 'inline-block' : 'none';
+			Teal.id('teal-userlist').style.display = DiceRoller.DiceFavorites.settings.users.value == '1' ? 'block' : 'none';
 		});
 
 		let volume_handle = $( "#volume_handle" );
@@ -351,6 +358,62 @@ export class DiceRoller {
 		}).tabs();
 
 		this.on_theme_select_change(null, this.DiceFavorites.settings.fgcolor.value, this.DiceFavorites.settings.bgcolor.value);
+
+
+		
+		Teal.bind(this.cp_showhelp, 'click', function() { window.location = 'help.html'; });
+		Teal.bind(this.cp_showhelp, ['mousedown', 'mouseup', 'touchstart', 'touchend'], function(ev) { ev.stopPropagation(); });
+		Teal.bind(this.cp_showhelp, 'focus', function(ev) { Teal.set(this.desk, { class: '' }); });
+		Teal.bind(this.cp_showhelp, 'blur', function(ev) { Teal.set(this.desk, { class: 'noselect' }); });
+		
+		Teal.bind(this.cp_joincreate, 'click', function() { window.location = 'index.html'; });
+		Teal.bind(this.cp_joincreate, ['mousedown', 'mouseup', 'touchstart', 'touchend'], function(ev) { ev.stopPropagation(); });
+		Teal.bind(this.cp_joincreate, 'focus', function(ev) { Teal.set(this.desk, { class: '' }); });
+		Teal.bind(this.cp_joincreate, 'blur', function(ev) { Teal.set(this.desk, { class: 'noselect' }); });
+
+		if (this.dice_list) {
+			for (const [key, diceobj] of Object.entries(this.DiceFactory.dice)) {
+
+				let entry = $('<dt></dt>').text(diceobj.type).appendTo(this.dice_list);
+				let systeminfo = this.DiceFactory.systems[diceobj.system];
+
+				$('<dd></dd>').html(diceobj.name).addClass('dicename').appendTo(this.dice_list);
+				$('<dd></dd>').html('<b>Shape:</b> '+diceobj.shape+'<br><b>System:</b> '+systeminfo.name).addClass('dicedata').appendTo(this.dice_list);
+				let values = '<b>Values:</b><br>';
+
+				if (diceobj.display == 'values') {
+					values += diceobj.values.join(', ');
+				} else {
+					// labels array has two blank first entries
+
+					if (diceobj.shape == 'd4') {
+						values += '<span>'+diceobj.labels[0][5][0]+'</span>,';
+						values += '<span>'+diceobj.labels[0][5][1]+'</span>,';
+						values += '<span>'+diceobj.labels[0][5][2]+'</span>,';
+						values += '<span>'+diceobj.labels[0][4][2]+'</span>';
+					} else {
+						diceobj.labels.shift();
+						diceobj.labels.shift();
+						values += '<span>'+diceobj.labels.join('</span>, <span>')+'</span>';
+					}
+				}
+				let valueentry = $('<dd></dd>').html(values).addClass('dicevalues');
+
+				if (diceobj.font != '') {
+					valueentry.find('span').css('font-family', diceobj.font);
+				}
+
+				valueentry.appendTo(this.dice_list);
+			}
+
+			for (const [funcName, funcData] of Object.entries(this.DiceFunctions.rethrowFunctions)) {
+				createFunctionListing(funcData.help)
+			}
+
+			for (const [funcName, funcData] of Object.entries(this.DiceFunctions.afterThrowFunctions)) {
+				createFunctionListing(funcData.help)
+			}
+		}
 	}
 
 	on_window_resize() {
@@ -359,8 +422,10 @@ export class DiceRoller {
 		let hh = Math.floor(window.innerHeight * 0.24);
 		let h = window.innerHeight - hh + 'px';
 
-		DiceRoller.desk.style.width = w;
-		DiceRoller.desk.style.height = h;
+		if (DiceRoller.desk) {
+			DiceRoller.desk.style.width = w;
+			DiceRoller.desk.style.height = h;
+		}
 
 		if (DiceRoller.DiceRoom) {
 			DiceRoller.DiceRoom.DiceBox.setDimensions({ w: 500, h: 300 });
@@ -534,6 +599,7 @@ export class DiceRoller {
 
 	show_waitform(show) {
 		let waitform = Teal.id('waitform');
+		if (!waitform) return;
 		waitform.style.display = show ? 'block' : 'none';
 		waitform.style.cursor = show ? 'default' : 'wait';
 		waitform.style.visibility = show ? 'visible' : 'hidden';
@@ -543,6 +609,10 @@ export class DiceRoller {
 		$('.connection_message').each(function() {
 			$(this).text(text).css({color: color});
 		});
+		$('#message').each(function() {
+			$(this).text(text).css({color: color});
+		});
+
 	}
 
 	connect_socket(reopen, callback) {
@@ -568,7 +638,9 @@ export class DiceRoller {
 			DiceRoller.show_waitform(false);
 			console.log(event);
 			DiceRoller.Teal.offline = false;
-			callback.call(DiceRoller, event);
+			if (callback) {
+				callback.call(DiceRoller, event);
+			}
 		}
 
 		this.Teal.socket.onclose = function(event) {
